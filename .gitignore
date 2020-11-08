@@ -1,0 +1,17 @@
+/.vs
+/Client/.vs
+/ipch
+/Debug
+*.exe
+*.ilk
+*.pdb
+*.obj
+*.log
+*.pch
+*.idb
+*.tlog
+*.lastbuildstate
+*.suo
+*.db
+*.ipch
+*.res
