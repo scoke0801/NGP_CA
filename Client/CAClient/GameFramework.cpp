@@ -57,8 +57,8 @@ void CFramework::BuildScene()
 	m_pCurScene = nullptr;
 
 	//ChangeScene<CTitleScene>();
-	//ChangeScene<CGameScene>();
-	ChangeScene<CLobbyScene>();
+	ChangeScene<CGameScene>();
+	//ChangeScene<CLobbyScene>();
 }
 
 void CFramework::InitBuffers()

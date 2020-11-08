@@ -139,7 +139,7 @@ void CGameScene::Update(float timeElapsed)
 				int itemCreate = rand() % 10;
 				int itemName = rand() % (int)ItemName::count;
 				if (itemCreate <= 2)
-					m_Items[i][j] = new CItem((ItemName)itemName, GetPosition(coord));
+					m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord(coord));
 
 			}
 		}
@@ -162,10 +162,26 @@ void CGameScene::Update(float timeElapsed)
 			{
 				if (m_Blocks[i][j] == nullptr) continue;
 
-				bool res = player->IsCollide(m_Blocks[i][j]);
-				if (res)
+				bool bCollide = player->IsCollide(m_Blocks[i][j]);
+				bool bMovable = m_Blocks[i][j]->IsCanMove();
+				
+				if (bCollide)
 				{
 					player->FixCollision();
+				}
+				else 
+					continue;;
+				if (m_Blocks[i][j]->GetIsOnMove()) continue;
+				if (bMovable)
+				{ 
+					Direction dir = player->GetDirection();
+					Vector2i coord(j, i);
+					if (!CalcNextCoordinates(coord, dir)) continue;
+					m_Blocks[i][j]->SetIsOnMove(true, coord);
+					m_Blocks[i][j]->SetDirection(dir);
+					m_Blocks[coord.y][coord.x] = m_Blocks[i][j];
+					m_Map[i][j] = MAP_TILE_TYPE::EMPTY;
+					m_Blocks[i][j] = nullptr;
 				}
 			}
 		}
@@ -417,8 +433,38 @@ void CGameScene::LoadImages()
 
 void CGameScene::CreateBomb(Vector2D<int> coordinate)
 {
-	Vector2D<float> position = GetPosition(coordinate);
+	Vector2D<float> position = GetPositionCoord(coordinate);
 
 	m_Bombs[coordinate.y][coordinate.x] = new CBomb(position, m_Players[0]->GetPower());
 	m_Map[coordinate.y][coordinate.x] = MAP_TILE_TYPE::BOMB;
+}
+
+bool CGameScene::CalcNextCoordinates(Vector2D<int>& coord, Direction dir)
+{
+	switch (dir)
+	{
+	case Direction::down:
+		coord.y += 1;
+		break;
+	case Direction::up:
+		coord.y -= 1;
+		break;
+	case Direction::left:
+		coord.x -= 1;
+		break;
+	case Direction::right:
+		coord.x += 1;
+		break;
+	default:
+		break;
+	}
+	if (!IsInMapCoord(coord)) return false;
+
+	if (m_Blocks[coord.y][coord.x] || m_Bombs[coord.y][coord.x]) return false;
+	if (m_Items[coord.y][coord.x]) 
+	{
+		m_Map[coord.y][coord.x] = MAP_TILE_TYPE::EMPTY;
+		SAFE_DELETE(m_Items[coord.y][coord.x]);
+	}
+	return true;
 }
