@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Bomb.h"
 #include "Block.h"
+#include "Player.h"
 
 #define EXPLOSION_TIME 1.0f 
 CBomb::CBomb(Vector2D<float> position, int power)
@@ -32,6 +33,10 @@ CBomb::CBomb(Vector2D<float> position, int power)
 	m_AnimationIdx = 0;
 
 	m_State = BombState::Wait;
+
+	m_LastBranchCoords.reserve(m_Power * 4);
+	m_PlayerIsOn = false;
+
 }
 
 void CBomb::Draw(HDC hdc)
@@ -41,6 +46,7 @@ void CBomb::Draw(HDC hdc)
 
 void CBomb::Update(float timeElapsed)
 {
+	CheckPlayerOut();
 	Animate(timeElapsed);
 	m_ExplosionTime += timeElapsed;
 }
@@ -48,7 +54,7 @@ void CBomb::Update(float timeElapsed)
 void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])
 {
 	if (m_State == BombState::Wait)
-	{
+	{ 
 		m_Images[(int)m_State].TransparentBlt(
 			hdc,
 			m_Position.x, m_Position.y,
@@ -154,6 +160,13 @@ void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])
 	}
 }
 
+void CBomb::SetLastBranchCoords(vector<Vector2i>& coords)
+{
+	if (m_LastBranchCoords.size() > 0) m_LastBranchCoords.clear();
+
+	m_LastBranchCoords = coords;
+}
+
 void CBomb::Animate(float timeElapsed)
 {
 	float timeLimit = (m_State == BombState::Wait) ? 0.3f : 0.1f;
@@ -177,8 +190,31 @@ void CBomb::Animate(float timeElapsed)
 
 }
 
+void CBomb::CheckPlayerOut()
+{
+	if (!m_PlayerIsOn) return;
+	RECT rtThis = this->GetCollisionRect();
+	RECT rtOther = m_Player->GetCollisionRect();
+	bool leftCondition = rtThis.left <= rtOther.right;
+	bool rightCondition = rtThis.right >= rtOther.left;
+	bool topCondition = rtThis.top <= rtOther.bottom;
+	bool bottomCondition = rtThis.bottom >= rtOther.top;
+
+	if (!(leftCondition &&
+		rightCondition &&
+		topCondition &&
+		bottomCondition))
+		m_PlayerIsOn = false;
+}
+
 bool CBomb::IsCollide(CGameObject* other)
 {
+	if (other == m_Player)
+	{
+		if (m_PlayerIsOn) return false;
+	}
+
+	return CGameObject::IsCollide(other);
 	return false;
 }
 
@@ -199,3 +235,10 @@ void CBomb::ChangeState(BombState state)
 	m_AnimationIdx = 0;
 	m_State = state;
 }
+
+void CBomb::SetPlayer(CPlayer* player)
+{
+	m_Player = player;
+	m_PlayerIsOn = true;
+}
+

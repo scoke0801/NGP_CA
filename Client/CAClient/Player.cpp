@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Player.h"
-
+#include "Bomb.h"
 CPlayer::CPlayer(Vector2D<float> position)
 {
 	m_Position = position;
@@ -16,6 +16,7 @@ CPlayer::CPlayer(Vector2D<float> position)
 	m_State = PlayerState::wait;
 
 	m_Power = 3; 
+	m_MaxBomb = 2;
 	m_TimeSum = 0.0f;
 }
 
@@ -25,15 +26,30 @@ CPlayer::~CPlayer()
 
 void CPlayer::Draw(HDC hdc)
 {
-	m_Images[(int)m_currentAnimation].TransparentBlt(
-		hdc, m_Position.x, m_Position.y,
-		m_Size.x, m_Size.y,
-		//m_AnimationSizes[(int)m_currentAnimation].x,
-		//m_AnimationSizes[(int)m_currentAnimation].x,
-		m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0, 
-		m_AnimationSizes[(int)m_currentAnimation].x,
-		m_AnimationSizes[(int)m_currentAnimation].y,
-		RGB(255,0,255));
+	if (m_State != PlayerState::die)
+	{
+		m_Images[(int)m_currentAnimation].TransparentBlt(
+			hdc, m_Position.x, m_Position.y,
+			m_Size.x, m_Size.y,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0,
+			m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationSizes[(int)m_currentAnimation].y,
+			RGB(255, 0, 255));
+	}
+	else
+	{
+		m_Images[(int)m_currentAnimation].TransparentBlt(
+			hdc, m_Position.x - 25, m_Position.y - 25,
+			m_Size.x * 1.8, m_Size.y *1.8,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0,
+			m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationSizes[(int)m_currentAnimation].y,
+			RGB(255, 0, 255));
+	}
 }
 
 void CPlayer::Update(float timeElapsed)
@@ -115,8 +131,14 @@ void CPlayer::Move(Direction dir)
 
 void CPlayer::Stop()
 {
+	if (m_State == PlayerState::die) return;
 	m_State = PlayerState::wait;
 	m_AnimationIdx = 0;
+}
+
+bool CPlayer::CanCreateBomb()
+{
+	return m_Bombs.size() < m_MaxBomb;
 }
 
 void CPlayer::LoadImages()
@@ -165,8 +187,11 @@ void CPlayer::Animate(float timeElapsed)
 	m_TimeSum = 0.0f;
 
 	++m_AnimationIdx;
-	if (m_AnimationIdx >= m_AnimationLen[(int)m_currentAnimation])
+	if (m_State != PlayerState::die)
 	{
-		m_AnimationIdx = 0;
+		if (m_AnimationIdx >= m_AnimationLen[(int)m_currentAnimation])
+		{
+			m_AnimationIdx = 0;
+		}
 	}
 }

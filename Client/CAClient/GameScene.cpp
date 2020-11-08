@@ -36,6 +36,7 @@ void CGameScene::Update(float timeElapsed)
 		player->Update(timeElapsed);
 	}
 
+	// 물풍선 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -75,9 +76,18 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue; 
 					if (m_Items[coord.y][coord.x])  SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy())
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if(iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					} 
 				}
 				for (int z = 1; z < power; ++z)//left
 				{
@@ -86,9 +96,17 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue;
 					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 				}
 				for (int z = 1; z < power; ++z) //right
 				{
@@ -97,18 +115,30 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue;
 					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 				}
 
+				coords.push_back({ j, i });
 				for (auto coord : coords)
 				{
 					if (!IsInMapCoord(coord)) continue;
-					if (!m_Bombs[coord.y][coord.x]) continue;
+					if (!m_Bombs[coord.y][coord.x]) continue; 
+					m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
+
 					if (m_Bombs[coord.y][coord.x]->GetState() != BombState::Wait) continue; 
 					m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
 				}
+				m_Bombs[i][j]->SetLastBranchCoords(coords);
 			}
 
 			if (m_Bombs[i][j]->CheckDelete())
@@ -116,11 +146,14 @@ void CGameScene::Update(float timeElapsed)
 				Vector2D<int> coord = GetCoordinates(m_Bombs[i][j]->GetPosition(), m_Bombs[i][j]->GetSize());
 				m_Map[coord.y][coord.x] = MAP_TILE_TYPE::EMPTY;
 
+				CPlayer* player = m_Bombs[i][j]->GetPlayer();
+				player->EraseBomb(m_Bombs[i][j]);
 				delete m_Bombs[i][j];
 				m_Bombs[i][j] = nullptr;
 			}
 		}
 	}
+	// 블록 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -145,6 +178,7 @@ void CGameScene::Update(float timeElapsed)
 		}
 	}
 
+	// 아이템 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -156,6 +190,7 @@ void CGameScene::Update(float timeElapsed)
 
 	for (auto player : m_Players)
 	{
+		// 플레이어 - 블록 충돌 처리
 		for (int i = 0; i < MAP_HEIGHT; ++i)
 		{
 			for (int j = 0; j < MAP_WIDTH; ++j)
@@ -169,8 +204,7 @@ void CGameScene::Update(float timeElapsed)
 				{
 					player->FixCollision();
 				}
-				else 
-					continue;;
+				else continue;;
 				if (m_Blocks[i][j]->GetIsOnMove()) continue;
 				if (bMovable)
 				{ 
@@ -185,6 +219,7 @@ void CGameScene::Update(float timeElapsed)
 				}
 			}
 		}
+		// 플레이어 - 아이템 충돌 처리
 		for (int i = 0; i < MAP_HEIGHT; ++i)
 		{
 			for (int j = 0; j < MAP_WIDTH; ++j)
@@ -210,6 +245,35 @@ void CGameScene::Update(float timeElapsed)
 
 				delete m_Items[i][j];
 				m_Items[i][j] = nullptr;
+			}
+		}
+
+		// 플레이어 - 물풍선 충돌 처리
+		for (int i = 0; i < MAP_HEIGHT; ++i)
+		{
+			for (int j = 0; j < MAP_WIDTH; ++j)
+			{
+				if (!m_Bombs[i][j]) continue; 
+				// if (m_Bombs[i][j]->GetPlayer() == player) continue;
+				Vector2i playerCoord = GetCoordinates(player->GetPosition(), player->GetSize()); 
+				bool bCollide = m_Bombs[i][j]->IsCollide(player);
+				
+				if (bCollide)	// 일반 충돌 처리
+				{
+					player->FixCollision();
+				}
+
+#ifndef _DEBUG
+				if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
+				{
+					vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
+					
+					auto iter = find(branchCoords.begin(), branchCoords.end(), playerCoord);
+					if (iter == branchCoords.end()) continue;
+
+					player->ChangeState(PlayerState::die);
+				}
+#endif
 			}
 		}
 		if (!player->IsInMap())
@@ -308,7 +372,8 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		Vector2D<int> coord = GetCoordinates(m_Players[0]->GetPosition(), m_Players[0]->GetSize());
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
-			CreateBomb(coord);
+			if(m_Players[0]->CanCreateBomb())
+				CreateBomb(coord);
 		}
 		break;
 	}
@@ -437,6 +502,9 @@ void CGameScene::CreateBomb(Vector2D<int> coordinate)
 
 	m_Bombs[coordinate.y][coordinate.x] = new CBomb(position, m_Players[0]->GetPower());
 	m_Map[coordinate.y][coordinate.x] = MAP_TILE_TYPE::BOMB;
+
+	m_Bombs[coordinate.y][coordinate.x]->SetPlayer(m_Players[0]);
+	m_Players[0]->ConnectBomb(m_Bombs[coordinate.y][coordinate.x]);
 }
 
 bool CGameScene::CalcNextCoordinates(Vector2D<int>& coord, Direction dir)

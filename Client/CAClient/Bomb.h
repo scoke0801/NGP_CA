@@ -21,6 +21,7 @@ enum class Explosion
 #define	MAP_WIDTH 15
 
 class CBlock;
+class CPlayer;
 
 class CBomb : public CGameObject
 {
@@ -37,6 +38,13 @@ private:
 	BombState		m_State;
 	
 	int				m_Power;
+	
+	vector<Vector2i> m_LastBranchCoords;	// 물풍선 폭발 범위 좌표
+
+	// 물풍선 초기 생성 이후, 플레이어가 물풍선 위에 있는 문제 해결 위한 변수
+	bool			m_PlayerIsOn;	
+	CPlayer* m_Player;
+
 public:
 	
 public:
@@ -61,7 +69,17 @@ public:
 	bool CheckDelete() { return m_State == BombState::End; }
 
 	int GetPower() const { return m_Power; }
+
+	void SetPlayer(CPlayer* player); 
+	CPlayer* GetPlayer() { return m_Player; }
+
+	bool IsPlayerOn() const { return m_PlayerIsOn; }
+
+	void SetLastBranchCoords(vector<Vector2i>& coords);
+	
+	vector<Vector2i>& GetLastBranchCoords() { return m_LastBranchCoords; }
 private:
 	void Animate(float timeElapsed);
+	void CheckPlayerOut();
 };
 
