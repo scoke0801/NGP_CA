@@ -47,3 +47,11 @@ RECT CGameObject::GetCollisionRect()
 	rt.right = m_Position.x + m_Size.x - 4;
 	return rt;
 }
+
+Vector2D<float> CGameObject::GetCenter() const
+{
+	Vector2D<float> center;
+	center.x = m_Position.x + m_Size.x * 0.5f;
+	center.y = m_Position.y + m_Size.y * 0.5f;
+	return center;
+}
