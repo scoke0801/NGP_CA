@@ -4,6 +4,7 @@
 #include "TitleScene.h"
 #include "GameScene.h"
 #include "GameRecordScene.h"
+#include "LobbyScene.h"
 
 #define MAX_GAME_LOOP 30
 #define FPS 1 / 60.0f
@@ -55,7 +56,9 @@ void CFramework::BuildScene()
 {
 	m_pCurScene = nullptr;
 
-	ChangeScene<CGameScene>();
+	//ChangeScene<CTitleScene>();
+	//ChangeScene<CGameScene>();
+	ChangeScene<CLobbyScene>();
 }
 
 void CFramework::InitBuffers()
