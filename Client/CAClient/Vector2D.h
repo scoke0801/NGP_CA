@@ -48,7 +48,7 @@ public:
 	Vector2D<T> operator-(const Vector2D<T> &other) const { return Vector2D<T>{ x - other.x, y - other.y }; }
 	Vector2D<T> operator-(double scalar) const { return Vector2D<T>{ x - scalar, y - scalar }; }
 	Vector2D<T> operator*(const Vector2D<T> &other) const { return Vector2D<T>{ x * other.x, y * other.y }; }
-	Vector2D<T> operator*(double scalar) const { return Vector2D<T>( x * scalar, y * scalar ); }
+	Vector2D<T> operator*(double scalar) const { return Vector2D<T>{ x * scalar, y * scalar }; }
 	Vector2D<T> operator/(const Vector2D<T> &other) const { return Vector2D<T>{ x / other.x, y / other.y }; }
 	
 	Vector2D<T>& operator+=(const Vector2D<T> &other) { return *this = *this + other; }

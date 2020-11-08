@@ -9,8 +9,3 @@ CScene::CScene()
 CScene::~CScene()
 {
 }
-
-bool CScene::ProcessInput(UCHAR* pKeysBuffer)
-{
-    return false;
-}

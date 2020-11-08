@@ -1,5 +1,5 @@
 #pragma once
-#include "Timer.h"
+
 class CScene;
 
 class CFramework
@@ -13,13 +13,22 @@ private:
 	CScene* m_pCurScene;
 
 	// 더블버퍼링 처리를 위한 변수입니다.
-	HDC			m_hdc;
-	HBITMAP		m_hbmp;
+	HDC m_hdc;
+	HBITMAP m_hbmp;
 
 	// 시간 처리를 위한 변수입니다.
-	CGameTimer	m_GameTimer;
+	chrono::system_clock::time_point m_prevTime;
+	std::chrono::duration<double> m_timeElapsed;
+	double m_timeGap;
 
-	_TCHAR		m_pszFrameRate[50];
+	// 프레임을 타이틀에 표시하기 위한 변수입니다.
+	TCHAR m_captionTitle[50];
+	int m_titleLength;
+	std::chrono::system_clock::time_point m_lastUpdateTime;
+	std::chrono::duration<double> m_updateElapsed; 
+	double m_updateGap;
+	double m_fps;
+	USHORT m_frameCount;
 
 private:
 	void BuildScene();
@@ -32,8 +41,7 @@ public:
 	void init(HWND hWnd, HINSTANCE hInst);
 
 public:
-	void preUpdate(); 
-	void ProcessInput();
+	void preUpdate();
 	void update(float timeElapsed);
 	void draw(HDC hdc);
 

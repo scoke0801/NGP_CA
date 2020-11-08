@@ -26,8 +26,6 @@ public:
 
 	virtual void Communicate() = 0;
 
-	virtual bool ProcessInput(UCHAR* pKeysBuffer);
-
 	virtual LRESULT ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) { return 0; }
 	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}

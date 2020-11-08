@@ -33,17 +33,29 @@ using namespace std;
 #include <commdlg.h>
 #include "Resource.h"
 
-#include "Vector2D.h"
-
 #define CLIENT_WIDTH 1040	//클라이언트 넓이를 지정합니다.
 #define CLIENT_HEIGHT 780	//클라이언트 높이를 지정합니다.
 
-#define	MAP_WIDTH 15
-#define MAP_HEIGHT 13
+// 캡션 FPS 출력 여부 -------------------
+// 항상 캡션에 FPS를 출력		(0 : 비활성 | 1 : 활성)
+#define USE_CAPTIONFPS_ALWAYS	 1
 
-// 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
-Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size);
-Vector2D<float> GetPosition(Vector2D<int> coord);
+#if USE_CAPTIONFPS_ALWAYS
+#define SHOW_CAPTIONFPS 
+#elif _DEBUG	// Debug에서는 항상 실행
+#define SHOW_CAPTIONFPS 
+#endif
 
-bool IsInMapCoord(Vector2D<int> coord);
-#define SAFE_DELETE(p) { if(p) {delete p;} (p) = nullptr ;}
+#if defined(SHOW_CAPTIONFPS)
+#define MAX_UPDATE_FPS 1.0 / 3.0
+#endif
+
+ //최대 FPS
+#define MAX_FPS 1.0 / 60.0
+//#if _DEBUG
+//#define MAX_FPS 0.0
+//#else
+//#define MAX_FPS 1.0 / 60.0
+//#endif
+//프레임을 따라잡기까지 최대 몇번 루프를 돌 것인지를 지정합니다.
+#define MAX_LOOP_TIME 50
