@@ -8,11 +8,16 @@ CBlock::CBlock(BlockName name, Vector2D<float> position, bool isCanDestroy)
 	m_Size = { OBJECT_SIZE,  OBJECT_SIZE };
 	m_IsCanCollide = true;	
 	m_IsCanDestroy = isCanDestroy;
+	m_IsCanMove = false;
 	m_State = BlockState::Wait;
+
+	m_Vel = { OBJECT_SIZE , OBJECT_SIZE };
+	m_IsOnMove = false;
 
 	m_AnimationSizes = {40, 52};
 	m_AnimationIdx = 0;
 	m_AnimationLen = 6;
+
 	switch (name)
 	{
 	case BlockName::EMPTY:
@@ -34,6 +39,7 @@ CBlock::CBlock(BlockName name, Vector2D<float> position, bool isCanDestroy)
 		break;
 	case BlockName::BOX:
 		m_Image.Load(_T("assets/map/TownBox.bmp"));
+		m_IsCanMove = true;
 		break;
 	case BlockName::TREE:
 		m_Image.Load(_T("assets/map/TownTree.png"));
@@ -64,10 +70,55 @@ void CBlock::Draw(HDC hdc)
 
 void CBlock::Update(float timeElapsed)
 {
-	if (m_Name == BlockName::EMPTY) return;
+	if (m_Name == BlockName::EMPTY) return; 
+	
+	if (m_IsOnMove)
+	{
+		Vector2D<float> pos = GetPositionCoord(m_GoalCoord);
+		if (m_Dir == Direction::left)
+		{
+			m_Position.x = m_Position.x - (m_Vel.x * timeElapsed);
+			if (m_Position.x <= pos.x)
+			{
+				m_Position.x = pos.x;
+				m_IsOnMove = false;
+			}
+		}
+		if (m_Dir == Direction::right)
+		{
+			m_Position.x = m_Position.x + (m_Vel.x * timeElapsed);
+			if (m_Position.x >= pos.x )
+			{
+				m_Position.x = pos.x;
+				m_IsOnMove = false;
+			}
+		}
+		if (m_Dir == Direction::up)
+		{
+			m_Position.y = m_Position.y - (m_Vel.y * timeElapsed);
+			if (m_Position.y <= pos.y)
+			{
+				m_Position.y = pos.y;
+				m_IsOnMove = false;
+			}
+		}
+		if (m_Dir == Direction::down)
+		{
+			m_Position.y = m_Position.y + (m_Vel.y * timeElapsed);
+			if (m_Position.y  >= pos.y )
+			{
+				m_Position.y = pos.y;
+				m_IsOnMove = false;
+			}
+		}
+
+	}
+
 	if (m_State == BlockState::Wait) return;
 
 	Animate(timeElapsed);
+
+	
 }
 
 bool CBlock::IsCanDestroy()

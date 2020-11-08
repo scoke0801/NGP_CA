@@ -54,5 +54,6 @@ private:
 
 	void CreateBomb(Vector2D<int> coordinate);
 
+	bool CalcNextCoordinates(Vector2D<int>& coord, Direction dir);
 };
 

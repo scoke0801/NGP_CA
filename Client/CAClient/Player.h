@@ -11,13 +11,6 @@ enum class PlayerImages
 	live,
 	count,
 };
-enum class Direction
-{
-	down = 0,
-	up,
-	left,
-	right
-};
 enum class PlayerState
 {
 	wait = 0,
@@ -75,6 +68,7 @@ public:
 
 	int GetPower() { return m_Power; }
 	int GetMaxBomb() { return m_MaxBomb; }
+	Direction GetDirection() const {return m_Dir;}
 private:
 	void LoadImages();
 	void LoadSounds();

@@ -4,6 +4,8 @@
 
 #define OBJECT_SIZE 52
 
+
+
 class CGameObject
 {
 protected:

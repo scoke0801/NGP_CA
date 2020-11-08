@@ -20,7 +20,7 @@ Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size)
 	return coordinate;
 }
 
-Vector2D<float> GetPosition(Vector2D<int> coord)
+Vector2D<float> GetPositionCoord(Vector2D<int> coord)
 {
 	Vector2D<float> position; 
 	Vector2D<int> TileStartPosition = { 26, 53 };
