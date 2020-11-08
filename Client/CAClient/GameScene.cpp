@@ -268,6 +268,7 @@ LRESULT CGameScene::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 
 void CGameScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+
 }
 
 void CGameScene::ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

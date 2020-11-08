@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Resource.h"
 #include "GameFramework.h"
+#include "TitleScene.h"
 #include "GameScene.h"
+#include "GameRecordScene.h"
 
 #define MAX_GAME_LOOP 30
 #define FPS 1 / 60.0f
@@ -53,7 +55,7 @@ void CFramework::BuildScene()
 {
 	m_pCurScene = nullptr;
 
-	ChangeScene<CGameScene>();
+	ChangeScene<CTitleScene>();
 }
 
 void CFramework::InitBuffers()
@@ -134,6 +136,10 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 		break;
 	case WM_KEYUP:
 		m_pCurScene->ProcessKeyboardUpInput(hWnd, message, wParam, lParam);
+		break;
+
+	case WM_CHAR:
+		m_pCurScene->ProcessCHARInput(hWnd, message, wParam, lParam);
 		break;
 	case WM_PAINT:
 	{

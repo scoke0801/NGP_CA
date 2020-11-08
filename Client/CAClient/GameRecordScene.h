@@ -1,6 +1,12 @@
 #pragma once
 #include "Scene.h"
 
+typedef struct GameRecordData {
+	TCHAR id[20];
+	int itemScore;
+	int survivedScore;
+}GameScore;
+
 class CGameRecordScene : public CScene
 {
 public:
@@ -17,5 +23,10 @@ public:
 	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
-};
 
+private:
+	CImage background;
+	GameScore players[3];
+	
+
+};
