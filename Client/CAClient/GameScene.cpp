@@ -10,8 +10,11 @@ CGameScene::CGameScene()
 	ZeroMemory(m_Map, sizeof(m_Map));
 
 	m_SoundManager = new CSoundManager();
-	m_SoundManager->AddStream("assets/sound/play_scene.mp3", Sound_Name::BGM_MAIN_GAME);
-	//m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
+	m_SoundManager->AddStream("assets/sound/village.mp3", Sound_Name::BGM_MAIN_GAME);
+	m_SoundManager->AddSound("assets/sound/bomb_set.mp3", Sound_Name::EFFECT_BOMB_SET);
+	m_SoundManager->AddSound("assets/sound/bomb_pop.mp3", Sound_Name::EFFECT_BOMB_POP);
+	m_SoundManager->AddSound("assets/sound/wave.mp3", Sound_Name::EFFECT_BOMB_WAVE);
+	m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
 	//m_SoundManager->SetVolume(0.0f);
 
 	ZeroMemory(m_Blocks, sizeof(m_Blocks));
@@ -31,6 +34,8 @@ CGameScene::~CGameScene()
 
 void CGameScene::Update(float timeElapsed)
 {
+	m_SoundManager->OnUpdate();
+
 	for (auto player : m_Players)
 	{
 		player->Update(timeElapsed);
@@ -47,6 +52,8 @@ void CGameScene::Update(float timeElapsed)
 
 			if (m_Bombs[i][j]->IsTimeToExplose())
 			{
+
+				m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
 				m_Bombs[i][j]->ChangeState(BombState::Explosion);
 			}
 
@@ -137,6 +144,7 @@ void CGameScene::Update(float timeElapsed)
 
 					if (m_Bombs[coord.y][coord.x]->GetState() != BombState::Wait) continue; 
 					m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
+					m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
 				}
 				m_Bombs[i][j]->SetLastBranchCoords(coords);
 			}
@@ -372,8 +380,10 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		Vector2D<int> coord = GetCoordinates(m_Players[0]->GetPosition(), m_Players[0]->GetSize());
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
-			if(m_Players[0]->CanCreateBomb())
+			if (m_Players[0]->CanCreateBomb()) {
 				CreateBomb(coord);
+				m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+			}
 		}
 		break;
 	}
