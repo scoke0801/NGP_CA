@@ -36,6 +36,10 @@ enum class Sound_Name : int
 	, BGM_MAIN_GAME
 	, BGM_GAME_LOSE
 	, BGM_GAME_WIN
+	, EFFECT_BOMB_SET
+	, EFFECT_BOMB_POP
+	, EFFECT_BOMB_WAVE
+
 };
 
 class CSoundManager
