@@ -7,16 +7,16 @@ CItem::CItem(ItemName name, Vector2D<float> position)
 	switch (name)
 	{
 	case ItemName::ballon:
-		m_Image.Load(_T("assets/item/ballon.bmp"));
+		m_Image.Load(_T("assets/item/ballon.png"));
 		break;
 	case ItemName::potion:
-		m_Image.Load(_T("assets/item/potion.bmp"));
+		m_Image.Load(_T("assets/item/potion.png"));
 		break;
 	case ItemName::nuclear:
-		m_Image.Load(_T("assets/item/nuclear.bmp"));
+		m_Image.Load(_T("assets/item/nuclear.png"));
 		break;
 	case ItemName::skate:
-		m_Image.Load(_T("assets/item/skate.bmp"));
+		m_Image.Load(_T("assets/item/skate.png"));
 		break;
 	default:
 		assert(!"잘못된 아이템");

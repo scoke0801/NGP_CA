@@ -11,12 +11,12 @@ CBomb::CBomb(Vector2D<float> position, int power)
 
 	m_Size = { OBJECT_SIZE, OBJECT_SIZE };
 
-	m_Images[(int)BombState::Wait].Load(_T("assets/bomb/bomb.bmp"));
-	m_Images[(int)Explosion::inPlace].Load(_T("assets/bomb/inPlace.bmp"));
-	m_Images[(int)Explosion::down].Load(_T("assets/bomb/down.bmp"));
-	m_Images[(int)Explosion::up].Load(_T("assets/bomb/up.bmp"));
-	m_Images[(int)Explosion::left].Load(_T("assets/bomb/left.bmp"));
-	m_Images[(int)Explosion::right].Load(_T("assets/bomb/right.bmp"));
+	m_Images[(int)BombState::Wait].Load(_T("assets/bomb/bomb.png"));
+	m_Images[(int)Explosion::inPlace].Load(_T("assets/bomb/inPlace.png"));
+	m_Images[(int)Explosion::down].Load(_T("assets/bomb/down.png"));
+	m_Images[(int)Explosion::up].Load(_T("assets/bomb/up.png"));
+	m_Images[(int)Explosion::left].Load(_T("assets/bomb/left.png"));
+	m_Images[(int)Explosion::right].Load(_T("assets/bomb/right.png"));
 
 	m_AnimationSizes[0] = { 56,54 };
 	m_AnimationLen[0] = 4;

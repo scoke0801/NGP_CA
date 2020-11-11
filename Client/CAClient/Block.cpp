@@ -23,10 +23,10 @@ CBlock::CBlock(BlockName name, Vector2D<float> position, bool isCanDestroy)
 	case BlockName::EMPTY:
 		break;
 	case BlockName::BLOCK_YELLOW:
-		m_Image.Load(_T("assets/map/TownBlockYellow.bmp"));
+		m_Image.Load(_T("assets/map/TownBlockYellow.png"));
 		break;
 	case BlockName::BLOCK_RED:
-		m_Image.Load(_T("assets/map/TownBlockRed.bmp"));
+		m_Image.Load(_T("assets/map/TownBlockRed.png"));
 		break;
 	case BlockName::HOUSE_BLUE:
 		m_Image.Load(_T("assets/map/TownHouseBlue.png"));
@@ -38,7 +38,7 @@ CBlock::CBlock(BlockName name, Vector2D<float> position, bool isCanDestroy)
 		m_Image.Load(_T("assets/map/TownHouseYellow.png"));
 		break;
 	case BlockName::BOX:
-		m_Image.Load(_T("assets/map/TownBox.bmp"));
+		m_Image.Load(_T("assets/map/TownBox.png"));
 		m_IsCanMove = true;
 		break;
 	case BlockName::TREE:
