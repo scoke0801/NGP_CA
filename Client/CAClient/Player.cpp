@@ -143,13 +143,13 @@ bool CPlayer::CanCreateBomb()
 
 void CPlayer::LoadImages()
 {
-	m_Images[0].Load(_T("assets/player/bazzi/down.bmp"));
-	m_Images[1].Load(_T("assets/player/bazzi/up.bmp"));
-	m_Images[2].Load(_T("assets/player/bazzi/left.bmp"));
-	m_Images[3].Load(_T("assets/player/bazzi/right.bmp"));
-	m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
-	m_Images[5].Load(_T("assets/player/bazzi/die.bmp"));
-	m_Images[6].Load(_T("assets/player/bazzi/live.bmp"));
+	m_Images[0].Load(_T("assets/player/bazzi/down.png"));
+	m_Images[1].Load(_T("assets/player/bazzi/up.png"));
+	m_Images[2].Load(_T("assets/player/bazzi/left.png"));
+	m_Images[3].Load(_T("assets/player/bazzi/right.png"));
+	m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
+	m_Images[5].Load(_T("assets/player/bazzi/die.png"));
+	m_Images[6].Load(_T("assets/player/bazzi/live.png"));
 
 	m_AnimationIdx = 0;
 	m_currentAnimation = PlayerImages::down;

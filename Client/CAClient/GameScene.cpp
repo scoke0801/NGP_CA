@@ -292,14 +292,12 @@ void CGameScene::Update(float timeElapsed)
 }
 
 void CGameScene::Draw(HDC hdc)
-{
-	m_UIImage.TransparentBlt(hdc,
+{ 
+	m_UIImage.StretchBlt(hdc,
 		0, 0,
 		m_rtClient.right, m_rtClient.bottom,
-		0, 0, m_UIImage.GetWidth(), m_UIImage.GetHeight(),
-		RGB(255,0,255));
-	
-	
+		0, 0, m_UIImage.GetWidth(), m_UIImage.GetHeight()); 
+
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -503,7 +501,7 @@ void CGameScene::LoadImages()
 {
 	// 52, 52
 	m_TileStartPosition = { 26, 53 };  
-	m_UIImage.Load(_T("assets/ui_bg.bmp"));
+	m_UIImage.Load(_T("assets/ui_bg.png"));
 }
 
 void CGameScene::CreateBomb(Vector2D<int> coordinate)
