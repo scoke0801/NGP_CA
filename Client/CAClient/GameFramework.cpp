@@ -56,6 +56,8 @@ void CFramework::BuildScene()
 	m_pCurScene = nullptr;
 
 	ChangeScene<CTitleScene>();
+	//ChangeScene<CGameScene>();
+	//ChangeScene<CLobbyScene>();
 }
 
 void CFramework::InitBuffers()
@@ -125,6 +127,8 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	{
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONDOWN:
+		m_pCurScene->ProcessMouseClick(hWnd, message, wParam, lParam);
+		break;
 	case WM_NCLBUTTONUP:
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:

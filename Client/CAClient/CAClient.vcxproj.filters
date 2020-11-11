@@ -26,6 +26,9 @@
     <Filter Include="Communicate">
       <UniqueIdentifier>{b68588ef-d38b-46ba-8f1c-6bb3342776ca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UiObject">
+      <UniqueIdentifier>{d3cd8512-cf16-455c-b901-42096421956c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -83,6 +86,9 @@
       <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Button.h">
+      <Filter>UiObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -128,6 +134,9 @@
       <Filter>GameObject</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Button.cpp">
+      <Filter>UiObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CAClient.rc">
