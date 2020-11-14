@@ -85,9 +85,11 @@
     <ClInclude Include="Player.h">
       <Filter>GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h" />
+    <ClInclude Include="Timer.h" /> 
     <ClInclude Include="Button.h">
-      <Filter>UiObject</Filter>
+      <Filter>UiObject</Filter> 
+    <ClInclude Include="Communicates.h">
+      <Filter>Communicate</Filter> 
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -133,9 +135,11 @@
     <ClCompile Include="Player.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Timer.cpp" /> 
     <ClCompile Include="Button.cpp">
-      <Filter>UiObject</Filter>
+      <Filter>UiObject</Filter> 
+    <ClCompile Include="Communicates.cpp">
+      <Filter>Communicate</Filter> 
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
