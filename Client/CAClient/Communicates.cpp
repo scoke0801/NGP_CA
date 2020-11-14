@@ -51,3 +51,25 @@ int recvn(SOCKET s, char* buf, int len, int flags)
 
     return (len - left);
 }
+
+bool Communicate(SOCKET& sock, string& str, int& retval)
+{
+    int len = str.length();
+
+    // 데이터 보내기(고정 길이)
+    retval = send(sock, (char*)&len, sizeof(int), 0);
+    if (retval == SOCKET_ERROR)
+    {
+        error_display("send()");
+        return false;
+    }
+
+    // 데이터 보내기(가변 길이)
+    retval = send(sock, str.c_str(), len, 0);
+    if (retval == SOCKET_ERROR)
+    {
+        error_display("send()");
+        return false;
+    }
+    return true;
+}

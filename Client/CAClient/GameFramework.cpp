@@ -5,6 +5,7 @@
 #include "GameScene.h"
 #include "GameRecordScene.h"
 #include "LobbyScene.h"
+#include "Communicates.h"
 
 #define MAX_GAME_LOOP 30
 #define FPS 1 / 60.0f
@@ -36,6 +37,9 @@ CFramework::~CFramework()
 		delete m_pCurScene;
 		m_pCurScene = nullptr;
 	}
+
+	if (m_Sock) closesocket(m_Sock);
+	WSACleanup();
 }
 
 void CFramework::init(HWND hWnd, HINSTANCE hInst)
@@ -48,16 +52,58 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	BuildScene();
 	InitBuffers();
 
+	m_IsServerConnected = false;
+	 
 	_tcscpy_s(m_pszFrameRate, _T("Crazy Arcade( "));
-	m_GameTimer.Reset();
+	m_GameTimer.Reset(); 
+}
+
+void CFramework::PrepareCommunicate()
+{
+	//CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
+
+	int retval = 0;
+	// 윈속 초기화
+	if (WSAStartup(MAKEWORD(2, 2), &m_WSA) != 0) return;
+
+	// set serveraddr
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	serveraddr.sin_port = htons(SERVERPORT);
+
+	// socket()
+	m_Sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_Sock == INVALID_SOCKET) 
+	{
+		m_IsServerConnected = false;
+		// for testing 
+		// error_quit("socket()");
+	}
+
+	// connect()
+	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR)
+	{
+		m_IsServerConnected = false;
+		// for testing 
+		// error_quit("connect()");
+	}
+}
+
+void CFramework::Communicate()
+{
+	if(m_pCurScene) m_pCurScene->Communicate();
 }
 
 void CFramework::BuildScene()
 {
 	m_pCurScene = nullptr;
 
+	ChangeScene<CNullScene>();
 	//ChangeScene<CTitleScene>();
-	ChangeScene<CGameScene>();
+	//ChangeScene<CGameScene>();
 	//ChangeScene<CLobbyScene>();
 }
 
@@ -89,6 +135,8 @@ void CFramework::preUpdate()
 	ProcessInput();
 
 	update(m_GameTimer.GetTimeElapsed());
+	if (m_IsServerConnected) m_pCurScene->Communicate();
+
 	// 업데이트가 종료되면 렌더링을 진행합니다.
 	InitBuffers();
 	InvalidateRect(m_hWnd, &m_rtClient, FALSE);
@@ -156,6 +204,19 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
+DWORD __stdcall ClientMain(LPVOID arg)
+{
+	CFramework* framework = reinterpret_cast<CFramework*>(arg);
+
+	framework->PrepareCommunicate();
+	
+	while (1)
+	{
+		framework->Communicate();
 	}
 	return 0;
 }

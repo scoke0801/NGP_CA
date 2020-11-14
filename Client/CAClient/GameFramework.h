@@ -21,6 +21,13 @@ private:
 
 	_TCHAR		m_pszFrameRate[50];
 
+private:	// 서버와 통신하기 위한 데이터 입니다.
+	WSADATA m_WSA;
+	SOCKET m_Sock;
+	SOCKADDR m_ServerAddr;
+
+	bool m_IsServerConnected;
+
 private:
 	void BuildScene();
 	void InitBuffers();
@@ -30,6 +37,11 @@ public:
 	~CFramework();
 
 	void init(HWND hWnd, HINSTANCE hInst);
+
+public:
+	void PrepareCommunicate();
+	void Communicate();
+	friend DWORD WINAPI ClientMain(LPVOID arg);
 
 public:
 	void preUpdate(); 
@@ -55,3 +67,4 @@ public:
 	}
 };
 
+DWORD WINAPI ClientMain(LPVOID arg);
