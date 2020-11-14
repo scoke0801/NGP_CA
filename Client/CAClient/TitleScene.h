@@ -1,5 +1,15 @@
 #pragma once
 #include "Scene.h"
+#include "Button.h"
+
+class CSoundManager;
+
+
+typedef struct AccountData {
+	string id;
+	string pw;
+	bool isNew;
+};
 
 class CTitleScene : public CScene
 {
@@ -14,18 +24,31 @@ public:
 	virtual void Communicate();
 
 	virtual LRESULT ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) { return 0; }
-	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	virtual void ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {};
 	virtual void ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+	void LoadAccounts();
+	void RegisterNewID();
+
 private:
 	CImage background;
-	CImage login;
+	CImage boxLogin;
 	CImage popup;
 
-	TCHAR id[20];
-	TCHAR pw[20];
+	Button btNewid;
+	Button btLogin;
+	Button btExit;
+
+	CSoundManager* m_SoundManager;
+
+	//set<AccountData*> accounts;
+	map<string, string> accounts;
+
+	AccountData player;
 	string selected;
+	string message;
 };
 
