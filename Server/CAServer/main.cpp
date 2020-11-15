@@ -1,5 +1,6 @@
 #include "stdafx.h"
-
+ 
+#pragma warning(disable  : 4996)    // mbstowcs unsafe### 
 // 파일 저장 함수
 void saveFile(string filename, vector<string> fileData);
 
@@ -112,18 +113,23 @@ int main(int argc, char* argv[]) {
 
 	WSACleanup();
 	return 0;
+}  
+void charToWchar(const char* msg, wchar_t* out)
+{
+	mbstowcs(out, msg, strlen(msg) + 1);//Plus null
 }
-
 void err_quit(const char* msg)
 {
-
+	wchar_t wMsg[20]; 
 	LPVOID lpMsgBuf;
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WSAGetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf, 0, NULL);
-	MessageBox(NULL, (LPCTSTR)lpMsgBuf, msg, MB_ICONERROR);
+		(LPTSTR)&lpMsgBuf, 0, NULL);  
+
+	charToWchar(msg, wMsg);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, wMsg, MB_ICONERROR); 
 	LocalFree(lpMsgBuf);
 	exit(1);
 
