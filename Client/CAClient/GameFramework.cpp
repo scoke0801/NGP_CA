@@ -135,7 +135,8 @@ void CFramework::preUpdate()
 	ProcessInput();
 
 	update(m_GameTimer.GetTimeElapsed());
-	if (m_IsServerConnected) m_pCurScene->Communicate();
+	if (m_IsServerConnected) 
+		m_pCurScene->Communicate();
 
 	// 업데이트가 종료되면 렌더링을 진행합니다.
 	InitBuffers();
