@@ -10,6 +10,8 @@ CTitleScene::CTitleScene()
 	id[0] = '\0';
 	pw[0] = '\0';
 	selected = "ID";
+
+	m_Type = SceneType::TitleScene;
 }
 
 CTitleScene::~CTitleScene()
@@ -47,7 +49,7 @@ void CTitleScene::Draw(HDC hdc)
 	TextOut(hdc, 500, 563, pw, lstrlen(pw));
 }
 
-void CTitleScene::Communicate()
+void CTitleScene::Communicate(SOCKET& sock)
 {
 
 }

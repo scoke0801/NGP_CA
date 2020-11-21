@@ -25,9 +25,9 @@
 #if defined(SHOW_CAPTIONFPS)
 	#define MAX_UPDATE_FPS 1.0f / 5.0f
 #endif
-
+CFramework* CFramework::self = nullptr;
 CFramework::CFramework()
-{
+{ 
 }
 
 CFramework::~CFramework()
@@ -39,7 +39,7 @@ CFramework::~CFramework()
 	}
 
 	if (m_Sock) closesocket(m_Sock);
-	WSACleanup();
+	WSACleanup(); 
 }
 
 void CFramework::init(HWND hWnd, HINSTANCE hInst)
@@ -58,13 +58,13 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	m_GameTimer.Reset(); 
 }
 
-void CFramework::PrepareCommunicate()
+bool CFramework::PrepareCommunicate()
 {
 	//CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
 
 	int retval = 0;
 	// 윈속 초기화
-	if (WSAStartup(MAKEWORD(2, 2), &m_WSA) != 0) return;
+	if (WSAStartup(MAKEWORD(2, 2), &m_WSA) != 0) return false;
 
 	// set serveraddr
 	SOCKADDR_IN serveraddr;
@@ -80,6 +80,7 @@ void CFramework::PrepareCommunicate()
 		m_IsServerConnected = false;
 		// for testing 
 		// error_quit("socket()");
+		return false;
 	}
 
 	// connect()
@@ -89,12 +90,15 @@ void CFramework::PrepareCommunicate()
 		m_IsServerConnected = false;
 		// for testing 
 		// error_quit("connect()");
+		return false;
 	}
+	return true;
 }
 
 void CFramework::Communicate()
 {
-	if(m_pCurScene) m_pCurScene->Communicate();
+	if(m_pCurScene) 
+		m_pCurScene->Communicate(m_Sock);
 }
 
 void CFramework::BuildScene()
@@ -135,8 +139,8 @@ void CFramework::preUpdate()
 	ProcessInput();
 
 	update(m_GameTimer.GetTimeElapsed());
-	if (m_IsServerConnected) 
-		m_pCurScene->Communicate();
+	//if (m_IsServerConnected) 
+	//	m_pCurScene->Communicate(m_);
 
 	// 업데이트가 종료되면 렌더링을 진행합니다.
 	InitBuffers();
@@ -210,14 +214,13 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 }
 
 DWORD __stdcall ClientMain(LPVOID arg)
-{
-	CFramework* framework = reinterpret_cast<CFramework*>(arg);
-
-	framework->PrepareCommunicate();
+{ 
+	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
 	
 	while (1)
 	{
-		framework->Communicate();
+		CFramework::GetInstance()->Communicate();
 	}
+
 	return 0;
 }

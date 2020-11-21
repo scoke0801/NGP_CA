@@ -21,6 +21,8 @@ private:
 
 	_TCHAR		m_pszFrameRate[50];
 
+	CRITICAL_SECTION m_cs;
+
 private:	// 서버와 통신하기 위한 데이터 입니다.
 	WSADATA m_WSA;
 	SOCKET m_Sock;
@@ -29,17 +31,27 @@ private:	// 서버와 통신하기 위한 데이터 입니다.
 	bool m_IsServerConnected;
 
 private:
+	static CFramework* self;
+
 	void BuildScene();
 	void InitBuffers();
 
-public:
 	CFramework();
 	~CFramework();
+
+	CFramework(const CFramework&) = delete;
+	CFramework operator=(const CFramework&) = delete;
+public:
+	static CFramework* GetInstance()
+	{
+		static CFramework self;
+		return &self;
+	}
 
 	void init(HWND hWnd, HINSTANCE hInst);
 
 public:
-	void PrepareCommunicate();
+	bool PrepareCommunicate();
 	void Communicate();
 	friend DWORD WINAPI ClientMain(LPVOID arg);
 
@@ -54,16 +66,20 @@ public:
 	template <typename SceneName>
 	void ChangeScene() 
 	{
+		//EnterCriticalSection(&m_cs);
 		CScene *scene = new SceneName;
+		static CScene* prevScene;
 		scene->Init(m_rtClient, this);
 
 		if (m_pCurScene)
 		{
-			delete m_pCurScene;
+			prevScene = m_pCurScene;
+			//delete m_pCurScene;
 			m_pCurScene = nullptr;
 		}
 
 		m_pCurScene = scene;
+		//LeaveCriticalSection(&m_cs);
 	}
 };
 

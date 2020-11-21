@@ -101,6 +101,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	while (1) {
 		// 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << "받은 값" << atoi(buffer) << "\n";
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)

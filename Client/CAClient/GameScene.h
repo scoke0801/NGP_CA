@@ -39,7 +39,7 @@ public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
 
-	virtual void Communicate();
+	virtual void Communicate(SOCKET& sock);
 
 	virtual bool ProcessInput(UCHAR* pKeysBuffer);
 
