@@ -26,14 +26,16 @@ CTitleScene::CTitleScene()
 	player.id = "";
 	player.pw = "";
 	player.isNew = FALSE;
-	selected = "ID";
+	selected = "ID"; 
 	message = "test~";
 
 	btNewid.Init(_T("assets/login_scene_newidBT.png"), { 355, 610 });
 	btLogin.Init(_T("assets/login_scene_loginBT.png"), { 468, 610 });
 	btExit.Init(_T("assets/login_scene_exitBT.png"), { 580, 610 });
 
-	LoadAccounts();
+	LoadAccounts(); 
+
+	m_Type = SceneType::TitleScene; 
 }
 
 CTitleScene::~CTitleScene()
@@ -75,7 +77,7 @@ void CTitleScene::Draw(HDC hdc)
 
 }
 
-void CTitleScene::Communicate()
+void CTitleScene::Communicate(SOCKET& sock)
 {
 
 }

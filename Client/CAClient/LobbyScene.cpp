@@ -11,6 +11,7 @@ CLobbyScene::CLobbyScene()
 	m_Player3_Images[0].Load(_T("assets/lobby_scene_player3.png"));
 	m_Player3_Images[1].Load(_T("assets/lobby_scene_player3_ready.png"));
 
+	m_Type = SceneType::LobbyScene;
 }
 
 CLobbyScene::~CLobbyScene()
@@ -49,7 +50,7 @@ void CLobbyScene::Draw(HDC hdc)
 	}
 }
 
-void CLobbyScene::Communicate()
+void CLobbyScene::Communicate(SOCKET& sock)
 {
 }
 

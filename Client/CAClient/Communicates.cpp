@@ -52,7 +52,7 @@ int recvn(SOCKET s, char* buf, int len, int flags)
     return (len - left);
 }
 
-bool Communicate(SOCKET& sock, string& str, int& retval)
+bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
     int len = str.length();
 

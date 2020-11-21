@@ -1,6 +1,15 @@
 #pragma once
 
 #include "GameFramework.h"
+#include "Communicates.h"
+
+enum class SceneType
+{
+	LobbyScene = 0,
+	TitleScene,
+	GameScene,
+	GameRecordScene
+};
 
 class CScene
 {
@@ -9,6 +18,7 @@ private:
 
 protected:
 	RECT m_rtClient;
+	SceneType m_Type;
 
 protected:
 	template<class SceneName>
@@ -24,7 +34,7 @@ public:
 	virtual void Update(float timeElapsed) = 0;
 	virtual void Draw(HDC hdc) = 0;
 
-	virtual void Communicate() = 0;
+	virtual void Communicate(SOCKET& sock) = 0;
 
 	virtual bool ProcessInput(UCHAR* pKeysBuffer);
 
@@ -47,7 +57,7 @@ public:
 	virtual void Update(float timeElapsed) {}
 	virtual void Draw(HDC hdc);
 
-	virtual void Communicate() {}
+	virtual void Communicate(SOCKET& sock) {}
 
 	virtual bool ProcessInput(UCHAR* pKeysBuffer) { return false; }
 
