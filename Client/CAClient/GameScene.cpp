@@ -5,6 +5,7 @@
 #include "Item.h"
 #include "Block.h"
 #include "Bomb.h"
+#include "Datas.h"
 CGameScene::CGameScene()
 {
 	ZeroMemory(m_Map, sizeof(m_Map));
@@ -334,9 +335,31 @@ void CGameScene::Draw(HDC hdc)
 void CGameScene::Communicate(SOCKET& sock)
 {
 	int retVal;
-	string toSendData;
-	toSendData = to_string((int)m_Type);
-	SendFrameData(sock, toSendData, retVal); 
+	vector<string> toSendData;
+	toSendData.push_back( to_string((int)m_Type) );
+	SendFrameData(sock, toSendData[0], retVal); 
+	 
+	GameSceneSendData data; 
+	data.playerIndex = 0;
+	data.position = m_Players[0]->GetPosition();
+	data.waterRange = m_Players[0]->GetPower();
+	data.speed = m_Players[0]->GetSpeed();
+	data.state = (int)m_Players[0]->GetState();
+	//data.mapData = m_Map; 
+	string temp;
+	temp = "<Position>:";
+	temp += "";
+	toSendData.clear();
+	toSendData.push_back(to_string(data.position.x));  
+	toSendData.push_back(to_string(data.position.y));
+	toSendData.push_back(to_string(data.waterRange));
+	toSendData.push_back(to_string(data.speed));
+	toSendData.push_back(to_string(data.state));
+	for (int i = 0; i < toSendData.size(); ++i)
+	{
+		SendFrameData(sock, toSendData[i], retVal);
+	}
+
 }
 
 bool CGameScene::ProcessInput(UCHAR* pKeysBuffer)
