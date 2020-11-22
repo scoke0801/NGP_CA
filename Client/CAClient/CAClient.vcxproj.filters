@@ -1,101 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
-      <UniqueIdentifier>{84575ded-84db-49e1-acba-57f78be9a9a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Main\리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Framework">
-      <UniqueIdentifier>{f8d609ac-c996-4ed9-a8d4-ae221d4e72d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scene">
-      <UniqueIdentifier>{b4fd89d8-9973-441a-bcbb-2db09e3c4448}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sound">
-      <UniqueIdentifier>{cff3f97f-3054-4b94-9846-3fb12642cb69}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="util">
-      <UniqueIdentifier>{c2ff4693-3190-4304-8111-2b01937cb73f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GameObject">
-      <UniqueIdentifier>{c90ed20a-e002-4b10-af06-96bf7340a716}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Communicate">
-      <UniqueIdentifier>{b68588ef-d38b-46ba-8f1c-6bb3342776ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="UiObject">
-      <UniqueIdentifier>{d3cd8512-cf16-455c-b901-42096421956c}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Main.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Main\리소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Main\리소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework.h">
-      <Filter>Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="LobbyScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="TitleScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Sound.h">
-      <Filter>Sound</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector2D.h">
-      <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="Item.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="Block.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="GameScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Datas.h">
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Communicates.cpp">
       <Filter>Communicate</Filter>
-    </ClInclude>
-    <ClInclude Include="Bomb.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="GameRecordScene.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>GameObject</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h" />
-    <ClInclude Include="Button.h">
-      <Filter>UiObject</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Block.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Bomb.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Item.cpp">
+      <Filter>Object</Filter>
     </ClCompile>
     <ClCompile Include="GameFramework.cpp">
       <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="GameRecordScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="GameScene.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="LobbyScene.cpp">
       <Filter>Scene</Filter>
@@ -106,8 +41,80 @@
     <ClCompile Include="TitleScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="Resource.h">
+      <Filter>Main\리소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Communicates.h">
+      <Filter>Communicate</Filter>
+    </ClInclude>
+    <ClInclude Include="Datas.h">
+      <Filter>Communicate</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2D.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Sound.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Bomb.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameRecordScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GameScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>Main</Filter>
+    <ClInclude Include="Communicates.h">
+      <Filter>Communicate</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Object</Filter>
+    </ClInclude>
     </ClCompile>
     <ClCompile Include="Sound.cpp">
       <Filter>Sound</Filter>
@@ -133,9 +140,8 @@
     <ClCompile Include="Player.cpp">
       <Filter>GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Button.cpp">
-      <Filter>UiObject</Filter>
+    <ClCompile Include="Communicates.cpp">
+      <Filter>Communicate</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -144,14 +150,43 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
+    <Image Include="CAClient.ico">
       <Filter>Main\리소스 파일</Filter>
     </Image>
-    <Image Include="CAClient.ico">
+    <Image Include="small.ico">
       <Filter>Main\리소스 파일</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Communicate">
+      <UniqueIdentifier>{0c124723-030f-4b79-a2fe-d241eaae423c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{569b1bca-b506-4d65-a981-40c6131c52d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{b58446da-79ba-4b90-901b-3290098e3338}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{09d653ee-bf4d-4269-aca8-d7083dd8327b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{57f9de1b-6254-47b2-b04c-6da80c7b0d28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4aea84b2-7e7a-429d-bac6-c8c0a96bb5fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main\리소스 파일">
+      <UniqueIdentifier>{ef963a7c-801c-4fff-a435-b12ec137c9f9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CAClient.rc">
+      <Filter>Main\리소스 파일</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

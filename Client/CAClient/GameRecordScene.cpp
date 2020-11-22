@@ -8,6 +8,9 @@ CGameRecordScene::CGameRecordScene()
 	players[0] = { {L"간옹"}, 500, 2000 };
 	players[1] = { {L"손건"}, 400, 2100 };
 	players[2] = { {L"미축"}, 300, 2200 };
+
+
+	m_Type = SceneType::GameRecordScene;
 }
 
 CGameRecordScene::~CGameRecordScene()
@@ -39,6 +42,6 @@ void CGameRecordScene::Draw(HDC hdc)
 	}
 }
 
-void CGameRecordScene::Communicate()
+void CGameRecordScene::Communicate(SOCKET& sock)
 {
 }

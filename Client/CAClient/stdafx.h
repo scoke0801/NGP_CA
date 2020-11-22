@@ -23,8 +23,9 @@
 #include <chrono>
 #include <cassert>
 #include <vector>
-#include <map>
-#include <set>
+#include <map> 
+#include <set> 
+#include<string> 
 
 using namespace std;
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
@@ -43,7 +44,15 @@ using namespace std;
 
 // 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
 Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size);
-Vector2D<float> GetPosition(Vector2D<int> coord);
+Vector2D<float> GetPositionCoord(Vector2D<int> coord);
 
 bool IsInMapCoord(Vector2D<int> coord);
 #define SAFE_DELETE(p) { if(p) {delete p;} (p) = nullptr ;}
+
+enum class Direction
+{
+	down = 0,
+	up,
+	left,
+	right
+};

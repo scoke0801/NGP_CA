@@ -35,8 +35,14 @@ private:
 
 	bool m_IsCanCollide;	// 충돌가능 블록인지 여부
 	bool m_IsCanDestroy;	// 파괴가능 블록인지 여부
+	bool m_IsCanMove;	// 이동가능 블록인지 여부
 
 	BlockState	m_State;
+
+	// 이동 관련 변수들
+	bool  m_IsOnMove;
+	Direction m_Dir;
+	Vector2D<int> m_GoalCoord;
 
 public:
 	CBlock(BlockName name, Vector2D<float> position, bool isCanDestroy = true);
@@ -51,8 +57,15 @@ public:
 
 	void ChangeState(BlockState state) { m_State = state; }
 	bool IsCanDestroy();
+	bool IsCanMove() const { if (m_IsOnMove) return false;  return m_IsCanMove; }
 
 	bool CheckDelete() { return m_State == BlockState::End; }
+
+	void SetDirection(Direction dir) { m_Dir = dir; }
+	Direction GetDirection() const { return m_Dir; }
+
+	void SetIsOnMove(bool bMove, Vector2i goalCoord) { m_IsOnMove = bMove; m_GoalCoord = goalCoord; }
+	bool GetIsOnMove() const { return m_IsOnMove; }
 private:
 	void Animate(float timeElapsed);
 };

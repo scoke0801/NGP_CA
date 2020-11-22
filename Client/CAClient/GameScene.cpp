@@ -5,12 +5,16 @@
 #include "Item.h"
 #include "Block.h"
 #include "Bomb.h"
+#include "Datas.h"
 CGameScene::CGameScene()
 {
 	ZeroMemory(m_Map, sizeof(m_Map));
 
 	m_SoundManager = new CSoundManager();
-	m_SoundManager->AddStream("assets/sound/play_scene.mp3", Sound_Name::BGM_MAIN_GAME);
+	m_SoundManager->AddStream("assets/sound/village.mp3", Sound_Name::BGM_MAIN_GAME);
+	m_SoundManager->AddSound("assets/sound/bomb_set.mp3", Sound_Name::EFFECT_BOMB_SET);
+	m_SoundManager->AddSound("assets/sound/bomb_pop.mp3", Sound_Name::EFFECT_BOMB_POP);
+	m_SoundManager->AddSound("assets/sound/wave.mp3", Sound_Name::EFFECT_BOMB_WAVE);
 	//m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
 	//m_SoundManager->SetVolume(0.0f);
 
@@ -22,6 +26,8 @@ CGameScene::CGameScene()
 	Vector2D<float> PlayerPos(m_TileStartPosition.x + OBJECT_SIZE * 13,
 		m_TileStartPosition.y + OBJECT_SIZE * 1);
 	m_Players.push_back(new CPlayer(PlayerPos));
+
+	m_Type = SceneType::GameScene;
 }
 
 CGameScene::~CGameScene()
@@ -31,11 +37,14 @@ CGameScene::~CGameScene()
 
 void CGameScene::Update(float timeElapsed)
 {
+	m_SoundManager->OnUpdate();
+
 	for (auto player : m_Players)
 	{
 		player->Update(timeElapsed);
 	}
 
+	// 물풍선 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -46,6 +55,8 @@ void CGameScene::Update(float timeElapsed)
 
 			if (m_Bombs[i][j]->IsTimeToExplose())
 			{
+
+				//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
 				m_Bombs[i][j]->ChangeState(BombState::Explosion);
 			}
 
@@ -75,9 +86,18 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue; 
 					if (m_Items[coord.y][coord.x])  SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy())
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if(iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					} 
 				}
 				for (int z = 1; z < power; ++z)//left
 				{
@@ -86,9 +106,17 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue;
 					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 				}
 				for (int z = 1; z < power; ++z) //right
 				{
@@ -97,18 +125,31 @@ void CGameScene::Update(float timeElapsed)
 					if (!IsInMapCoord(coord)) continue;
 					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
 					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
+					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
+					{
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+						break;
+					}
 				}
 
+				coords.push_back({ j, i });
 				for (auto coord : coords)
 				{
 					if (!IsInMapCoord(coord)) continue;
-					if (!m_Bombs[coord.y][coord.x]) continue;
+					if (!m_Bombs[coord.y][coord.x]) continue; 
+					m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
+
 					if (m_Bombs[coord.y][coord.x]->GetState() != BombState::Wait) continue; 
 					m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
+					//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
 				}
+				m_Bombs[i][j]->SetLastBranchCoords(coords);
 			}
 
 			if (m_Bombs[i][j]->CheckDelete())
@@ -116,11 +157,14 @@ void CGameScene::Update(float timeElapsed)
 				Vector2D<int> coord = GetCoordinates(m_Bombs[i][j]->GetPosition(), m_Bombs[i][j]->GetSize());
 				m_Map[coord.y][coord.x] = MAP_TILE_TYPE::EMPTY;
 
+				CPlayer* player = m_Bombs[i][j]->GetPlayer();
+				player->EraseBomb(m_Bombs[i][j]);
 				delete m_Bombs[i][j];
 				m_Bombs[i][j] = nullptr;
 			}
 		}
 	}
+	// 블록 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -139,12 +183,13 @@ void CGameScene::Update(float timeElapsed)
 				int itemCreate = rand() % 10;
 				int itemName = rand() % (int)ItemName::count;
 				if (itemCreate <= 2)
-					m_Items[i][j] = new CItem((ItemName)itemName, GetPosition(coord));
+					m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord(coord));
 
 			}
 		}
 	}
 
+	// 아이템 업데이트
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -156,19 +201,36 @@ void CGameScene::Update(float timeElapsed)
 
 	for (auto player : m_Players)
 	{
+		// 플레이어 - 블록 충돌 처리
 		for (int i = 0; i < MAP_HEIGHT; ++i)
 		{
 			for (int j = 0; j < MAP_WIDTH; ++j)
 			{
 				if (m_Blocks[i][j] == nullptr) continue;
 
-				bool res = player->IsCollide(m_Blocks[i][j]);
-				if (res)
+				bool bCollide = player->IsCollide(m_Blocks[i][j]);
+				bool bMovable = m_Blocks[i][j]->IsCanMove();
+				
+				if (bCollide)
 				{
 					player->FixCollision();
 				}
+				else continue;;
+				if (m_Blocks[i][j]->GetIsOnMove()) continue;
+				if (bMovable)
+				{ 
+					Direction dir = player->GetDirection();
+					Vector2i coord(j, i);
+					if (!CalcNextCoordinates(coord, dir)) continue;
+					m_Blocks[i][j]->SetIsOnMove(true, coord);
+					m_Blocks[i][j]->SetDirection(dir);
+					m_Blocks[coord.y][coord.x] = m_Blocks[i][j];
+					m_Map[i][j] = MAP_TILE_TYPE::EMPTY;
+					m_Blocks[i][j] = nullptr;
+				}
 			}
 		}
+		// 플레이어 - 아이템 충돌 처리
 		for (int i = 0; i < MAP_HEIGHT; ++i)
 		{
 			for (int j = 0; j < MAP_WIDTH; ++j)
@@ -196,6 +258,35 @@ void CGameScene::Update(float timeElapsed)
 				m_Items[i][j] = nullptr;
 			}
 		}
+
+		// 플레이어 - 물풍선 충돌 처리
+		for (int i = 0; i < MAP_HEIGHT; ++i)
+		{
+			for (int j = 0; j < MAP_WIDTH; ++j)
+			{
+				if (!m_Bombs[i][j]) continue; 
+				// if (m_Bombs[i][j]->GetPlayer() == player) continue;
+				Vector2i playerCoord = GetCoordinates(player->GetPosition(), player->GetSize()); 
+				bool bCollide = m_Bombs[i][j]->IsCollide(player);
+				
+				if (bCollide)	// 일반 충돌 처리
+				{
+					player->FixCollision();
+				}
+
+#ifndef _DEBUG
+				if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
+				{
+					vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
+					
+					auto iter = find(branchCoords.begin(), branchCoords.end(), playerCoord);
+					if (iter == branchCoords.end()) continue;
+
+					player->ChangeState(PlayerState::die);
+				}
+#endif
+			}
+		}
 		if (!player->IsInMap())
 		{
 			player->FixCollision();
@@ -204,14 +295,12 @@ void CGameScene::Update(float timeElapsed)
 }
 
 void CGameScene::Draw(HDC hdc)
-{
-	m_UIImage.TransparentBlt(hdc,
+{ 
+	m_UIImage.StretchBlt(hdc,
 		0, 0,
 		m_rtClient.right, m_rtClient.bottom,
-		0, 0, m_UIImage.GetWidth(), m_UIImage.GetHeight(),
-		RGB(255,0,255));
-	
-	
+		0, 0, m_UIImage.GetWidth(), m_UIImage.GetHeight()); 
+
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -243,8 +332,34 @@ void CGameScene::Draw(HDC hdc)
 	}	
 }
 
-void CGameScene::Communicate()
+void CGameScene::Communicate(SOCKET& sock)
 {
+	int retVal;
+	vector<string> toSendData;
+	toSendData.push_back( to_string((int)m_Type) );
+	SendFrameData(sock, toSendData[0], retVal); 
+	 
+	GameSceneSendData data; 
+	data.playerIndex = 0;
+	data.position = m_Players[0]->GetPosition();
+	data.waterRange = m_Players[0]->GetPower();
+	data.speed = m_Players[0]->GetSpeed();
+	data.state = (int)m_Players[0]->GetState();
+	//data.mapData = m_Map; 
+	string temp;
+	temp = "<Position>:";
+	temp += "";
+	toSendData.clear();
+	toSendData.push_back(to_string(data.position.x));  
+	toSendData.push_back(to_string(data.position.y));
+	toSendData.push_back(to_string(data.waterRange));
+	toSendData.push_back(to_string(data.speed));
+	toSendData.push_back(to_string(data.state));
+	for (int i = 0; i < toSendData.size(); ++i)
+	{
+		SendFrameData(sock, toSendData[i], retVal);
+	}
+
 }
 
 bool CGameScene::ProcessInput(UCHAR* pKeysBuffer)
@@ -292,7 +407,10 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		Vector2D<int> coord = GetCoordinates(m_Players[0]->GetPosition(), m_Players[0]->GetSize());
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
-			CreateBomb(coord);
+			if (m_Players[0]->CanCreateBomb()) {
+				CreateBomb(coord);
+				//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+			}
 		}
 		break;
 	}
@@ -412,13 +530,46 @@ void CGameScene::LoadImages()
 {
 	// 52, 52
 	m_TileStartPosition = { 26, 53 };  
-	m_UIImage.Load(_T("assets/ui_bg.bmp"));
+	m_UIImage.Load(_T("assets/ui_bg.png"));
 }
 
 void CGameScene::CreateBomb(Vector2D<int> coordinate)
 {
-	Vector2D<float> position = GetPosition(coordinate);
+	Vector2D<float> position = GetPositionCoord(coordinate);
 
 	m_Bombs[coordinate.y][coordinate.x] = new CBomb(position, m_Players[0]->GetPower());
 	m_Map[coordinate.y][coordinate.x] = MAP_TILE_TYPE::BOMB;
+
+	m_Bombs[coordinate.y][coordinate.x]->SetPlayer(m_Players[0]);
+	m_Players[0]->ConnectBomb(m_Bombs[coordinate.y][coordinate.x]);
+}
+
+bool CGameScene::CalcNextCoordinates(Vector2D<int>& coord, Direction dir)
+{
+	switch (dir)
+	{
+	case Direction::down:
+		coord.y += 1;
+		break;
+	case Direction::up:
+		coord.y -= 1;
+		break;
+	case Direction::left:
+		coord.x -= 1;
+		break;
+	case Direction::right:
+		coord.x += 1;
+		break;
+	default:
+		break;
+	}
+	if (!IsInMapCoord(coord)) return false;
+
+	if (m_Blocks[coord.y][coord.x] || m_Bombs[coord.y][coord.x]) return false;
+	if (m_Items[coord.y][coord.x]) 
+	{
+		m_Map[coord.y][coord.x] = MAP_TILE_TYPE::EMPTY;
+		SAFE_DELETE(m_Items[coord.y][coord.x]);
+	}
+	return true;
 }

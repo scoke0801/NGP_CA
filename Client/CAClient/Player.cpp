@@ -1,12 +1,17 @@
 #include "stdafx.h"
 #include "Player.h"
-
+#include "Bomb.h"
 CPlayer::CPlayer(Vector2D<float> position)
 {
 	m_Position = position;
 
+	m_Power = 3;
+	m_MaxBomb = 2;
+	m_Speed = 2;
+	m_TimeSum = 0.0f;
+
 	m_Size = { OBJECT_SIZE, OBJECT_SIZE };
-	m_Vel = { PlAYER_SPEED * 2, PlAYER_SPEED * 2};
+	m_Vel = { PlAYER_SPEED * m_Speed, PlAYER_SPEED * m_Speed };
 
 	m_Dir = Direction::down;
 
@@ -14,9 +19,6 @@ CPlayer::CPlayer(Vector2D<float> position)
 	LoadSounds();
 
 	m_State = PlayerState::wait;
-
-	m_Power = 3; 
-	m_TimeSum = 0.0f;
 }
 
 CPlayer::~CPlayer()
@@ -25,15 +27,30 @@ CPlayer::~CPlayer()
 
 void CPlayer::Draw(HDC hdc)
 {
-	m_Images[(int)m_currentAnimation].TransparentBlt(
-		hdc, m_Position.x, m_Position.y,
-		m_Size.x, m_Size.y,
-		//m_AnimationSizes[(int)m_currentAnimation].x,
-		//m_AnimationSizes[(int)m_currentAnimation].x,
-		m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0, 
-		m_AnimationSizes[(int)m_currentAnimation].x,
-		m_AnimationSizes[(int)m_currentAnimation].y,
-		RGB(255,0,255));
+	if (m_State != PlayerState::die)
+	{
+		m_Images[(int)m_currentAnimation].TransparentBlt(
+			hdc, m_Position.x, m_Position.y,
+			m_Size.x, m_Size.y,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0,
+			m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationSizes[(int)m_currentAnimation].y,
+			RGB(255, 0, 255));
+	}
+	else
+	{
+		m_Images[(int)m_currentAnimation].TransparentBlt(
+			hdc, m_Position.x - 25, m_Position.y - 25,
+			m_Size.x * 1.8, m_Size.y *1.8,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			//m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationIdx * m_AnimationSizes[(int)m_currentAnimation].x, 0,
+			m_AnimationSizes[(int)m_currentAnimation].x,
+			m_AnimationSizes[(int)m_currentAnimation].y,
+			RGB(255, 0, 255));
+	}
 }
 
 void CPlayer::Update(float timeElapsed)
@@ -115,19 +132,32 @@ void CPlayer::Move(Direction dir)
 
 void CPlayer::Stop()
 {
+	if (m_State == PlayerState::die) return;
 	m_State = PlayerState::wait;
 	m_AnimationIdx = 0;
 }
 
+void CPlayer::SpeedUp()
+{
+	m_Vel.x = min(m_Vel.x + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Vel.y = min(m_Vel.y + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Speed = min(m_Speed + 1, PLAYER_SPEED_LIMIT);
+} 
+
+bool CPlayer::CanCreateBomb()
+{
+	return m_Bombs.size() < m_MaxBomb;
+}
+
 void CPlayer::LoadImages()
 {
-	m_Images[0].Load(_T("assets/player/bazzi/down.bmp"));
-	m_Images[1].Load(_T("assets/player/bazzi/up.bmp"));
-	m_Images[2].Load(_T("assets/player/bazzi/left.bmp"));
-	m_Images[3].Load(_T("assets/player/bazzi/right.bmp"));
-	m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
-	m_Images[5].Load(_T("assets/player/bazzi/die.bmp"));
-	m_Images[6].Load(_T("assets/player/bazzi/live.bmp"));
+	m_Images[0].Load(_T("assets/player/bazzi/down.png"));
+	m_Images[1].Load(_T("assets/player/bazzi/up.png"));
+	m_Images[2].Load(_T("assets/player/bazzi/left.png"));
+	m_Images[3].Load(_T("assets/player/bazzi/right.png"));
+	m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
+	m_Images[5].Load(_T("assets/player/bazzi/die.png"));
+	m_Images[6].Load(_T("assets/player/bazzi/live.png"));
 
 	m_AnimationIdx = 0;
 	m_currentAnimation = PlayerImages::down;
@@ -165,8 +195,11 @@ void CPlayer::Animate(float timeElapsed)
 	m_TimeSum = 0.0f;
 
 	++m_AnimationIdx;
-	if (m_AnimationIdx >= m_AnimationLen[(int)m_currentAnimation])
+	if (m_State != PlayerState::die)
 	{
-		m_AnimationIdx = 0;
+		if (m_AnimationIdx >= m_AnimationLen[(int)m_currentAnimation])
+		{
+			m_AnimationIdx = 0;
+		}
 	}
 }
