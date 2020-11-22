@@ -1,15 +1,9 @@
 #pragma once
 #include "Scene.h"
+#include "Datas.h"
 #include "Button.h"
 
 class CSoundManager;
-
-
-typedef struct AccountData {
-	string id;
-	string pw;
-	bool isNew;
-};
 
 class CTitleScene : public CScene
 {
@@ -47,8 +41,9 @@ private:
 	//set<AccountData*> accounts;
 	map<string, string> accounts;
 
-	AccountData player;
+	TitleSceneSendData player;
+	TitleSceneRecvData check;
 	string selected;
-	string message;
+	string textmessage;
 };
 

@@ -80,6 +80,28 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	return true;
 }
 
+bool SendFrameData(SOCKET& sock, string& str, int& retval)
+{
+	int len = str.length();
+
+	// 데이터 보내기(고정 길이)
+	retval = send(sock, (char*)&len, sizeof(int), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
+
+	// 데이터 보내기(가변 길이)
+	retval = send(sock, str.c_str(), len, 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
+	return true;
+}
+
 void saveFile(string filename, vector<string> fileData)
 {
 
@@ -99,26 +121,25 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
+
+	// 계정정보 파일 읽어오기
+	map<string, string> accounts;
+	ifstream in("data/Account.txt"s);
+	if (in) {
+		string id, pw;
+		while (!in.eof()) {
+			in >> id >> pw;
+			accounts.insert(pair<string, string>(id, pw));
+		}
+	}
+	in.close();
+
 	while (1) {
 		// 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
  
 		cout << "씬 번호" << atoi(buffer); 
 
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << ", x 위치 : " << atoi(buffer) ;
-
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << ", y 위치 : " << atoi(buffer); 
-		
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << ", 물풍선 길이 : " << atoi(buffer);
-
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << ", 속도 : " << atoi(buffer);
-
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << ", 상태 : " << atoi(buffer) << "\n";
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
@@ -137,11 +158,73 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 			break;
 		case SceneType::TitleScene:
+		{
 			//PrcoessTitleScene();
-			cout << "게임 시작" << endl; 
+			TitleSceneRecvData player;
+			TitleSceneSendData check;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", 플레이어 ID : " << buffer;
+			player.id = buffer;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", 플레이어 PW : " << buffer;
+			player.pw = buffer;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", IsNew : " << buffer << "\n";
+			player.isNew = (bool)buffer;
+
+			if (player.isNew == TRUE) {
+				ofstream out;
+				out.open("data/Account.txt"s, ios::app);
+
+				auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
+				if (isAdded.second == TRUE) {
+					out << player.id << " " << player.pw << endl;
+					cout << "Account registration completed!\n";
+					check.result = TRUE;
+				}
+				else {
+					cout << "This ID already exists.\n";
+					check.result = FALSE;
+				}
+
+				out.close();
+			}
+			else {
+				map<string, string>::iterator data;
+				data = accounts.find(player.id);
+				if (data == accounts.end())
+					check.result = FALSE;
+				else {
+					if (data->second == player.pw)
+						check.result = TRUE;
+					else
+						check.result = FALSE;
+				}
+			}
+
+			string data = to_string(check.result);
+			SendFrameData(client_sock, data, retval);
 			break;
+			}
 		case SceneType::GameScene:
 			ProcessGameScene();
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", x 위치 : " << atoi(buffer);
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", y 위치 : " << atoi(buffer);
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", 물풍선 길이 : " << atoi(buffer);
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", 속도 : " << atoi(buffer);
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", 상태 : " << atoi(buffer) << "\n";
 			break;
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();

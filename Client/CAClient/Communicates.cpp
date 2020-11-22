@@ -73,3 +73,28 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
     }
     return true;
 }
+
+bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
+{
+    // 데이터 받기(고정 길이)
+    int len;
+    retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
+
+    if (retval == SOCKET_ERROR)
+    {
+        error_display("recv()");
+        return false;
+    }
+    else if (retval == 0) return false;
+
+    // 데이터 받기(가변 길이)
+    retval = recvn(client_sock, buf, len, 0);
+    if (retval == SOCKET_ERROR)
+    {
+        error_display("recv()");
+        return false;
+    }
+
+    buf[retval] = '\0';
+    return true;
+}

@@ -1,6 +1,7 @@
 #pragma warning(disable :4996)
 #include "stdafx.h"
 #include "TitleScene.h"
+#include "LobbyScene.h"
 #include "Sound.h"
 
 TCHAR* StringToTCHAR(string& s)
@@ -26,8 +27,9 @@ CTitleScene::CTitleScene()
 	player.id = "";
 	player.pw = "";
 	player.isNew = FALSE;
+	check.result = FALSE;
 	selected = "ID"; 
-	message = "test~";
+	textmessage = "test~";
 
 	btNewid.Init(_T("assets/login_scene_newidBT.png"), { 355, 610 });
 	btLogin.Init(_T("assets/login_scene_loginBT.png"), { 468, 610 });
@@ -35,7 +37,7 @@ CTitleScene::CTitleScene()
 
 	LoadAccounts(); 
 
-	m_Type = SceneType::TitleScene; 
+	m_Type = SceneType::TitleScene;
 }
 
 CTitleScene::~CTitleScene()
@@ -73,13 +75,30 @@ void CTitleScene::Draw(HDC hdc)
 
 	TextOut(hdc, 500, 538, StringToTCHAR(player.id), player.id.length());
 	TextOut(hdc, 500, 563, StringToTCHAR(player.pw), player.pw.length());
-	TextOut(hdc, 390, 250, StringToTCHAR(message), message.length());
+	TextOut(hdc, 390, 250, StringToTCHAR(textmessage), textmessage.length());
 
 }
 
 void CTitleScene::Communicate(SOCKET& sock)
 {
+	int retval;
+	vector<string> toSendData;
+	char buf[BUFSIZE + 1];
+	toSendData.push_back(to_string((int)m_Type));
+	SendFrameData(sock, toSendData[0], retval);
 
+	toSendData.clear();
+	toSendData.push_back(player.id);
+	toSendData.push_back(player.pw);
+	toSendData.push_back(to_string(player.isNew));
+
+	for (int i = 0; i < toSendData.size(); ++i)
+	{
+		SendFrameData(sock, toSendData[i], retval);
+	}
+
+	if (RecvFrameData(sock, buf, retval))
+		check.result = (bool)buf;
 }
 
 void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -94,12 +113,23 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 	if (message == WM_LBUTTONDOWN)
 	{
-		if (btNewid.IsClicked({ mx, my }))
-			RegisterNewID();
-		if (btLogin.IsClicked({ mx, my }))
+		if (btNewid.IsClicked({ mx, my })) {
+			player.isNew = TRUE;
+			if (check.result)
+				textmessage = "Account registration completed!";
+			else
+				textmessage = "This ID already exists.";
+		}
+		if (btLogin.IsClicked({ mx, my })) {
+			player.isNew = FALSE;
+			if (check.result)
+				ChangeScene<CLobbyScene>();
+			else
+				textmessage = "Wrong Password.";
+		}
+		if (btExit.IsClicked({ mx, my })) {
 			DestroyWindow(hWnd);
-		if (btExit.IsClicked({ mx, my }))
-			DestroyWindow(hWnd);
+		}
 	}
 
 }
@@ -136,8 +166,6 @@ void CTitleScene::LoadAccounts()
 		{
 			in >> id >> pw;
 			accounts.insert(pair<string, string>(id, pw));
-			//AccountData account = { id ,pw, FALSE };
-			//accounts.insert(&account);
 		}
 	}
 
@@ -149,14 +177,14 @@ void CTitleScene::RegisterNewID()
 	ofstream out;
 	out.open("data/Account.txt"s, ios::app);
 
-	AccountData account = { player.id ,player.pw, TRUE };
+	TitleSceneSendData account = { player.id ,player.pw, TRUE };
 	auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
 	if (isAdded.second == TRUE) {
 		out << player.id << " " << player.pw << endl;
-		message = "Account registration completed!";
+		textmessage = "Account registration completed!";
 	}
 	else {
-		message = "This ID already exists.";
+		textmessage = "This ID already exists.";
 	}
 
 	out.close();

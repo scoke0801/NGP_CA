@@ -18,4 +18,5 @@ void error_display(const char* msg);
 
 int recvn(SOCKET s, char* buf, int len, int flag);
  
-bool SendFrameData(SOCKET& sock, string& str, int& retval); 
+bool SendFrameData(SOCKET& sock, string& str, int& retval);
+bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval);
