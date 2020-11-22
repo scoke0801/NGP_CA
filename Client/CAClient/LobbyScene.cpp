@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LobbyScene.h"
+#include "GameScene.h"
 
 CLobbyScene::CLobbyScene()
 {
@@ -10,8 +11,8 @@ CLobbyScene::CLobbyScene()
 
 	m_Player3_Images[0].Load(_T("assets/lobby_scene_player3.png"));
 	m_Player3_Images[1].Load(_T("assets/lobby_scene_player3_ready.png"));
-
-	m_Type = SceneType::LobbyScene;
+	 
+	m_Type = SceneType::LobbyScene; 
 }
 
 CLobbyScene::~CLobbyScene()
@@ -20,6 +21,19 @@ CLobbyScene::~CLobbyScene()
 
 void CLobbyScene::Update(float timeElapsed)
 {
+	if (Player2_Ready && Player3_Ready)
+	{
+		is_All_Ready = true;
+	}
+	else
+	{
+		is_All_Ready = false;
+	}
+
+	if (isGameStart)
+	{
+		ChangeScene<CGameScene>();
+	}
 }
 
 void CLobbyScene::Draw(HDC hdc)
@@ -52,6 +66,14 @@ void CLobbyScene::Draw(HDC hdc)
 
 void CLobbyScene::Communicate(SOCKET& sock)
 {
+	int retVal;
+	string toSendData;
+	if (is_All_Ready)
+	{
+		toSendData = "준비완료";
+		SendFrameData(sock, toSendData, retVal);
+	}
+
 }
 
 void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -68,31 +90,23 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 
 	case VK_F4:
 		if (Player2_Exist)
-		{
-			Player2_Ready = 1;
+		{ 
+			Player2_Ready=1; 
+			Player2_Ready = !Player2_Ready; 
 		}
 		break;
 
 	case VK_F5:
-		if (Player2_Exist)
+		if (Player3_Exist)
 		{
-			Player2_Ready = 0;
+			Player3_Ready = !Player3_Ready;
 		}
 		break;
-
 	case VK_F6:
-		if (Player3_Exist)
+		if (is_All_Ready)
 		{
-			Player3_Ready = 1;
+			isGameStart = true;
 		}
-		break;
-
-	case VK_F7:
-		if (Player3_Exist)
-		{
-			Player3_Ready = 0;
-		}
-		break;
 
 	}
 }

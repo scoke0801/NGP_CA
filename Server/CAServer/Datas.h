@@ -16,10 +16,16 @@ enum class SceneType
 // 여기를 채워 주세요
 #pragma region LobbySceneDatas
 struct LobbySceneRecvData
-{
+{ 
+	bool is_All_Ready;
+	string chatData;
+	bool isGameStart;
 };
 struct LobbySceneSendData
 {
+	bool is_All_Ready;
+	string chatData;
+	bool isGameStart; 
 };
 #pragma endregion
 

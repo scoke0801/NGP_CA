@@ -20,9 +20,13 @@ public:
 
 	bool Player2_Exist;
 	bool Player3_Exist;
+	bool is_All_Ready;
 
-	int Player2_Ready = 0;
-	int Player3_Ready = 0;
+	bool Player2_Ready = false;
+	bool Player3_Ready = false;
+	bool isGameStart;
+
+	string chatData;
 
 private:
 	CImage m_Bg_Image;

@@ -90,7 +90,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-
+	 
+	int retval=0; 
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
@@ -101,16 +102,29 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	while (1) {
 		// 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "받은 값" << atoi(buffer) << "\n";
+ 
+		cout << "받은 값 " << atoi(buffer) << "\n"; 
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
 		case SceneType::LobbyScene:
 			//ProcessLobbyScene();
+ 
+			cout << "게임 시작 가능" << endl;
+
+			// 데이터 보내기
+			retval = recv(client_sock, buffer, retval, 0);
+			if (retval == SOCKET_ERROR)
+			{
+				err_display("send()");
+				break;
+			}
+
 			break;
 		case SceneType::TitleScene:
 			//PrcoessTitleScene();
+			cout << "게임 시작" << endl; 
 			break;
 		case SceneType::GameScene:
 			ProcessGameScene();

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "Datas.h"
-#include "Communicates.h" 
+#include "Communicates.h"  
 int main(int argc, char* argv[])
 {
 #pragma region ForDebugHide
