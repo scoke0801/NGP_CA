@@ -1,5 +1,4 @@
 #pragma once
-#include "Timer.h"
 class CScene;
 
 class CFramework
@@ -16,8 +15,17 @@ private:
 	HDC			m_hdc;
 	HBITMAP		m_hbmp;
 
-	// 시간 처리를 위한 변수입니다.
-	CGameTimer	m_GameTimer;
+	// 시간 처리를 위한 변수입니다. 
+	std::chrono::system_clock::time_point m_currentTime;
+	std::chrono::duration<double> m_timeElapsed; // 시간이 얼마나 지났나
+	double m_dLag; 
+	double m_fps;
+
+	// 타이틀바 출력 관련 변수입니다.
+	TCHAR m_captionTitle[50];
+	int m_titleLength;
+	std::chrono::system_clock::time_point m_lastUpdateTime;
+	std::chrono::duration<double> m_updateElapsed; 
 
 	_TCHAR		m_pszFrameRate[50];
 
