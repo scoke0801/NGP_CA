@@ -7,8 +7,10 @@
 #include "LobbyScene.h"
 #include "Communicates.h"
 
-#define MAX_GAME_LOOP 30
+#define MAX_GAME_LOOP 30  
 #define FPS 1 / 60.0f
+//프레임을 따라잡기까지 최대 몇번 루프를 돌 것인지를 지정합니다.
+#define MAX_LOOP_TIME 50
 
 #define TITLE_LENGTH 50
 
@@ -55,7 +57,12 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	m_IsServerConnected = false;
 	 
 	_tcscpy_s(m_pszFrameRate, _T("Crazy Arcade( "));
-	m_GameTimer.Reset(); 
+	LoadString(m_hInst, IDS_APP_TITLE, m_captionTitle, TITLE_LENGTH);
+#if defined(SHOW_CAPTIONFPS)
+	lstrcat(m_captionTitle, TEXT(" ("));
+#endif
+	m_titleLength = lstrlen(m_captionTitle);
+	SetWindowText(m_hWnd, m_captionTitle); 
 }
 
 bool CFramework::PrepareCommunicate()
@@ -135,19 +142,45 @@ void CFramework::InitBuffers()
 
 void CFramework::preUpdate()
 {
-	m_GameTimer.Tick(0.0f);
-	ProcessInput();
+	m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
+	m_dLag = 0.0;
 
-	update(m_GameTimer.GetTimeElapsed());
-	//if (m_IsServerConnected) 
-	//	m_pCurScene->Communicate(m_);
+	ProcessInput();
+	
+	if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
+	{
+		m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
+
+		if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
+
+		//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+		m_dLag += m_timeElapsed.count();
+		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
+		{
+			update(FPS);
+			m_dLag -= FPS;
+		} 
+	}
+	// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+	else
+		return; 
 
 	// 업데이트가 종료되면 렌더링을 진행합니다.
 	InitBuffers();
 	InvalidateRect(m_hWnd, &m_rtClient, FALSE);
+	 
+#if defined(SHOW_CAPTIONFPS)
 
-	m_GameTimer.GetFrameRate(m_pszFrameRate + 14, 37);
-	::SetWindowText(m_hWnd, m_pszFrameRate);
+	m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
+	if (m_updateElapsed.count() > MAX_UPDATE_FPS)
+		m_lastUpdateTime = std::chrono::system_clock::now();
+	else 
+		return;
+
+	_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
+	wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
+	SetWindowText(m_hWnd, m_captionTitle);
+#endif
 }
 
 void CFramework::ProcessInput()
