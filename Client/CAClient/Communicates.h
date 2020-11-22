@@ -17,6 +17,12 @@ void error_quit(const char* msg);
 void error_display(const char* msg);
 
 int recvn(SOCKET s, char* buf, int len, int flag);
+<<<<<<< Updated upstream
 
 bool SendFrameData(SOCKET& sock, string& str, int& retval);
 
+=======
+ 
+bool SendFrameData(SOCKET& sock, string& str, int& retval); 
+bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval);
+>>>>>>> Stashed changes

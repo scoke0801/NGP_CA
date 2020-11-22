@@ -7,8 +7,8 @@
 
 enum class SceneType
 {
-	LobbyScene = 0,
-	TitleScene,
+	TitleScene=0,
+	LobbyScene,
 	GameScene,
 	GameRecordScene
 };
@@ -16,13 +16,23 @@ enum class SceneType
 // 여기를 채워 주세요
 #pragma region LobbySceneDatas
 struct LobbySceneRecvData
+<<<<<<< Updated upstream
 {
 	bool is_All_Ready;
+=======
+{ 
+	int Thread_Num=0;
+
+	bool Player2_Ready;
+	bool Player3_Ready;
+>>>>>>> Stashed changes
 	string chatData;
 	bool isGameStart;
 };
 struct LobbySceneSendData
 {
+	int Thread_Num;
+
 	bool is_All_Ready;
 	string chatData;
 	bool isGameStart;

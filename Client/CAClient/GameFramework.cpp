@@ -24,7 +24,12 @@
 #endif
 
 CFramework::CFramework()
+<<<<<<< Updated upstream
 {
+=======
+{ 
+	
+>>>>>>> Stashed changes
 }
 
 CFramework::~CFramework()
@@ -34,6 +39,14 @@ CFramework::~CFramework()
 		delete m_pCurScene;
 		m_pCurScene = nullptr;
 	}
+<<<<<<< Updated upstream
+=======
+
+	
+	if (m_Sock) closesocket(m_Sock);
+	
+	WSACleanup(); 
+>>>>>>> Stashed changes
 }
 
 void CFramework::init(HWND hWnd, HINSTANCE hInst)
@@ -53,10 +66,63 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	lstrcat(m_captionTitle, TEXT(" ("));
 #endif
 	m_titleLength = lstrlen(m_captionTitle);
+<<<<<<< Updated upstream
 	SetWindowText(m_hWnd, m_captionTitle);
 
 	BuildScene();
 	InitBuffers();
+=======
+	SetWindowText(m_hWnd, m_captionTitle); 
+}
+
+bool CFramework::PrepareCommunicate()
+{
+	//CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
+
+	int retval = 0;
+	// 윈속 초기화
+	if (WSAStartup(MAKEWORD(2, 2), &m_WSA) != 0) return false;
+
+	// set serveraddr
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	serveraddr.sin_port = htons(SERVERPORT);
+
+	// socket()
+	m_Sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_Sock == INVALID_SOCKET) 
+	{
+		m_IsServerConnected = false;
+		// for testing 
+		// error_quit("socket()");
+		return false;
+	}
+	
+	// connect()
+	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR)
+	{
+		m_IsServerConnected = false;
+		// for testing 
+		// error_quit("connect()");
+		return false;
+	}
+	
+	Thread_Num++;
+	cout << Thread_Num;
+
+	return true;
+}
+
+void CFramework::Communicate()
+{
+	
+	if(m_pCurScene) 
+		m_pCurScene->Communicate(m_Sock);
+	
+>>>>>>> Stashed changes
 }
 
 void CFramework::BuildScene()
@@ -139,6 +205,7 @@ void CFramework::preUpdate()
 void CFramework::update(float timeElapsed)
 {
 	m_pCurScene->Update(timeElapsed);
+	
 }
 
 void CFramework::draw(HDC hdc)
