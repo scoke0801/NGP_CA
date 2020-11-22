@@ -142,45 +142,50 @@ void CFramework::InitBuffers()
 
 void CFramework::preUpdate()
 {
-	m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
-	m_dLag = 0.0;
-
-	ProcessInput();
-	
-	if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
+	if (!m_IsServerConnected)
 	{
-		m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
+		m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
+		m_dLag = 0.0;
 
-		if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
+		ProcessInput();
 
-		//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
-		m_dLag += m_timeElapsed.count();
-		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
+		if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
 		{
-			update(FPS);
-			m_dLag -= FPS;
-		} 
-	}
-	// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
-	else
-		return; 
+			m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
 
-	// 업데이트가 종료되면 렌더링을 진행합니다.
-	InitBuffers();
-	InvalidateRect(m_hWnd, &m_rtClient, FALSE);
-	 
+			if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
+
+			//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+			m_dLag += m_timeElapsed.count();
+			for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
+			{
+				update(FPS);
+				m_dLag -= FPS;
+			}
+		}
+		// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+		else
+			return;
+
+		// 업데이트가 종료되면 렌더링을 진행합니다.
+		InitBuffers();
+		InvalidateRect(m_hWnd, &m_rtClient, FALSE);
+
 #if defined(SHOW_CAPTIONFPS)
 
-	m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
-	if (m_updateElapsed.count() > MAX_UPDATE_FPS)
-		m_lastUpdateTime = std::chrono::system_clock::now();
-	else 
-		return;
+		m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
+		if (m_updateElapsed.count() > MAX_UPDATE_FPS)
+			m_lastUpdateTime = std::chrono::system_clock::now();
+		else
+			return;
 
-	_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
-	wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
-	SetWindowText(m_hWnd, m_captionTitle);
+		_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
+		wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
+		SetWindowText(m_hWnd, m_captionTitle);
 #endif
+	}
+	else
+	{ }
 }
 
 void CFramework::ProcessInput()
@@ -249,10 +254,53 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 DWORD __stdcall ClientMain(LPVOID arg)
 { 
 	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
-	
+	std::chrono::system_clock::time_point currentTime;
+	std::chrono::duration<double> timeElapsed; // 시간이 얼마나 지났나
+	double dLag = 0.0f;
+	double fps  = 0.0f;
+
+	std::chrono::system_clock::time_point lastUpdateTime;
+	std::chrono::duration<double> updateElapsed;
+
 	while (1)
 	{
-		CFramework::GetInstance()->Communicate();
+		timeElapsed = std::chrono::system_clock::now() - currentTime;//현재시간과 이전시간을 비교해서
+		dLag = 0.0;
+
+		CFramework::GetInstance()->ProcessInput();
+
+		if ( timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
+		{
+			currentTime = std::chrono::system_clock::now();//현재시간 갱신
+
+			if (timeElapsed.count() > 0.0) fps = 1.0 / timeElapsed.count();
+
+			//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+			dLag += timeElapsed.count();
+			for (int i = 0; dLag > FPS && i < MAX_LOOP_TIME; ++i)
+			{
+				CFramework::GetInstance()->Communicate();
+				dLag -= FPS;
+			}
+		}
+		// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+		else
+			continue;
+
+#if defined(SHOW_CAPTIONFPS)
+
+		updateElapsed = std::chrono::system_clock::now() - CFramework::GetInstance()->m_lastUpdateTime;
+		if (updateElapsed.count() > MAX_UPDATE_FPS)
+			lastUpdateTime = std::chrono::system_clock::now();
+		else
+			continue;
+
+		_itow_s( fps + 0.1f,
+			CFramework::GetInstance()->m_captionTitle + CFramework::GetInstance()->m_titleLength,
+			TITLE_LENGTH - CFramework::GetInstance()->m_titleLength, 10);
+		wcscat_s(CFramework::GetInstance()->m_captionTitle + CFramework::GetInstance()->m_titleLength, TITLE_LENGTH - CFramework::GetInstance()->m_titleLength, TEXT(" FPS)"));
+		SetWindowText(CFramework::GetInstance()->m_hWnd, CFramework::GetInstance()->m_captionTitle);
+#endif
 	}
 
 	return 0;

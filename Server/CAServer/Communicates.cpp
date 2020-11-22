@@ -101,8 +101,22 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	while (1) {
 		// 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "받은 값" << atoi(buffer) << "\n";
+		cout << "씬 번호" << atoi(buffer);
 
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << ", x 위치 : " << atoi(buffer) ;
+
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << ", y 위치 : " << atoi(buffer); 
+		
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << ", 물풍선 길이 : " << atoi(buffer);
+
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << ", 속도 : " << atoi(buffer);
+
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		cout << ", 상태 : " << atoi(buffer) << "\n";
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{

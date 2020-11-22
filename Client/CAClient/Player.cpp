@@ -5,8 +5,13 @@ CPlayer::CPlayer(Vector2D<float> position)
 {
 	m_Position = position;
 
+	m_Power = 3;
+	m_MaxBomb = 2;
+	m_Speed = 2;
+	m_TimeSum = 0.0f;
+
 	m_Size = { OBJECT_SIZE, OBJECT_SIZE };
-	m_Vel = { PlAYER_SPEED * 2, PlAYER_SPEED * 2};
+	m_Vel = { PlAYER_SPEED * m_Speed, PlAYER_SPEED * m_Speed };
 
 	m_Dir = Direction::down;
 
@@ -14,10 +19,6 @@ CPlayer::CPlayer(Vector2D<float> position)
 	LoadSounds();
 
 	m_State = PlayerState::wait;
-
-	m_Power = 3; 
-	m_MaxBomb = 2;
-	m_TimeSum = 0.0f;
 }
 
 CPlayer::~CPlayer()
@@ -135,6 +136,13 @@ void CPlayer::Stop()
 	m_State = PlayerState::wait;
 	m_AnimationIdx = 0;
 }
+
+void CPlayer::SpeedUp()
+{
+	m_Vel.x = min(m_Vel.x + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Vel.y = min(m_Vel.y + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Speed = min(m_Speed + 1, PLAYER_SPEED_LIMIT);
+} 
 
 bool CPlayer::CanCreateBomb()
 {
