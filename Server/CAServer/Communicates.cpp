@@ -55,7 +55,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
 	int len = str.length();
 
-	// µ¥ÀÌÅÍ º¸³»±â(°íÁ¤ ±æÀÌ)
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê³ ì • ê¸¸ì´)
 	retval = send(sock, (char*)&len, sizeof(int), 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -63,7 +63,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 		return false;
 	}
 
-	// µ¥ÀÌÅÍ º¸³»±â(°¡º¯ ±æÀÌ)
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê°€ë³€ ê¸¸ì´)
 	retval = send(sock, str.c_str(), len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -74,7 +74,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 }
 bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 {
-	// µ¥ÀÌÅÍ ¹Ş±â(°íÁ¤ ±æÀÌ)
+	// ë°ì´í„° ë°›ê¸°(ê³ ì • ê¸¸ì´)
 	int len;
 	retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
 
@@ -85,7 +85,7 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	}
 	else if (retval == 0) return false;
 
-	// µ¥ÀÌÅÍ ¹Ş±â(°¡º¯ ±æÀÌ)
+	// ë°ì´í„° ë°›ê¸°(ê°€ë³€ ê¸¸ì´)
 	retval = recvn(client_sock, buf, len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -94,6 +94,28 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	}
 
 	buf[retval] = '\0';
+	return true;
+}
+
+bool SendFrameData(SOCKET& sock, string& str, int& retval)
+{
+	int len = str.length();
+
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê³ ì • ê¸¸ì´)
+	retval = send(sock, (char*)&len, sizeof(int), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
+
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê°€ë³€ ê¸¸ì´)
+	retval = send(sock, str.c_str(), len, 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
 	return true;
 }
 
@@ -111,13 +133,13 @@ DWORD __stdcall ClientThread(LPVOID arg)
   
 	vector<string> toSendData;
 	int retval=0;  
-	// Å¬¶óÀÌ¾ğÆ® Á¤º¸ ¹Ş±â
+	// í´ë¼ì´ì–¸íŠ¸ ì •ë³´ ë°›ê¸°
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
 
 	Data.Thread_Num++;
 
-	cout << Data.Thread_Num << "¹ø Å¬¶ó°¡ Á¢¼ÓÇß½À´Ï´Ù." << endl;
+	cout << Data.Thread_Num << "ë²ˆ í´ë¼ê°€ ì ‘ì†í–ˆìŠµë‹ˆë‹¤." << endl;
 
 	toSendData.emplace_back(to_string(Data.Thread_Num));
 
@@ -130,36 +152,85 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 	int count = 0;
+  
+  // ê³„ì •ì •ë³´ íŒŒì¼ ì½ì–´ì˜¤ê¸°
+	map<string, string> accounts;
+	ifstream in("data/Account.txt"s);
+	if (in) {
+		string id, pw;
+		while (!in.eof()) {
+			in >> id >> pw;
+			accounts.insert(pair<string, string>(id, pw));
+		}
+	}
+	in.close();
+  
 	while (1) { 
-		// ÇöÀç Åë½ÅÇÏ´Â Å¬¶óÀÌ¾ğÆ®ÀÇ SceneÅ¸ÀÔÀ» ¹Ş¾Æ¿Â´Ù.
+		// í˜„ì¬ í†µì‹ í•˜ëŠ” í´ë¼ì´ì–¸íŠ¸ì˜ Sceneíƒ€ì…ì„ ë°›ì•„ì˜¨ë‹¤.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "¾À ¹øÈ£" << atoi(buffer); 
+		cout << "ì”¬ ë²ˆí˜¸" << atoi(buffer); 
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
+		{
 			//PrcoessTitleScene();
-			if (count == 0)
-			{
-				cout << "°ÔÀÓ ½ÃÀÛ" << endl;
- 
-				// µ¥ÀÌÅÍ ¹Ş±â
-				retval = recv(client_sock, buffer, retval, 0);
-				if (retval == SOCKET_ERROR)
-				{
-					err_display("send()");
-					break;
+			TitleSceneRecvData player;
+			TitleSceneSendData check;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", í”Œë ˆì´ì–´ ID : " << buffer;
+			player.id = buffer;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", í”Œë ˆì´ì–´ PW : " << buffer;
+			player.pw = buffer;
+
+			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+			cout << ", IsNew : " << buffer << "\n";
+			player.isNew = (bool)buffer;
+
+			if (player.isNew == TRUE) {
+				ofstream out;
+				out.open("data/Account.txt"s, ios::app);
+
+				auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
+				if (isAdded.second == TRUE) {
+					out << player.id << " " << player.pw << endl;
+					cout << "Account registration completed!\n";
+					check.result = TRUE;
 				}
-				count++;
-				break;
+				else {
+					cout << "This ID already exists.\n";
+					check.result = FALSE;
+				}
+
+				out.close();
 			}
+			else {
+				map<string, string>::iterator data;
+				data = accounts.find(player.id);
+				if (data == accounts.end())
+					check.result = FALSE;
+				else {
+					if (data->second == player.pw)
+						check.result = TRUE;
+					else
+						check.result = FALSE;
+				}
+			}
+
+			string data = to_string(check.result);
+			SendFrameData(client_sock, data, retval);
+			break;
+		}
 
 		case SceneType::LobbyScene:
 			//ProcessLobbyScene(); 
-			cout << "°ÔÀÓ ½ÃÀÛ °¡´É" << endl;
+			cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
 
-			// µ¥ÀÌÅÍ º¸³»±â
+			// ë°ì´í„° ë³´ë‚´ê¸°
 			retval = recv(client_sock, buffer, retval, 0);
 			if (retval == SOCKET_ERROR)
 			{
@@ -168,8 +239,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			}
 			if (count == 1)
 			{
-				cout << "°ÔÀÓ ½ÃÀÛ °¡´É" << endl;
-				// µ¥ÀÌÅÍ ¹Ş±â
+				cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
+				// ë°ì´í„° ë°›ê¸°
 				retval = recv(client_sock, buffer, retval, 0);
 				if (retval == SOCKET_ERROR)
 				{
@@ -178,14 +249,14 @@ DWORD __stdcall ClientThread(LPVOID arg)
 				}
 				cout << retval << endl;
 				count++;
-
-				
 				break;
 			} 
 			break; 
+        
 		case SceneType::GameScene:
 			ProcessGameScene(client_sock);
 			break;
+        
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
@@ -199,8 +270,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	// closesocket()
 	closesocket(client_sock);
 
-	cout << "[TCP ¼­¹ö] Å¬¶óÀÌ¾ğÆ® Á¾·á : IP ÁÖ¼Ò = " << inet_ntoa(clientAddr.sin_addr)
-		<< ", Æ÷Æ® ¹øÈ£ = " << ntohs(clientAddr.sin_port) << endl;
+	cout << "[TCP ì„œë²„] í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ : IP ì£¼ì†Œ = " << inet_ntoa(clientAddr.sin_addr)
+		<< ", í¬íŠ¸ ë²ˆí˜¸ = " << ntohs(clientAddr.sin_port) << endl;
 
 	return 0;
 }

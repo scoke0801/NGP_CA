@@ -58,7 +58,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
     int len = str.length();
 
-    // µ•¿Ã≈Õ ∫∏≥ª±‚(∞Ì¡§ ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
     retval = send(sock, (char*)&len, sizeof(int), 0);
     if (retval == SOCKET_ERROR)
     {
@@ -66,7 +66,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
         return false;
     }
 
-    // µ•¿Ã≈Õ ∫∏≥ª±‚(∞°∫Ø ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
     retval = send(sock, str.c_str(), len, 0);
     if (retval == SOCKET_ERROR)
     {
@@ -78,7 +78,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 
 bool RecvFrameData(SOCKET& sock, char* buf, int& retval)
 {
-    // µ•¿Ã≈Õ πﬁ±‚(∞Ì¡§ ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
     int len;
     retval = recvn(sock, (char*)&len, sizeof(int), 0);
 
@@ -89,7 +89,7 @@ bool RecvFrameData(SOCKET& sock, char* buf, int& retval)
     }
     else if (retval == 0) return false;
 
-    // µ•¿Ã≈Õ πﬁ±‚(∞°∫Ø ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
     retval = recvn(sock, buf, len, 0);
 
     if (retval == SOCKET_ERROR)
@@ -101,7 +101,6 @@ bool RecvFrameData(SOCKET& sock, char* buf, int& retval)
     buf[retval] = '\0';
     return true;
 }
-
 
 Vector2f GetPositionFromText(const char* text)
 {

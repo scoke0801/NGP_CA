@@ -18,6 +18,7 @@ void saveFile(string filename, vector<string> fileData);
 int recvn(SOCKET s, char* buf, int len, int flags);
 bool SendFrameData(SOCKET& sock, string& str, int& retval);
 bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval);
+bool SendFrameData(SOCKET& sock, string& str, int& retval);
 
 DWORD WINAPI ClientThread(LPVOID arg);
 

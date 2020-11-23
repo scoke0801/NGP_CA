@@ -42,6 +42,8 @@ using namespace std;
 #define	MAP_WIDTH 15
 #define MAP_HEIGHT 13
 
+#define BUFSIZE 4096
+
 // 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
 Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size);
 Vector2D<float> GetPositionCoord(Vector2D<int> coord);

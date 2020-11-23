@@ -38,9 +38,13 @@ struct LobbySceneSendData
 #pragma region TitleSceneDatas;
 struct TitleSceneRecvData
 {
+	string id;
+	string pw;
+	bool isNew;
 };
 struct TitleSceneSendData
 {
+	bool result;
 };
 #pragma endregion 
 

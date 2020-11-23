@@ -1,6 +1,6 @@
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS         // ÃÖ½Å VC++ ÄÄÆÄÀÏ ½Ã °æ°í ¹æÁö
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // ÃÖ½Å VC++ ÄÄÆÄÀÏ ½Ã °æ°í ¹æÁö
+#define _CRT_SECURE_NO_WARNINGS         // ìµœì‹  VC++ ì»´íŒŒì¼ ì‹œ ê²½ê³  ë°©ì§€
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // ìµœì‹  VC++ ì»´íŒŒì¼ ì‹œ ê²½ê³  ë°©ì§€
 
 #pragma comment(lib, "ws2_32")
 #include <WinSock2.h> 
@@ -17,9 +17,9 @@ void error_quit(const char* msg);
 void error_display(const char* msg);
 
 int recvn(SOCKET s, char* buf, int len, int flag);
+
 bool SendFrameData(SOCKET& sock, string& str, int& retval);
 bool RecvFrameData(SOCKET& sock, char* buf, int& retval);
 
 Vector2f GetPositionFromText(const char* text);
 int ConvertoIntFromText(const char* text, const char* token);
-
