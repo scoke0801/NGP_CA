@@ -55,7 +55,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
 	int len = str.length();
 
-	// ë°ì´í„° ë³´ë‚´ê¸°(ê³ ì • ê¸¸ì´)
+	// µ¥ÀÌÅÍ º¸³»±â(°íÁ¤ ±æÀÌ)
 	retval = send(sock, (char*)&len, sizeof(int), 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -63,7 +63,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 		return false;
 	}
 
-	// ë°ì´í„° ë³´ë‚´ê¸°(ê°€ë³€ ê¸¸ì´)
+	// µ¥ÀÌÅÍ º¸³»±â(°¡º¯ ±æÀÌ)
 	retval = send(sock, str.c_str(), len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -74,7 +74,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 }
 bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 {
-	// ë°ì´í„° ë°›ê¸°(ê³ ì • ê¸¸ì´)
+	// µ¥ÀÌÅÍ ¹Ş±â(°íÁ¤ ±æÀÌ)
 	int len;
 	retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
 
@@ -85,7 +85,7 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	}
 	else if (retval == 0) return false;
 
-	// ë°ì´í„° ë°›ê¸°(ê°€ë³€ ê¸¸ì´)
+	// µ¥ÀÌÅÍ ¹Ş±â(°¡º¯ ±æÀÌ)
 	retval = recvn(client_sock, buf, len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -104,20 +104,20 @@ LobbySceneSendData Data;
 
 DWORD __stdcall ClientThread(LPVOID arg)
 {
-	
+
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-  
+
 	vector<string> toSendData;
-	int retval=0;  
-	// í´ë¼ì´ì–¸íŠ¸ ì •ë³´ ë°›ê¸°
+	int retval = 0;
+	// Å¬¶óÀÌ¾ğÆ® Á¤º¸ ¹Ş±â
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
 
 	Data.Thread_Num++;
 
-	cout << Data.Thread_Num << "ë²ˆ í´ë¼ê°€ ì ‘ì†í–ˆìŠµë‹ˆë‹¤." << endl;
+	cout << Data.Thread_Num << "¹ø Å¬¶ó°¡ Á¢¼ÓÇß½À´Ï´Ù." << endl;
 
 	toSendData.emplace_back(to_string(Data.Thread_Num));
 
@@ -130,23 +130,23 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 	int count = 0;
-  
-  // ê³„ì •ì •ë³´ íŒŒì¼ ì½ì–´ì˜¤ê¸°
-	map<string, string> accounts;
-	ifstream in("data/Account.txt"s);
-	if (in) {
-		string id, pw;
-		while (!in.eof()) {
-			in >> id >> pw;
-			accounts.insert(pair<string, string>(id, pw));
-		}
-	}
-	in.close();
-  
-	while (1) { 
-		// í˜„ì¬ í†µì‹ í•˜ëŠ” í´ë¼ì´ì–¸íŠ¸ì˜ Sceneíƒ€ì…ì„ ë°›ì•„ì˜¨ë‹¤.
+
+	// °èÁ¤Á¤º¸ ÆÄÀÏ ÀĞ¾î¿À±â
+	  map<string, string> accounts;
+	  ifstream in("data/Account.txt"s);
+	  if (in) {
+		  string id, pw;
+		  while (!in.eof()) {
+			  in >> id >> pw;
+			  accounts.insert(pair<string, string>(id, pw));
+		  }
+	  }
+	  in.close();
+
+	while (1) {
+		// ÇöÀç Åë½ÅÇÏ´Â Å¬¶óÀÌ¾ğÆ®ÀÇ SceneÅ¸ÀÔÀ» ¹Ş¾Æ¿Â´Ù.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "ì”¬ ë²ˆí˜¸" << atoi(buffer); 
+		cout << "¾À ¹øÈ£" << atoi(buffer);
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
@@ -157,9 +157,9 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		case SceneType::LobbyScene:
 			//ProcessLobbyScene(); 
-			cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
+			cout << "°ÔÀÓ ½ÃÀÛ °¡´É" << endl;
 
-			// ë°ì´í„° ë³´ë‚´ê¸°
+			// µ¥ÀÌÅÍ º¸³»±â
 			retval = recv(client_sock, buffer, retval, 0);
 			if (retval == SOCKET_ERROR)
 			{
@@ -168,8 +168,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			}
 			if (count == 1)
 			{
-				cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
-				// ë°ì´í„° ë°›ê¸°
+				cout << "°ÔÀÓ ½ÃÀÛ °¡´É" << endl;
+				// µ¥ÀÌÅÍ ¹Ş±â
 				retval = recv(client_sock, buffer, retval, 0);
 				if (retval == SOCKET_ERROR)
 				{
@@ -179,19 +179,19 @@ DWORD __stdcall ClientThread(LPVOID arg)
 				cout << retval << endl;
 				count++;
 				break;
-			} 
-			break; 
-        
+			}
+			break;
+
 		case SceneType::GameScene:
 			ProcessGameScene(client_sock);
 			break;
-        
+
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
 		}
-		
-	
+
+
 		break;
 	}
 
@@ -199,8 +199,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	// closesocket()
 	closesocket(client_sock);
 
-	cout << "[TCP ì„œë²„] í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ : IP ì£¼ì†Œ = " << inet_ntoa(clientAddr.sin_addr)
-		<< ", í¬íŠ¸ ë²ˆí˜¸ = " << ntohs(clientAddr.sin_port) << endl;
+	cout << "[TCP ¼­¹ö] Å¬¶óÀÌ¾ğÆ® Á¾·á : IP ÁÖ¼Ò = " << inet_ntoa(clientAddr.sin_addr)
+		<< ", Æ÷Æ® ¹øÈ£ = " << ntohs(clientAddr.sin_port) << endl;
 
 	return 0;
 }
@@ -218,11 +218,11 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	map<string, string> accounts = filedata;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", í”Œë ˆì´ì–´ ID : " << buffer;
+	cout << "ÇÃ·¹ÀÌ¾î ID : " << buffer;
 	player.id = buffer;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", í”Œë ˆì´ì–´ PW : " << buffer;
+	cout << ", ÇÃ·¹ÀÌ¾î PW : " << buffer;
 	player.pw = buffer;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
@@ -272,7 +272,7 @@ bool ProcessGameScene(SOCKET& sock)
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
 	//cout << buffer;
 
-	char* token = strtok(buffer, "\n"); 
+	char* token = strtok(buffer, "\n");
 	Vector2f position;
 	PlayerState playerState;
 	int speed;
@@ -287,7 +287,7 @@ bool ProcessGameScene(SOCKET& sock)
 				position.y << "\n";
 		}
 		else if (strstr(token, "<Power>:"))
-		{ 
+		{
 			cout << "<Power>: " << ConvertoIntFromText(token, "<Power>:") << " \n";
 		}
 		else if (strstr(token, "<Speed>:"))
@@ -380,7 +380,7 @@ Vector2f GetPositionFromText(const char* text)
 
 				return position;
 			}
-		} 
+		}
 	}
 	return { -1,-1 };
 }
