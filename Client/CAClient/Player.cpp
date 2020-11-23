@@ -56,17 +56,17 @@ void CPlayer::Draw(HDC hdc)
 void CPlayer::Update(float timeElapsed)
 {
 	m_PrevPosition = m_Position;
-	if (m_State == PlayerState::move)
-	{
-		if (m_Dir == Direction::left)
-			m_Position.x = m_Position.x - (m_Vel.x * timeElapsed);
-		if (m_Dir == Direction::right)
-			m_Position.x = m_Position.x + (m_Vel.x * timeElapsed);
-		if (m_Dir == Direction::up)
-			m_Position.y = m_Position.y - (m_Vel.y * timeElapsed);
-		if (m_Dir == Direction::down)
-			m_Position.y = m_Position.y + (m_Vel.y * timeElapsed);
-	}
+	//if (m_State == PlayerState::move)
+	//{
+	//	if (m_Dir == Direction::left)
+	//		m_Position.x = m_Position.x - (m_Vel.x * timeElapsed);
+	//	if (m_Dir == Direction::right)
+	//		m_Position.x = m_Position.x + (m_Vel.x * timeElapsed);
+	//	if (m_Dir == Direction::up)
+	//		m_Position.y = m_Position.y - (m_Vel.y * timeElapsed);
+	//	if (m_Dir == Direction::down)
+	//		m_Position.y = m_Position.y + (m_Vel.y * timeElapsed);
+	//}
 	Animate(timeElapsed);
 }
 

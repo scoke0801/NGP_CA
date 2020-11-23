@@ -51,6 +51,7 @@ struct GameSceneSendData
 	Vector2f position;
 	int waterRange;
 	int speed;
+	Direction direction;
 	int state;
 	int mapData[MAP_WIDTH][MAP_HEIGHT];
 };

@@ -80,6 +80,8 @@ bool CFramework::PrepareCommunicate()
 	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
 	serveraddr.sin_port = htons(SERVERPORT);
 
+	m_IsServerConnected = true;
+
 	// socket()
 	m_Sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_Sock == INVALID_SOCKET) 
@@ -142,50 +144,52 @@ void CFramework::InitBuffers()
 
 void CFramework::preUpdate()
 {
-	if (!m_IsServerConnected)
+	//if (!m_IsServerConnected)
+	//{}
+	m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
+	m_dLag = 0.0;
+
+	ProcessInput();
+
+	if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
 	{
-		m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
-		m_dLag = 0.0;
+		m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
 
-		ProcessInput();
+		if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
 
-		if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
+		//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+		m_dLag += m_timeElapsed.count();
+		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
 		{
-			m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
-
-			if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
-
-			//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
-			m_dLag += m_timeElapsed.count();
-			for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
-			{
-				update(FPS);
-				m_dLag -= FPS;
-			}
+			update(FPS);
+			m_dLag -= FPS;
 		}
-		// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
-		else
-			return;
+	}
+	// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+	else
+		return;
 
-		// 업데이트가 종료되면 렌더링을 진행합니다.
-		InitBuffers();
-		InvalidateRect(m_hWnd, &m_rtClient, FALSE);
+	// 업데이트가 종료되면 렌더링을 진행합니다.
+	InitBuffers();
+	InvalidateRect(m_hWnd, &m_rtClient, FALSE);
 
 #if defined(SHOW_CAPTIONFPS)
 
-		m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
-		if (m_updateElapsed.count() > MAX_UPDATE_FPS)
-			m_lastUpdateTime = std::chrono::system_clock::now();
-		else
-			return;
-
-		_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
-		wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
-		SetWindowText(m_hWnd, m_captionTitle);
-#endif
-	}
+	m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
+	if (m_updateElapsed.count() > MAX_UPDATE_FPS)
+		m_lastUpdateTime = std::chrono::system_clock::now();
 	else
-	{ }
+		return;
+
+	_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
+	wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
+	SetWindowText(m_hWnd, m_captionTitle);
+#endif
+
+
+
+
+
 }
 
 void CFramework::ProcessInput()
