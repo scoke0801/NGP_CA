@@ -216,7 +216,7 @@ void CGameScene::Update(float timeElapsed)
 				
 				if (bCollide)
 				{
-					player->FixCollision();
+					//player->FixCollision();
 				}
 				else continue;;
 				if (m_Blocks[i][j]->GetIsOnMove()) continue;
@@ -274,7 +274,7 @@ void CGameScene::Update(float timeElapsed)
 				
 				if (bCollide)	// 老馆 面倒 贸府
 				{
-					player->FixCollision();
+					//player->FixCollision();
 				}
 
 #ifndef _DEBUG
@@ -292,7 +292,7 @@ void CGameScene::Update(float timeElapsed)
 		}
 		if (!player->IsInMap())
 		{
-			player->FixCollision();
+			//player->FixCollision();
 		}
 	}
 }

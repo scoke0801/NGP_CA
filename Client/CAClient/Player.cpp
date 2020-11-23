@@ -55,7 +55,7 @@ void CPlayer::Draw(HDC hdc)
 
 void CPlayer::Update(float timeElapsed)
 {
-	m_PrevPosition = m_Position;
+	//m_PrevPosition = m_Position;
 	//if (m_State == PlayerState::move)
 	//{
 	//	if (m_Dir == Direction::left)

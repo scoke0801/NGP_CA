@@ -104,7 +104,6 @@ LobbySceneSendData Data;
 
 DWORD __stdcall ClientThread(LPVOID arg)
 {
-
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
@@ -121,10 +120,10 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 	toSendData.emplace_back(to_string(Data.Thread_Num));
 
-	for (int i = 0; i < toSendData.size(); ++i)
-	{
-		SendFrameData(client_sock, toSendData[i], retval);
-	}
+	//for (int i = 0; i < toSendData.size(); ++i)
+	//{
+	//	SendFrameData(client_sock, toSendData[i], retval);
+	//}
 
 	// +1, null value
 	char buffer[BUFSIZE + 1];
@@ -190,9 +189,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			//ProcessGameRecordScene();
 			break;
 		}
-
-
-		break;
+		 
 	}
 
 	Data.Thread_Num--;
