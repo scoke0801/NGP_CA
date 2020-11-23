@@ -19,4 +19,4 @@ using namespace std;
 #define width 480 
 #define height 960
 
-
+#define FPS 1 / 60

@@ -17,5 +17,9 @@ void error_quit(const char* msg);
 void error_display(const char* msg);
 
 int recvn(SOCKET s, char* buf, int len, int flag);
-bool SendFrameData(SOCKET& sock, string& str, int& retval); 
-bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval);
+bool SendFrameData(SOCKET& sock, string& str, int& retval);
+bool RecvFrameData(SOCKET& sock, char* buf, int& retval);
+
+Vector2f GetPositionFromText(const char* text);
+int ConvertoIntFromText(const char* text, const char* token);
+
