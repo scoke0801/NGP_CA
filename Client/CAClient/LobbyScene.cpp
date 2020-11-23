@@ -1,6 +1,15 @@
 #include "stdafx.h"
 #include "LobbyScene.h"
 #include "GameScene.h"
+#include "GameFramework.h"
+
+#ifdef _DEBUG
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+#endif
+#endif
 
 CLobbyScene::CLobbyScene()
 {
@@ -11,16 +20,43 @@ CLobbyScene::CLobbyScene()
 
 	m_Player3_Images[0].Load(_T("assets/lobby_scene_player3.png"));
 	m_Player3_Images[1].Load(_T("assets/lobby_scene_player3_ready.png"));
+
+	m_Type = SceneType::LobbyScene;
 	 
 	m_Type = SceneType::LobbyScene; 
+
+	m_Message = "test~";
+	
+	m_Frame = CFramework::GetInstance();
 }
 
 CLobbyScene::~CLobbyScene()
 {
 }
 
+
+
+
 void CLobbyScene::Update(float timeElapsed)
 {
+	if (atoi(buf) == 2)
+	{
+		Player2_Exist = true;
+		
+	}
+
+	if (atoi(buf) == 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+	}
+	else if (atoi(buf) > 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+	}
+
+
 	if (Player2_Ready && Player3_Ready)
 	{
 		is_All_Ready = true;
@@ -40,6 +76,25 @@ void CLobbyScene::Draw(HDC hdc)
 {
 	m_Bg_Image.StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 		0, 0, m_Bg_Image.GetWidth(), m_Bg_Image.GetHeight());
+
+	if (atoi(buf) ==2)
+	{
+		Player2_Exist = true;
+		Update(0.5);
+	}
+
+	if (atoi(buf) == 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+	}
+	else if(atoi(buf) > 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+	}
+
+	TextOut(hdc, 500, 538, StringToTCHAR(m_Message), m_Message.length());
 
 	if (Player2_Exist)
 	{
@@ -62,18 +117,39 @@ void CLobbyScene::Draw(HDC hdc)
 		SetBkMode(hdc, TRANSPARENT);
 		TextOut(hdc, 360, 255, TEXT("아이디2"), 4);
 	}
+	//TextOut(hdc, 500, 538, StringToTCHAR(player.id), player.id.length());
 }
 
 void CLobbyScene::Communicate(SOCKET& sock)
 {
 	int retVal;
-	string toSendData;
-	if (is_All_Ready)
+	vector<string> toSendData;
+
+	toSendData.emplace_back(to_string((bool)is_All_Ready));
+
+	
+	int receivedSize = 0;
+
+	if (RecvFrameData(sock, buf, receivedSize))
 	{
-		toSendData = "준비완료";
-		SendFrameData(sock, toSendData, retVal);
+		cout << "dd";
 	}
 
+	if (is_All_Ready)
+	{
+		SendFrameData(sock, toSendData[0], retVal);
+	}
+	
+}
+
+void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	float mx = LOWORD(lParam);
+	float my = HIWORD(lParam);
+
+	if (mx > 396 && mx < 490 && my > 536 && my < 558)
+		is_Select = "Chatting";
+	
 }
 
 void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -93,6 +169,7 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		{ 
 			Player2_Ready=1; 
 			Player2_Ready = !Player2_Ready; 
+
 		}
 		break;
 
@@ -109,5 +186,16 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		}
 
 	}
+}
+
+TCHAR* CLobbyScene::StringToTCHAR(string& s)
+{
+	size_t strlength = 0;
+	size_t tcharlength = 0;
+	strlength = strlen(s.c_str()) + 1;
+	wchar_t* t = new wchar_t[strlength];
+	mbstowcs_s(&tcharlength, t, strlength, s.c_str(), _TRUNCATE);
+	return (TCHAR*)t;
+	
 }
 

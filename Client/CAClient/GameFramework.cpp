@@ -28,8 +28,8 @@
 	#define MAX_UPDATE_FPS 1.0f / 5.0f
 #endif
 CFramework* CFramework::self = nullptr;
-CFramework::CFramework()
-{ 
+CFramework::CFramework() 
+{  
 }
 
 CFramework::~CFramework()
@@ -38,10 +38,10 @@ CFramework::~CFramework()
 	{
 		delete m_pCurScene;
 		m_pCurScene = nullptr;
-	}
-
+	}  
 	if (m_Sock) closesocket(m_Sock);
-	WSACleanup(); 
+	
+	WSACleanup();  
 }
 
 void CFramework::init(HWND hWnd, HINSTANCE hInst)
@@ -64,6 +64,7 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	m_titleLength = lstrlen(m_captionTitle);
 	SetWindowText(m_hWnd, m_captionTitle); 
 }
+
 
 bool CFramework::PrepareCommunicate()
 {
@@ -99,6 +100,10 @@ bool CFramework::PrepareCommunicate()
 		// error_quit("connect()");
 		return false;
 	}
+	
+	Thread_Num++;
+	cout << Thread_Num;
+
 	return true;
 }
 
@@ -205,6 +210,7 @@ void CFramework::ProcessInput()
 void CFramework::update(float timeElapsed)
 {
 	m_pCurScene->Update(timeElapsed);
+	
 }
 
 void CFramework::draw(HDC hdc)
