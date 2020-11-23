@@ -88,7 +88,8 @@ struct GameSceneRecvData
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
 struct GameSceneSendData
-{
+{ 
+	UINT index;
 	Vector2f position;
 	int speed;
 	PlayerState state;

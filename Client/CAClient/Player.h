@@ -44,11 +44,13 @@ private:
 	UINT m_Power;			// 물줄기의 길이
 	UINT m_MaxBomb;			// 물풍선 최대 개수
 	UINT m_Speed;			// 플레이어 스피드
+	UINT m_Idx;				// 몇번째 플레이어인지
+	string m_ID;			// 플레이어 ID
 
 	vector<CBomb*> m_Bombs;	// 현재 플레이어가 만든 물풍선
 
 	float m_TimeSum;
-
+	
 public:
 	CPlayer(Vector2D<float> position);
 	~CPlayer();
@@ -80,6 +82,11 @@ public:
 	int GetSpeed() { return m_Speed; }
 	PlayerState GetState() { return m_State; }
 	Direction GetDirection() const {return m_Dir;}
+	UINT GetIndex() const { return m_Idx; }
+	string GetID() const { return m_ID; }
+
+	void SetIndex(UINT idx) { m_Idx = idx; }
+	void SetID(string id) { m_ID = id; }
 
 	bool CanCreateBomb();
 private:

@@ -15,6 +15,8 @@ CPlayer::CPlayer(Vector2D<float> position)
 
 	m_Dir = Direction::down;
 
+	m_ID = "Player0";
+	m_Idx = 0;
 	LoadImages();
 	LoadSounds();
 
