@@ -27,6 +27,8 @@ public:
 
 	void DrawRect(HDC hdc);
 public:
+	void SetPosition(Vector2f position) { m_Position = position; }
+
 	Vector2D<int>	GetSize() const		{ return m_Size; }
 	Vector2D<float>	GetPosition() const { return m_Position; }
 	RECT			GetCollisionRect();

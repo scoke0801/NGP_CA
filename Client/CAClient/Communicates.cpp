@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Communicates.h"
 
+#define BUFSIZE 4096
+
 void textConvert(const char* msg, wchar_t* ret)
 {
     mbstowcs(ret, msg, strlen(msg) + 1);//Plus null
@@ -56,7 +58,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
     int len = str.length();
 
-    // µ•¿Ã≈Õ ∫∏≥ª±‚(∞Ì¡§ ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
     retval = send(sock, (char*)&len, sizeof(int), 0);
     if (retval == SOCKET_ERROR)
     {
@@ -64,7 +66,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
         return false;
     }
 
-    // µ•¿Ã≈Õ ∫∏≥ª±‚(∞°∫Ø ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
     retval = send(sock, str.c_str(), len, 0);
     if (retval == SOCKET_ERROR)
     {
@@ -74,11 +76,11 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
     return true;
 }
 
-bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
+bool RecvFrameData(SOCKET& sock, char* buf, int& retval)
 {
-    // µ•¿Ã≈Õ πﬁ±‚(∞Ì¡§ ±Ê¿Ã)
+    // Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
     int len;
-    retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
+    retval = recvn(sock, (char*)&len, sizeof(int), 0);
 
     if (retval == SOCKET_ERROR)
     {
@@ -87,8 +89,9 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
     }
     else if (retval == 0) return false;
 
-    // µ•¿Ã≈Õ πﬁ±‚(∞°∫Ø ±Ê¿Ã)
-    retval = recvn(client_sock, buf, len, 0);
+    // Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
+    retval = recvn(sock, buf, len, 0);
+
     if (retval == SOCKET_ERROR)
     {
         error_display("recv()");
@@ -97,4 +100,36 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 
     buf[retval] = '\0';
     return true;
+}
+
+Vector2f GetPositionFromText(const char* text)
+{
+    if (strstr(text, "<Position>:"))       //(token, "<position>:"))
+    {
+        Vector2f position;
+        int count = 0;
+        for (int i = 11; i < strlen(text); ++i, ++count)
+        {
+            if (text[i] == ' ')
+            {
+                char temp[20] = {};
+                strncpy(temp, text + 11, count);
+                position.x = atof(temp);
+                strncpy(temp, text + i, strlen(text) - i);
+                position.y = atof(temp);
+
+                return position;
+            }
+        }
+    }
+    return { -1,-1 };
+}
+
+int ConvertoIntFromText(const char* text, const char* token)
+{
+    char buf[256];
+    ZeroMemory(buf, 256);
+    int tokenLen = strlen(token);
+    strncpy(buf, text + tokenLen, strlen(text) - tokenLen);
+    return atoi(buf);
 }

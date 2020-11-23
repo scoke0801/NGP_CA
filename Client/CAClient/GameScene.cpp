@@ -6,6 +6,9 @@
 #include "Block.h"
 #include "Bomb.h"
 #include "Datas.h"
+
+#define BUFSIZE 4096
+
 CGameScene::CGameScene()
 {
 	ZeroMemory(m_Map, sizeof(m_Map));
@@ -335,31 +338,73 @@ void CGameScene::Draw(HDC hdc)
 void CGameScene::Communicate(SOCKET& sock)
 {
 	int retVal;
-	vector<string> toSendData;
-	toSendData.push_back( to_string((int)m_Type) );
-	SendFrameData(sock, toSendData[0], retVal); 
-	 
+	string toSendData = to_string((int)m_Type);
+	SendFrameData(sock, toSendData, retVal); 
+
 	GameSceneSendData data; 
 	data.playerIndex = 0;
 	data.position = m_Players[0]->GetPosition();
 	data.waterRange = m_Players[0]->GetPower();
 	data.speed = m_Players[0]->GetSpeed();
+	data.direction = m_Players[0]->GetDirection();
 	data.state = (int)m_Players[0]->GetState();
 	//data.mapData = m_Map; 
-	string temp;
-	temp = "<Position>:";
-	temp += "";
-	toSendData.clear();
-	toSendData.push_back(to_string(data.position.x));  
-	toSendData.push_back(to_string(data.position.y));
-	toSendData.push_back(to_string(data.waterRange));
-	toSendData.push_back(to_string(data.speed));
-	toSendData.push_back(to_string(data.state));
-	for (int i = 0; i < toSendData.size(); ++i)
-	{
-		SendFrameData(sock, toSendData[i], retVal);
-	}
 
+	toSendData.clear();
+
+	toSendData = "<Position>:";
+	toSendData += to_string(data.position.x);  
+	toSendData += " ";
+	toSendData += to_string(data.position.y);
+	toSendData += "\n";
+
+	toSendData += "<Power>:";
+	toSendData += to_string(data.waterRange);
+	toSendData += "\n";
+
+	toSendData += "<Speed>:";
+	toSendData += to_string(data.speed);
+	toSendData += "\n";
+
+	toSendData += "<Direction>:";
+	toSendData += to_string((int)data.direction);
+	toSendData += "\n";
+
+	toSendData += "<PlayerState>:";
+	toSendData += to_string(data.state);
+	toSendData += "\n";
+	SendFrameData(sock, toSendData, retVal);
+	  
+	char buffer[BUFSIZE + 1];
+	int receivedSize = 0;
+
+	RecvFrameData(sock, buffer, retVal); 
+	//cout << "¹ÞÀº °ª" << buffer << "\n";
+	char* token = strtok(buffer, "\n");
+	Vector2f position;
+	while (token != NULL)
+	{
+		if (strstr(token, "<Position>:"))       //(token, "<position>:"))
+		{
+			position = GetPositionFromText(token);
+			cout << "x : " << position.x << " y : " <<
+				position.y << "\n";
+			m_Players[0]->SetPosition(position);
+		}
+		else if (strstr(token, "<IsGameEnd>:"))
+		{
+			cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
+		}
+		else if (strstr(token, "<Speed>:"))
+		{
+			cout << "<Speed>: " << ConvertoIntFromText(token, "<Speed>:") << " \n";
+		}
+		else if (strstr(token, "<PlayerState>:"))
+		{
+			cout << "<PlayerState>: " << ConvertoIntFromText(token, "<PlayerState>:") << " \n";
+		}
+		token = strtok(NULL, "\n");
+	}
 }
 
 bool CGameScene::ProcessInput(UCHAR* pKeysBuffer)

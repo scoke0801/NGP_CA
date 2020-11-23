@@ -21,10 +21,8 @@ void err_quit(const char* msg)
 	exit(1);
 
 }
-
 void err_display(const char* msg)
 {
-
 	LPVOID lpMsgBuf;
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
@@ -35,7 +33,6 @@ void err_display(const char* msg)
 	LocalFree(lpMsgBuf);
 
 }
-
 int recvn(SOCKET s, char* buf, int len, int flags)
 {
 	int received;
@@ -54,10 +51,30 @@ int recvn(SOCKET s, char* buf, int len, int flags)
 
 	return (len - left);
 }
+bool SendFrameData(SOCKET& sock, string& str, int& retval)
+{
+	int len = str.length();
 
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê³ ì • ê¸¸ì´)
+	retval = send(sock, (char*)&len, sizeof(int), 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
+
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê°€ë³€ ê¸¸ì´)
+	retval = send(sock, str.c_str(), len, 0);
+	if (retval == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return false;
+	}
+	return true;
+}
 bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 {
-	// µ¥ÀÌÅÍ ¹Ş±â(°íÁ¤ ±æÀÌ)
+	// ë°ì´í„° ë°›ê¸°(ê³ ì • ê¸¸ì´)
 	int len;
 	retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
 
@@ -68,7 +85,7 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	}
 	else if (retval == 0) return false;
 
-	// µ¥ÀÌÅÍ ¹Ş±â(°¡º¯ ±æÀÌ)
+	// ë°ì´í„° ë°›ê¸°(ê°€ë³€ ê¸¸ì´)
 	retval = recvn(client_sock, buf, len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -84,7 +101,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
 	int len = str.length();
 
-	// µ¥ÀÌÅÍ º¸³»±â(°íÁ¤ ±æÀÌ)
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê³ ì • ê¸¸ì´)
 	retval = send(sock, (char*)&len, sizeof(int), 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -92,7 +109,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 		return false;
 	}
 
-	// µ¥ÀÌÅÍ º¸³»±â(°¡º¯ ±æÀÌ)
+	// ë°ì´í„° ë³´ë‚´ê¸°(ê°€ë³€ ê¸¸ì´)
 	retval = send(sock, str.c_str(), len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -104,25 +121,39 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 
 void saveFile(string filename, vector<string> fileData)
 {
-
 }
+LobbySceneSendData Data;
 
 DWORD __stdcall ClientThread(LPVOID arg)
 {
+	
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-	 
-	int retval=0; 
-	// Å¬¶óÀÌ¾ğÆ® Á¤º¸ ¹Ş±â
+  
+	vector<string> toSendData;
+	int retval=0;  
+	// í´ë¼ì´ì–¸íŠ¸ ì •ë³´ ë°›ê¸°
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
+
+	Data.Thread_Num++;
+
+	cout << Data.Thread_Num << "ë²ˆ í´ë¼ê°€ ì ‘ì†í–ˆìŠµë‹ˆë‹¤." << endl;
+
+	toSendData.emplace_back(to_string(Data.Thread_Num));
+
+	for (int i = 0; i < toSendData.size(); ++i)
+	{
+		SendFrameData(client_sock, toSendData[i], retval);
+	}
 
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
-
-	// °èÁ¤Á¤º¸ ÆÄÀÏ ÀĞ¾î¿À±â
+	int count = 0;
+  
+  // ê³„ì •ì •ë³´ íŒŒì¼ ì½ì–´ì˜¤ê¸°
 	map<string, string> accounts;
 	ifstream in("data/Account.txt"s);
 	if (in) {
@@ -133,30 +164,15 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		}
 	}
 	in.close();
-
-	while (1) {
-		// ÇöÀç Åë½ÅÇÏ´Â Å¬¶óÀÌ¾ğÆ®ÀÇ SceneÅ¸ÀÔÀ» ¹Ş¾Æ¿Â´Ù.
+  
+	while (1) { 
+		// í˜„ì¬ í†µì‹ í•˜ëŠ” í´ë¼ì´ì–¸íŠ¸ì˜ Sceneíƒ€ì…ì„ ë°›ì•„ì˜¨ë‹¤.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
- 
-		cout << "¾À ¹øÈ£" << atoi(buffer); 
+		cout << "ì”¬ ë²ˆí˜¸" << atoi(buffer); 
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
-		case SceneType::LobbyScene:
-			//ProcessLobbyScene();
- 
-			cout << "°ÔÀÓ ½ÃÀÛ °¡´É" << endl;
-
-			// µ¥ÀÌÅÍ º¸³»±â
-			retval = recv(client_sock, buffer, retval, 0);
-			if (retval == SOCKET_ERROR)
-			{
-				err_display("send()");
-				break;
-			}
-
-			break;
 		case SceneType::TitleScene:
 		{
 			//PrcoessTitleScene();
@@ -164,11 +180,11 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			TitleSceneSendData check;
 
 			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", ÇÃ·¹ÀÌ¾î ID : " << buffer;
+			cout << ", í”Œë ˆì´ì–´ ID : " << buffer;
 			player.id = buffer;
 
 			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", ÇÃ·¹ÀÌ¾î PW : " << buffer;
+			cout << ", í”Œë ˆì´ì–´ PW : " << buffer;
 			player.pw = buffer;
 
 			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
@@ -208,39 +224,185 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			string data = to_string(check.result);
 			SendFrameData(client_sock, data, retval);
 			break;
+		}
+
+		case SceneType::LobbyScene:
+			//ProcessLobbyScene(); 
+			cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
+
+			// ë°ì´í„° ë³´ë‚´ê¸°
+			retval = recv(client_sock, buffer, retval, 0);
+			if (retval == SOCKET_ERROR)
+			{
+				err_display("recv()");
+				break;
 			}
+			if (count == 1)
+			{
+				cout << "ê²Œì„ ì‹œì‘ ê°€ëŠ¥" << endl;
+				// ë°ì´í„° ë°›ê¸°
+				retval = recv(client_sock, buffer, retval, 0);
+				if (retval == SOCKET_ERROR)
+				{
+					err_display("send()");
+					break;
+				}
+				cout << retval << endl;
+				count++;
+				break;
+			} 
+			break; 
+        
 		case SceneType::GameScene:
-			ProcessGameScene();
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", x À§Ä¡ : " << atoi(buffer);
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", y À§Ä¡ : " << atoi(buffer);
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", ¹°Ç³¼± ±æÀÌ : " << atoi(buffer);
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", ¼Óµµ : " << atoi(buffer);
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", »óÅÂ : " << atoi(buffer) << "\n";
+			ProcessGameScene(client_sock);
 			break;
+        
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
 		}
+		
+	
+		break;
 	}
 
-
+	Data.Thread_Num--;
 	// closesocket()
 	closesocket(client_sock);
-	cout << "[TCP ¼­¹ö] Å¬¶óÀÌ¾ğÆ® Á¾·á : IP ÁÖ¼Ò = " << inet_ntoa(clientAddr.sin_addr)
-		<< ", Æ÷Æ® ¹øÈ£ = " << ntohs(clientAddr.sin_port) << endl;
+
+	cout << "[TCP ì„œë²„] í´ë¼ì´ì–¸íŠ¸ ì¢…ë£Œ : IP ì£¼ì†Œ = " << inet_ntoa(clientAddr.sin_addr)
+		<< ", í¬íŠ¸ ë²ˆí˜¸ = " << ntohs(clientAddr.sin_port) << endl;
 
 	return 0;
 }
 
-void ProcessGameScene()
+bool ProcessGameScene(SOCKET& sock)
 {
+	int receivedSize;
+	// +1, null value
+	char buffer[BUFSIZE + 1];
+
+	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
+	//cout << buffer;
+
+	char* token = strtok(buffer, "\n"); 
+	Vector2f position;
+	PlayerState playerState;
+	int speed;
+	Direction direction;
+	Vector2f prevPosition;
+	while (token != NULL)
+	{
+		if (strstr(token, "<Position>:"))       //(token, "<position>:"))
+		{
+			position = GetPositionFromText(token);
+			cout << "x : " << position.x << " y : " <<
+				position.y << "\n";
+		}
+		else if (strstr(token, "<Power>:"))
+		{ 
+			cout << "<Power>: " << ConvertoIntFromText(token, "<Power>:") << " \n";
+		}
+		else if (strstr(token, "<Speed>:"))
+		{
+			speed = ConvertoIntFromText(token, "<Speed>:");
+			cout << "<Speed>: " << speed << " \n";
+		}
+		else if (strstr(token, "<Direction>:"))
+		{
+			direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
+			cout << "<Direction>: " << (int)direction << " \n";
+		}
+		else if (strstr(token, "<PlayerState>:"))
+		{
+			playerState = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
+			cout << "<PlayerState>: " << (int)playerState << " \n";
+		}
+		token = strtok(NULL, "\n");
+	}
+
+	switch (playerState)
+	{
+	case PlayerState::move:
+		prevPosition = position;
+		if (direction == Direction::left)
+			position.x = position.x - (speed * PlAYER_SPEED * FPS);
+		if (direction == Direction::right)
+			position.x = position.x + (speed * PlAYER_SPEED * FPS);
+		if (direction == Direction::up)
+			position.y = position.y - (speed * PlAYER_SPEED * FPS);
+		if (direction == Direction::down)
+			position.y = position.y + (speed * PlAYER_SPEED * FPS);
+
+		break;
+	case PlayerState::wait:
+		break;
+	case PlayerState::die:
+		break;
+	case PlayerState::trap:
+		break;
+	case PlayerState::live:
+		break;
+	default:
+		break;
+	}
+	GameSceneSendData sendData;
+	sendData.position.x = position.x;
+	sendData.position.y = position.y;
+	sendData.speed = 1;
+	sendData.state = playerState;
+	sendData.isGameEnd = false;
+	//int mapData[width][height];
+	//
+	string toSendData;
+	toSendData = "<Position>:";
+	toSendData += to_string(sendData.position.x);
+	toSendData += " ";
+	toSendData += to_string(sendData.position.y);
+	toSendData += "\n";
+
+	toSendData += "<Speed>:";
+	toSendData += to_string(sendData.speed);
+	toSendData += "\n";
+
+	toSendData += "<PlayerState>:";
+	toSendData += to_string((int)sendData.state);
+	toSendData += "\n";
+
+	toSendData += "<IsGameEnd>:";
+	toSendData += to_string(sendData.isGameEnd);
+	toSendData += "\n";
+	auto res = SendFrameData(sock, toSendData, receivedSize);
+}
+
+Vector2f GetPositionFromText(const char* text)
+{
+	if (strstr(text, "<Position>:"))       //(token, "<position>:"))
+	{
+		Vector2f position;
+		int count = 0;
+		for (int i = 11; i < strlen(text); ++i, ++count)
+		{
+			if (text[i] == ' ')
+			{
+				char temp[20] = {};
+				strncpy(temp, text + 11, count);
+				position.x = atof(temp);
+				strncpy(temp, text + i, strlen(text) - i);
+				position.y = atof(temp);
+
+				return position;
+			}
+		} 
+	}
+	return { -1,-1 };
+}
+
+int ConvertoIntFromText(const char* text, const char* token)
+{
+	char buf[256];
+	ZeroMemory(buf, 256);
+	int tokenLen = strlen(token);
+	strncpy(buf, text + tokenLen, strlen(text) - tokenLen);
+	return atoi(buf);
 }

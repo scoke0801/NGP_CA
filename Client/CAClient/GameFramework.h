@@ -58,6 +58,8 @@ public:
 
 	void init(HWND hWnd, HINSTANCE hInst);
 
+	int Thread_Num;
+
 public:
 	bool PrepareCommunicate();
 	void Communicate();
