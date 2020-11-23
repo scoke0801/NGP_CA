@@ -97,28 +97,6 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	return true;
 }
 
-bool SendFrameData(SOCKET& sock, string& str, int& retval)
-{
-	int len = str.length();
-
-	// 데이터 보내기(고정 길이)
-	retval = send(sock, (char*)&len, sizeof(int), 0);
-	if (retval == SOCKET_ERROR)
-	{
-		err_display("send()");
-		return false;
-	}
-
-	// 데이터 보내기(가변 길이)
-	retval = send(sock, str.c_str(), len, 0);
-	if (retval == SOCKET_ERROR)
-	{
-		err_display("send()");
-		return false;
-	}
-	return true;
-}
-
 void saveFile(string filename, vector<string> fileData)
 {
 }
@@ -174,57 +152,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
-		{
-			//PrcoessTitleScene();
-			TitleSceneRecvData player;
-			TitleSceneSendData check;
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", 플레이어 ID : " << buffer;
-			player.id = buffer;
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", 플레이어 PW : " << buffer;
-			player.pw = buffer;
-
-			if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-			cout << ", IsNew : " << buffer << "\n";
-			player.isNew = (bool)buffer;
-
-			if (player.isNew == TRUE) {
-				ofstream out;
-				out.open("data/Account.txt"s, ios::app);
-
-				auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
-				if (isAdded.second == TRUE) {
-					out << player.id << " " << player.pw << endl;
-					cout << "Account registration completed!\n";
-					check.result = TRUE;
-				}
-				else {
-					cout << "This ID already exists.\n";
-					check.result = FALSE;
-				}
-
-				out.close();
-			}
-			else {
-				map<string, string>::iterator data;
-				data = accounts.find(player.id);
-				if (data == accounts.end())
-					check.result = FALSE;
-				else {
-					if (data->second == player.pw)
-						check.result = TRUE;
-					else
-						check.result = FALSE;
-				}
-			}
-
-			string data = to_string(check.result);
-			SendFrameData(client_sock, data, retval);
+			ProcessTitleScene(client_sock, accounts); 
 			break;
-		}
 
 		case SceneType::LobbyScene:
 			//ProcessLobbyScene(); 
@@ -274,6 +203,64 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		<< ", 포트 번호 = " << ntohs(clientAddr.sin_port) << endl;
 
 	return 0;
+}
+
+bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
+{
+	int retval;
+	int receivedSize;
+
+	char buffer[BUFSIZE + 1];
+
+	TitleSceneRecvData player;
+	TitleSceneSendData check;
+
+	map<string, string> accounts = filedata;
+
+	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
+	cout << ", 플레이어 ID : " << buffer;
+	player.id = buffer;
+
+	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
+	cout << ", 플레이어 PW : " << buffer;
+	player.pw = buffer;
+
+	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
+	cout << ", IsNew : " << buffer << "\n";
+	player.isNew = (bool)buffer;
+
+	if (player.isNew == TRUE) {
+		ofstream out;
+		out.open("data/Account.txt"s, ios::app);
+
+		auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
+		if (isAdded.second == TRUE) {
+			out << player.id << " " << player.pw << endl;
+			cout << "Account registration completed!\n";
+			check.result = TRUE;
+		}
+		else {
+			cout << "This ID already exists.\n";
+			check.result = FALSE;
+		}
+
+		out.close();
+	}
+	else {
+		map<string, string>::iterator data;
+		data = accounts.find(player.id);
+		if (data == accounts.end())
+			check.result = FALSE;
+		else {
+			if (data->second == player.pw)
+				check.result = TRUE;
+			else
+				check.result = FALSE;
+		}
+	}
+
+	string data = to_string(check.result);
+	SendFrameData(sock, data, retval);
 }
 
 bool ProcessGameScene(SOCKET& sock)
