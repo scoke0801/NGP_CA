@@ -278,6 +278,7 @@ bool ProcessGameScene(SOCKET& sock, int clientNum)
 		//cout << buffer;
 		char* token = strtok(buffer, "\n");
 		int playerIndex = 0;
+		bool bombCreateFlag = false;
 		while (token != NULL)
 		{
 			if (strstr(token, "<PlayerIndex>:"))
@@ -309,6 +310,10 @@ bool ProcessGameScene(SOCKET& sock, int clientNum)
 			{
 				playerState = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
 				cout << "<PlayerState>: " << (int)playerState << " \n";
+			}
+			else if (strstr(token, "<BombCreateFlag>:"))
+			{
+				bombCreateFlag = true;
 			}
 			token = strtok(NULL, "\n");
 		}
@@ -345,6 +350,7 @@ bool ProcessGameScene(SOCKET& sock, int clientNum)
 		sendData.speed = 1;
 		sendData.state = playerState;
 		sendData.isGameEnd = false;
+		sendData.bombCreateFlag = bombCreateFlag;
 		//int mapData[width][height]; 
 
 		string toSendData;
@@ -368,6 +374,14 @@ bool ProcessGameScene(SOCKET& sock, int clientNum)
 		toSendData += "<IsGameEnd>:";
 		toSendData += to_string(sendData.isGameEnd);
 		toSendData += "\n";
+
+		if (sendData.bombCreateFlag)
+		{
+			toSendData += "<BombCreateFlag>:";
+			toSendData += sendData.bombCreateFlag;
+			toSendData += "\n";
+		}
+
 		auto res = SendFrameData(sock, toSendData, receivedSize);
 	}
 }

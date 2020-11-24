@@ -95,5 +95,6 @@ struct GameSceneSendData
 	PlayerState state;
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 	bool isGameEnd;
+	bool bombCreateFlag;
 };
 #pragma endregion
