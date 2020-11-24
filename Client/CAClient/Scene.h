@@ -19,16 +19,18 @@ private:
 protected:
 	RECT m_rtClient;
 	SceneType m_Type;
+	void* m_Context;
 
 protected:
 	template<class SceneName>
-	void ChangeScene() { m_pFramework->ChangeScene<SceneName>(); }
+	void ChangeScene(void* pContext = nullptr) { m_pFramework->ChangeScene<SceneName>(); }
 
 public:
 	CScene();
 	virtual ~CScene();
 
 	void Init(RECT rt, CFramework* framework) { m_rtClient = rt, m_pFramework = framework; }
+	virtual void SendDataToNextScene(void* pContext) {}
 
 public:
 	virtual void Update(float timeElapsed) = 0;

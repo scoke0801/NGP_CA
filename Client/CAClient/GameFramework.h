@@ -74,12 +74,13 @@ public:
 	LRESULT ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	
 	template <typename SceneName>
-	void ChangeScene() 
+	void ChangeScene(void* pContext = nullptr) 
 	{
 		//EnterCriticalSection(&m_cs);
 		CScene *scene = new SceneName;
 		static CScene* prevScene;
 		scene->Init(m_rtClient, this);
+		scene->SendDataToNextScene(pContext);
 
 		if (m_pCurScene)
 		{

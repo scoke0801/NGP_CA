@@ -35,6 +35,8 @@ public:
 	CGameScene();
 	~CGameScene();
 
+	virtual void SendDataToNextScene(void* pContext) {}
+
 public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
