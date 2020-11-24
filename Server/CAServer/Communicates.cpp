@@ -55,7 +55,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 {
 	int len = str.length();
 
-	// Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
+	// µ•¿Ã≈Õ ∫∏≥ª±‚(∞Ì¡§ ±Ê¿Ã)
 	retval = send(sock, (char*)&len, sizeof(int), 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -63,7 +63,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 		return false;
 	}
 
-	// Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
+	// µ•¿Ã≈Õ ∫∏≥ª±‚(∞°∫Ø ±Ê¿Ã)
 	retval = send(sock, str.c_str(), len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -74,7 +74,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval)
 }
 bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 {
-	// Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í≥†Ï†ï Í∏∏Ïù¥)
+	// µ•¿Ã≈Õ πﬁ±‚(∞Ì¡§ ±Ê¿Ã)
 	int len;
 	retval = recvn(client_sock, (char*)&len, sizeof(int), 0);
 
@@ -85,7 +85,7 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	}
 	else if (retval == 0) return false;
 
-	// Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞(Í∞ÄÎ≥Ä Í∏∏Ïù¥)
+	// µ•¿Ã≈Õ πﬁ±‚(∞°∫Ø ±Ê¿Ã)
 	retval = recvn(client_sock, buf, len, 0);
 	if (retval == SOCKET_ERROR)
 	{
@@ -104,49 +104,48 @@ LobbySceneSendData Data;
 
 DWORD __stdcall ClientThread(LPVOID arg)
 {
-	
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-  
+
 	vector<string> toSendData;
-	int retval=0;  
-	// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ Ï†ïÎ≥¥ Î∞õÍ∏∞
+	int retval = 0;
+	// ≈¨∂Û¿Ãæ∆Æ ¡§∫∏ πﬁ±‚
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
 
 	Data.Thread_Num++;
 
-	cout << Data.Thread_Num << "Î≤à ÌÅ¥ÎùºÍ∞Ä Ï†ëÏÜçÌñàÏäµÎãàÎã§." << endl;
+	cout << Data.Thread_Num << "π¯ ≈¨∂Û∞° ¡¢º”«ﬂΩ¿¥œ¥Ÿ." << endl;
 
 	toSendData.emplace_back(to_string(Data.Thread_Num));
 
-	for (int i = 0; i < toSendData.size(); ++i)
-	{
-		SendFrameData(client_sock, toSendData[i], retval);
-	}
+	//for (int i = 0; i < toSendData.size(); ++i)
+	//{
+	//	SendFrameData(client_sock, toSendData[i], retval);
+	//}
 
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 	int count = 0;
-  
-  // Í≥ÑÏ†ïÏ†ïÎ≥¥ ÌååÏùº ÏùΩÏñ¥Ïò§Í∏∞
-	map<string, string> accounts;
-	ifstream in("data/Account.txt"s);
-	if (in) {
-		string id, pw;
-		while (!in.eof()) {
-			in >> id >> pw;
-			accounts.insert(pair<string, string>(id, pw));
-		}
-	}
-	in.close();
-  
-	while (1) { 
-		// ÌòÑÏû¨ ÌÜµÏã†ÌïòÎäî ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò SceneÌÉÄÏûÖÏùÑ Î∞õÏïÑÏò®Îã§.
+
+	// ∞Ë¡§¡§∫∏ ∆ƒ¿œ ¿–æÓø¿±‚
+	  map<string, string> accounts;
+	  ifstream in("data/Account.txt"s);
+	  if (in) {
+		  string id, pw;
+		  while (!in.eof()) {
+			  in >> id >> pw;
+			  accounts.insert(pair<string, string>(id, pw));
+		  }
+	  }
+	  in.close();
+
+	while (1) {
+		// «ˆ¿Á ≈ÎΩ≈«œ¥¬ ≈¨∂Û¿Ãæ∆Æ¿« Scene≈∏¿‘¿ª πﬁæ∆ø¬¥Ÿ.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "Ïî¨ Î≤àÌò∏" << atoi(buffer); 
+		cout << "æ¿ π¯»£" << atoi(buffer);
 
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
@@ -157,9 +156,9 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		case SceneType::LobbyScene:
 			//ProcessLobbyScene(); 
-			cout << "Í≤åÏûÑ ÏãúÏûë Í∞ÄÎä•" << endl;
+			cout << "∞‘¿” Ω√¿€ ∞°¥…" << endl;
 
-			// Îç∞Ïù¥ÌÑ∞ Î≥¥ÎÇ¥Í∏∞
+			// µ•¿Ã≈Õ ∫∏≥ª±‚
 			retval = recv(client_sock, buffer, retval, 0);
 			if (retval == SOCKET_ERROR)
 			{
@@ -168,8 +167,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			}
 			if (count == 1)
 			{
-				cout << "Í≤åÏûÑ ÏãúÏûë Í∞ÄÎä•" << endl;
-				// Îç∞Ïù¥ÌÑ∞ Î∞õÍ∏∞
+				cout << "∞‘¿” Ω√¿€ ∞°¥…" << endl;
+				// µ•¿Ã≈Õ πﬁ±‚
 				retval = recv(client_sock, buffer, retval, 0);
 				if (retval == SOCKET_ERROR)
 				{
@@ -179,28 +178,26 @@ DWORD __stdcall ClientThread(LPVOID arg)
 				cout << retval << endl;
 				count++;
 				break;
-			} 
-			break; 
-        
-		case SceneType::GameScene:
-			ProcessGameScene(client_sock);
+			}
 			break;
-        
+
+		case SceneType::GameScene:
+			ProcessGameScene(client_sock, Data.Thread_Num);
+			break;
+
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
 		}
-		
-	
-		break;
+		 
 	}
 
 	Data.Thread_Num--;
 	// closesocket()
 	closesocket(client_sock);
 
-	cout << "[TCP ÏÑúÎ≤Ñ] ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ Ï¢ÖÎ£å : IP Ï£ºÏÜå = " << inet_ntoa(clientAddr.sin_addr)
-		<< ", Ìè¨Ìä∏ Î≤àÌò∏ = " << ntohs(clientAddr.sin_port) << endl;
+	cout << "[TCP º≠πˆ] ≈¨∂Û¿Ãæ∆Æ ¡æ∑· : IP ¡÷º“ = " << inet_ntoa(clientAddr.sin_addr)
+		<< ", ∆˜∆Æ π¯»£ = " << ntohs(clientAddr.sin_port) << endl;
 
 	return 0;
 }
@@ -218,11 +215,11 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	map<string, string> accounts = filedata;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", ÌîåÎ†àÏù¥Ïñ¥ ID : " << buffer;
+	cout << "«√∑π¿ÃæÓ ID : " << buffer;
 	player.id = buffer;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", ÌîåÎ†àÏù¥Ïñ¥ PW : " << buffer;
+	cout << ", «√∑π¿ÃæÓ PW : " << buffer;
 	player.pw = buffer;
 
 	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
@@ -263,103 +260,116 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	SendFrameData(sock, data, retval);
 }
 
-bool ProcessGameScene(SOCKET& sock)
+bool ProcessGameScene(SOCKET& sock, int clientNum)
 {
 	int receivedSize;
 	// +1, null value
 	char buffer[BUFSIZE + 1];
-
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	//cout << buffer;
-
-	char* token = strtok(buffer, "\n"); 
+	 
 	Vector2f position;
 	PlayerState playerState;
 	int speed;
 	Direction direction;
 	Vector2f prevPosition;
-	while (token != NULL)
+
+	for(int i = 0; i < clientNum; ++i)
 	{
-		if (strstr(token, "<Position>:"))       //(token, "<position>:"))
+		if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
+		//cout << buffer;
+		char* token = strtok(buffer, "\n");
+		int playerIndex = 0;
+		while (token != NULL)
 		{
-			position = GetPositionFromText(token);
-			cout << "x : " << position.x << " y : " <<
-				position.y << "\n";
+			if (strstr(token, "<PlayerIndex>:"))
+			{
+				playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
+				cout << "<PlayerIndex>: " << playerIndex << " \n";
+			}
+			else if (strstr(token, "<Position>:"))       
+			{
+				position = GetPositionFromText(token);
+				cout << "x : " << position.x << " y : " <<
+					position.y << "\n";
+			}
+			else if (strstr(token, "<Power>:"))
+			{
+				cout << "<Power>: " << ConvertoIntFromText(token, "<Power>:") << " \n";
+			}
+			else if (strstr(token, "<Speed>:"))
+			{
+				speed = ConvertoIntFromText(token, "<Speed>:");
+				cout << "<Speed>: " << speed << " \n";
+			}
+			else if (strstr(token, "<Direction>:"))
+			{
+				direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
+				cout << "<Direction>: " << (int)direction << " \n";
+			}
+			else if (strstr(token, "<PlayerState>:"))
+			{
+				playerState = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
+				cout << "<PlayerState>: " << (int)playerState << " \n";
+			}
+			token = strtok(NULL, "\n");
 		}
-		else if (strstr(token, "<Power>:"))
-		{ 
-			cout << "<Power>: " << ConvertoIntFromText(token, "<Power>:") << " \n";
-		}
-		else if (strstr(token, "<Speed>:"))
+
+		switch (playerState)
 		{
-			speed = ConvertoIntFromText(token, "<Speed>:");
-			cout << "<Speed>: " << speed << " \n";
+		case PlayerState::move:
+			prevPosition = position;
+			if (direction == Direction::left)
+				position.x = position.x - (speed * PlAYER_SPEED * FPS);
+			if (direction == Direction::right)
+				position.x = position.x + (speed * PlAYER_SPEED * FPS);
+			if (direction == Direction::up)
+				position.y = position.y - (speed * PlAYER_SPEED * FPS);
+			if (direction == Direction::down)
+				position.y = position.y + (speed * PlAYER_SPEED * FPS);
+
+			break;
+		case PlayerState::wait:
+			break;
+		case PlayerState::die:
+			break;
+		case PlayerState::trap:
+			break;
+		case PlayerState::live:
+			break;
+		default:
+			break;
 		}
-		else if (strstr(token, "<Direction>:"))
-		{
-			direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-			cout << "<Direction>: " << (int)direction << " \n";
-		}
-		else if (strstr(token, "<PlayerState>:"))
-		{
-			playerState = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
-			cout << "<PlayerState>: " << (int)playerState << " \n";
-		}
-		token = strtok(NULL, "\n");
+		GameSceneSendData sendData;
+		sendData.index = playerIndex;
+		sendData.position.x = position.x;
+		sendData.position.y = position.y;
+		sendData.speed = 1;
+		sendData.state = playerState;
+		sendData.isGameEnd = false;
+		//int mapData[width][height]; 
+
+		string toSendData;
+		toSendData = "<Position>:";
+		toSendData += to_string(sendData.position.x);
+		toSendData += " ";
+		toSendData += to_string(sendData.position.y);
+		toSendData += "\n";
+
+		toSendData += "<PlayerIndex>:";
+		toSendData += to_string(sendData.index);
+
+		toSendData += "<Speed>:";
+		toSendData += to_string(sendData.speed);
+		toSendData += "\n";
+
+		toSendData += "<PlayerState>:";
+		toSendData += to_string((int)sendData.state);
+		toSendData += "\n";
+
+		toSendData += "<IsGameEnd>:";
+		toSendData += to_string(sendData.isGameEnd);
+		toSendData += "\n";
+		auto res = SendFrameData(sock, toSendData, receivedSize);
 	}
-
-	switch (playerState)
-	{
-	case PlayerState::move:
-		prevPosition = position;
-		if (direction == Direction::left)
-			position.x = position.x - (speed * PlAYER_SPEED * FPS);
-		if (direction == Direction::right)
-			position.x = position.x + (speed * PlAYER_SPEED * FPS);
-		if (direction == Direction::up)
-			position.y = position.y - (speed * PlAYER_SPEED * FPS);
-		if (direction == Direction::down)
-			position.y = position.y + (speed * PlAYER_SPEED * FPS);
-
-		break;
-	case PlayerState::wait:
-		break;
-	case PlayerState::die:
-		break;
-	case PlayerState::trap:
-		break;
-	case PlayerState::live:
-		break;
-	default:
-		break;
-	}
-	GameSceneSendData sendData;
-	sendData.position.x = position.x;
-	sendData.position.y = position.y;
-	sendData.speed = 1;
-	sendData.state = playerState;
-	sendData.isGameEnd = false;
-	//int mapData[width][height];
-	//
-	string toSendData;
-	toSendData = "<Position>:";
-	toSendData += to_string(sendData.position.x);
-	toSendData += " ";
-	toSendData += to_string(sendData.position.y);
-	toSendData += "\n";
-
-	toSendData += "<Speed>:";
-	toSendData += to_string(sendData.speed);
-	toSendData += "\n";
-
-	toSendData += "<PlayerState>:";
-	toSendData += to_string((int)sendData.state);
-	toSendData += "\n";
-
-	toSendData += "<IsGameEnd>:";
-	toSendData += to_string(sendData.isGameEnd);
-	toSendData += "\n";
-	auto res = SendFrameData(sock, toSendData, receivedSize);
 }
 
 Vector2f GetPositionFromText(const char* text)
@@ -380,7 +390,7 @@ Vector2f GetPositionFromText(const char* text)
 
 				return position;
 			}
-		} 
+		}
 	}
 	return { -1,-1 };
 }

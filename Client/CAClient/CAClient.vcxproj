@@ -167,7 +167,7 @@
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Bomb.cpp" />
     <ClCompile Include="Button.cpp" />
-    <ClCompile Include="Communicates.cpp" /> 
+    <ClCompile Include="Communicates.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="Item.cpp" />
@@ -189,10 +189,6 @@
   <ItemGroup>
     <Image Include="CAClient.ico" />
     <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

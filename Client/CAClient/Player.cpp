@@ -15,6 +15,8 @@ CPlayer::CPlayer(Vector2D<float> position)
 
 	m_Dir = Direction::down;
 
+	m_ID = "Player0";
+	m_Idx = 0;
 	LoadImages();
 	LoadSounds();
 
@@ -55,7 +57,7 @@ void CPlayer::Draw(HDC hdc)
 
 void CPlayer::Update(float timeElapsed)
 {
-	m_PrevPosition = m_Position;
+	//m_PrevPosition = m_Position;
 	//if (m_State == PlayerState::move)
 	//{
 	//	if (m_Dir == Direction::left)

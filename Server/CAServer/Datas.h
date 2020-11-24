@@ -2,12 +2,12 @@
 
 #define	MAP_WIDTH 15
 #define MAP_HEIGHT 13
- 
+
 #include "Vector2D.h"
 
 enum class SceneType
 {
-	TitleScene=0,
+	TitleScene = 0,
 	LobbyScene,
 	GameScene,
 	GameRecordScene
@@ -16,11 +16,11 @@ enum class SceneType
 // 여기를 채워 주세요
 #pragma region LobbySceneDatas
 struct LobbySceneRecvData
-{ 
-	int Thread_Num=0;
+{
+	int Thread_Num = 0;
 	bool is_All_Ready;
 	bool Player2_Ready;
-	bool Player3_Ready; 
+	bool Player3_Ready;
 	string chatData;
 	bool isGameStart;
 };
@@ -30,7 +30,7 @@ struct LobbySceneSendData
 
 	bool is_All_Ready;
 	string chatData;
-	bool isGameStart; 
+	bool isGameStart;
 };
 #pragma endregion
 
@@ -88,7 +88,8 @@ struct GameSceneRecvData
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
 struct GameSceneSendData
-{
+{ 
+	UINT index;
 	Vector2f position;
 	int speed;
 	PlayerState state;

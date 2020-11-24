@@ -1,9 +1,8 @@
 #pragma once
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-using namespace std;
-
 #pragma comment(lib, "ws2_32")
+
 #include <WinSock2.h>
 #include <iostream>
 #include <Windows.h>

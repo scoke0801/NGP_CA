@@ -3,33 +3,36 @@
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Communicates.cpp">
-      <Filter>Communicate</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Sound.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Block.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Bomb.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Item.cpp">
-      <Filter>Object</Filter>
+      <Filter>Communicates</Filter>
     </ClCompile>
     <ClCompile Include="GameFramework.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="GameRecordScene.cpp">
-      <Filter>Scene</Filter>
+    <ClCompile Include="Block.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Bomb.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Item.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="GameScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="GameRecordScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="LobbyScene.cpp">
@@ -41,55 +44,52 @@
     <ClCompile Include="TitleScene.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Object</Filter>
+    <ClCompile Include="Sound.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h" />
-    <ClInclude Include="Resource.h">
-      <Filter>Main\리소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Communicates.h">
-      <Filter>Communicate</Filter>
+      <Filter>Communicates</Filter>
     </ClInclude>
     <ClInclude Include="Datas.h">
-      <Filter>Communicate</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector2D.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Sound.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Block.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Bomb.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Item.h">
-      <Filter>Object</Filter>
+      <Filter>Communicates</Filter>
     </ClInclude>
     <ClInclude Include="GameFramework.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="GameRecordScene.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="Block.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Bomb.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Item.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Main\리소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Main\리소스 파일</Filter>
     </ClInclude>
     <ClInclude Include="GameScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GameRecordScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="LobbyScene.h">
@@ -101,53 +101,12 @@
     <ClInclude Include="TitleScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Main.h">
-      <Filter>Main</Filter>
-    <ClInclude Include="Communicates.h">
-      <Filter>Communicate</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    </ClCompile>
-    <ClCompile Include="Sound.cpp">
+    <ClInclude Include="Sound.h">
       <Filter>Sound</Filter>
-    </ClCompile>
-    <ClCompile Include="Item.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="Block.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="GameScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="Bomb.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="GameRecordScene.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="Communicates.cpp">
-      <Filter>Communicate</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="CAClient.rc">
-      <Filter>Main\리소스 파일</Filter>
-    </ResourceCompile>
+    </ClInclude>
+    <ClInclude Include="Vector2D.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="CAClient.ico">
@@ -158,30 +117,29 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-    <None Include="cpp.hint" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Communicate">
-      <UniqueIdentifier>{0c124723-030f-4b79-a2fe-d241eaae423c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Util">
-      <UniqueIdentifier>{569b1bca-b506-4d65-a981-40c6131c52d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object">
-      <UniqueIdentifier>{b58446da-79ba-4b90-901b-3290098e3338}</UniqueIdentifier>
+    <Filter Include="Communicates">
+      <UniqueIdentifier>{9e84b896-0957-47c0-bb93-2123baa55463}</UniqueIdentifier>
     </Filter>
     <Filter Include="Framework">
-      <UniqueIdentifier>{09d653ee-bf4d-4269-aca8-d7083dd8327b}</UniqueIdentifier>
+      <UniqueIdentifier>{17e4fc29-61b6-4440-b6c5-098e4192397b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scene">
-      <UniqueIdentifier>{57f9de1b-6254-47b2-b04c-6da80c7b0d28}</UniqueIdentifier>
+    <Filter Include="GameObject">
+      <UniqueIdentifier>{fd29c44b-264d-4fce-ac4f-4ca74df7d50f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Main">
-      <UniqueIdentifier>{4aea84b2-7e7a-429d-bac6-c8c0a96bb5fe}</UniqueIdentifier>
+      <UniqueIdentifier>{bc939358-5bad-45a3-9ecb-cec81a4e7f46}</UniqueIdentifier>
     </Filter>
     <Filter Include="Main\리소스 파일">
-      <UniqueIdentifier>{ef963a7c-801c-4fff-a435-b12ec137c9f9}</UniqueIdentifier>
+      <UniqueIdentifier>{1d682447-4f10-45a1-96d2-a5fc1831933e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{02ddf2aa-d02f-493d-b0f7-26b84da51a24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound">
+      <UniqueIdentifier>{54bcfdbd-3cbf-4927-9ede-1c6a851ecb9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{7588d2a1-a2a3-4ca3-9671-43ae8f2c2910}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

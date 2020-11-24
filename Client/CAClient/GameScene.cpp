@@ -27,9 +27,27 @@ CGameScene::CGameScene()
 	InitMap();
 
 	Vector2D<float> PlayerPos(m_TileStartPosition.x + OBJECT_SIZE * 13,
-		m_TileStartPosition.y + OBJECT_SIZE * 1);
+		m_TileStartPosition.y + OBJECT_SIZE * 1); 
 	m_Players.push_back(new CPlayer(PlayerPos));
 
+	PlayerPos.x = m_TileStartPosition.x + OBJECT_SIZE * 0;
+	PlayerPos.y = m_TileStartPosition.y + OBJECT_SIZE * 1;
+	m_Players.push_back(new CPlayer(PlayerPos));
+
+	PlayerPos.x = m_TileStartPosition.x + OBJECT_SIZE * 1;
+	PlayerPos.y = m_TileStartPosition.y + OBJECT_SIZE * 11;
+	m_Players.push_back(new CPlayer(PlayerPos));
+
+	PlayerPos.x = m_TileStartPosition.x + OBJECT_SIZE * 14;
+	PlayerPos.y = m_TileStartPosition.y + OBJECT_SIZE * 11;
+	m_Players.push_back(new CPlayer(PlayerPos));
+
+	string id = "Player ";
+	for (int i = 0; i < m_Players.size(); ++i)
+	{
+		m_Players[i]->SetIndex(i);
+		m_Players[i]->SetID(id + to_string(i));
+	}
 	m_Type = SceneType::GameScene;
 }
 
@@ -216,7 +234,7 @@ void CGameScene::Update(float timeElapsed)
 				
 				if (bCollide)
 				{
-					player->FixCollision();
+					//player->FixCollision();
 				}
 				else continue;;
 				if (m_Blocks[i][j]->GetIsOnMove()) continue;
@@ -274,7 +292,7 @@ void CGameScene::Update(float timeElapsed)
 				
 				if (bCollide)	// 일반 충돌 처리
 				{
-					player->FixCollision();
+					//player->FixCollision();
 				}
 
 #ifndef _DEBUG
@@ -292,7 +310,7 @@ void CGameScene::Update(float timeElapsed)
 		}
 		if (!player->IsInMap())
 		{
-			player->FixCollision();
+			//player->FixCollision();
 		}
 	}
 }
@@ -339,24 +357,27 @@ void CGameScene::Communicate(SOCKET& sock)
 {
 	int retVal;
 	string toSendData = to_string((int)m_Type);
-	SendFrameData(sock, toSendData, retVal); 
+	SendFrameData(sock, toSendData, retVal);
 
-	GameSceneSendData data; 
-	data.playerIndex = 0;
+	GameSceneSendData data;
+	data.playerIndex = m_Players[0]->GetIndex();
 	data.position = m_Players[0]->GetPosition();
 	data.waterRange = m_Players[0]->GetPower();
 	data.speed = m_Players[0]->GetSpeed();
 	data.direction = m_Players[0]->GetDirection();
 	data.state = (int)m_Players[0]->GetState();
-	//data.mapData = m_Map; 
+	//data.mapData = m_Map;
 
 	toSendData.clear();
 
 	toSendData = "<Position>:";
-	toSendData += to_string(data.position.x);  
+	toSendData += to_string(data.position.x);
 	toSendData += " ";
 	toSendData += to_string(data.position.y);
 	toSendData += "\n";
+
+	toSendData += "<PlayerIndex>:";
+	toSendData += to_string(data.playerIndex);
 
 	toSendData += "<Power>:";
 	toSendData += to_string(data.waterRange);
@@ -374,22 +395,28 @@ void CGameScene::Communicate(SOCKET& sock)
 	toSendData += to_string(data.state);
 	toSendData += "\n";
 	SendFrameData(sock, toSendData, retVal);
-	  
+
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 
-	RecvFrameData(sock, buffer, retVal); 
+	RecvFrameData(sock, buffer, retVal);
 	//cout << "받은 값" << buffer << "\n";
 	char* token = strtok(buffer, "\n");
+	int index = 0;
 	Vector2f position;
 	while (token != NULL)
 	{
-		if (strstr(token, "<Position>:"))       //(token, "<position>:"))
+		if (strstr(token, "<PlayerIndex>:"))
+		{
+			index = ConvertoIntFromText(token, "<PlayerIndex>:");
+			cout << "<PlayerIndex>: " << index << " \n";
+		}
+		else if (strstr(token, "<Position>:"))       //(token, "<position>:"))
 		{
 			position = GetPositionFromText(token);
 			cout << "x : " << position.x << " y : " <<
 				position.y << "\n";
-			m_Players[0]->SetPosition(position);
+			m_Players[index]->SetPosition(position);
 		}
 		else if (strstr(token, "<IsGameEnd>:"))
 		{
