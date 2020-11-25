@@ -24,12 +24,6 @@
     <ClCompile Include="Communicates.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="GameSceneProcessor.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="MapObjects.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -42,12 +36,6 @@
       <Filter>소스 파일</Filter>
     </ClInclude>
     <ClInclude Include="Communicates.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="GameSceneProcessor.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="MapObjects.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

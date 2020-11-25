@@ -12,6 +12,8 @@ struct LobbySceneRecvData
 };
 struct LobbySceneSendData
 { 
+
+	int Num;
 	bool isReady;
 	string chatData;
 	bool isGameStart; 

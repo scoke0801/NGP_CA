@@ -3,6 +3,8 @@
 #define	MAP_WIDTH 15
 #define MAP_HEIGHT 13
 
+#include "Vector2D.h"
+
 enum class SceneType
 {
 	TitleScene = 0,
@@ -27,7 +29,7 @@ struct LobbySceneSendData
 	int Thread_Num;
 
 	bool is_All_Ready;
-	string chatData;
+	vector<string> chatData;
 	bool isGameStart;
 };
 #pragma endregion
@@ -60,7 +62,6 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 
 #define PlAYER_SPEED 52.0f
-#define OBJECT_SIZE 52
 enum class PlayerState
 {
 	wait = 0,
@@ -75,42 +76,15 @@ enum class Direction
 	up,
 	left,
 	right
-}; 
-enum class BlockName
-{
-	EMPTY = 0,
-	BLOCK_YELLOW = 1,
-	BLOCK_RED,
-	HOUSE_YELLOW,
-	HOUSE_RED,
-	HOUSE_BLUE,
-	BOX,
-	TREE,
-};
-
-enum class ItemName
-{
-	ballon = 0,
-	potion,
-	nuclear,
-	skate, 
-	count
-};
-enum class MapTileType
-{
-	EMPTY = 0,
-	BLOCK,
-	BOMB,
-	ITEM
 };
 struct GameSceneRecvData
 {
 	int playerIndex;
 	Vector2f position;
-	int power;
+	int waterRange;
 	int speed;
 	Direction direction;
-	PlayerState state;
+	int state;
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
 struct GameSceneSendData
@@ -121,6 +95,5 @@ struct GameSceneSendData
 	PlayerState state;
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 	bool isGameEnd;
-	bool bombCreateFlag;
 };
 #pragma endregion

@@ -190,7 +190,8 @@ void CFramework::preUpdate()
 	_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
 	wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
 	SetWindowText(m_hWnd, m_captionTitle);
-#endif 
+
+#endif
 }
 
 void CFramework::ProcessInput()

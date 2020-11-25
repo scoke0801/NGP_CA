@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "Datas.h"
 
 class CFramework;
 
@@ -9,7 +10,7 @@ public:
 	CLobbyScene();
 	~CLobbyScene();
 
-	virtual void SendDataToNextScene(void* pContext) {}
+
 public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
@@ -21,6 +22,7 @@ public:
 	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
+	virtual void ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	bool Player2_Exist;
@@ -31,8 +33,6 @@ public:
 	bool Player3_Ready = false;
 	bool isGameStart;
 
-	string chatData;
-
 	CFramework *m_Frame;
 
 private:
@@ -40,8 +40,12 @@ private:
 	CImage m_Player2_Images[2];
 	CImage m_Player3_Images[2];
 
+	LobbySceneSendData m_Player_c[2];
+	LobbySceneSendData m_Player_n;
 	string is_Select;
 	string m_Message;
+
+
 
 	char buf[BUFSIZ];
 	
