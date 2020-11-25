@@ -41,6 +41,8 @@ public:
 	bool IsTimeToExplose();
 	bool IsOnExplosion() const { return m_State == BombState::Explosion; }
 
+	void CheckPlayerOut(Vector2f playerPos);
+
 	void ChangeState(BombState state) { m_State = state; }
 	BombState GetState() const { return m_State; }
 
@@ -49,6 +51,11 @@ public:
 	Vector2i GetCoordinate() const { return m_Coordinates; }
 
 	bool CheckDelete() { return m_State == BombState::End; } 
+
+	void SetLastBranchCoords(vector<Vector2i>& coords);
+	vector<Vector2i>& GetLastBranchCoords() { return m_LastBranchCoords; }
+
+	bool GetIsPlayerOn()const { return m_PlayerIsOn; }
 };
 
 class CBlock

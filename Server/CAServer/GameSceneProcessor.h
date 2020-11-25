@@ -38,16 +38,18 @@ public:
 	void InitMap();
 
 	// 충돌 처리 계산을 위한 함수들
-	bool IsCollideInMap(Vector2f playerPosition);
+	bool IsCollideToBlock(Vector2f playerPosition);
+	bool IsCollideToBomb(Vector2f playerPosition, PlayerState& state);
+	bool IsCollideToItem(Vector2f playerPosition);
 	bool IsInMap(Vector2f position); // 좌표가 맵 안에 있는지 확인
-
-	// 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
-	bool IsCollide(Vector2f pos, Vector2i targetIdx);
-	RECT GetCollisionRect(Vector2f pos);
 
 	void CreateBomb(Vector2f pos, int power);
 	bool IsDestroyedBlock(Vector2i coord);
 public:
+	// 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
+	static bool IsCollide(Vector2f pos, Vector2i targetIdx);
+	static RECT GetCollisionRect(Vector2f pos);
+
 	static Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size);
 	static Vector2D<float> GetPositionCoord(Vector2D<int> coord);
 	static bool IsInMapCoord(Vector2D<int> coord);

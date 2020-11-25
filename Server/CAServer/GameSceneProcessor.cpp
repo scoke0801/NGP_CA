@@ -27,6 +27,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<Position>:"))
 		{
 			recvedData.position = GetPositionFromText(token);
+			prevPosition = recvedData.position;
 			//cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
 		}						
 		else if (strstr(token, "<Power>:"))
@@ -82,7 +83,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		break;
 	}
 	// Block - Player 충돌체크
-	if (IsCollideInMap(recvedData.position))
+	if (IsCollideToBlock(recvedData.position))
 	{
 		recvedData.position = prevPosition;
 	}
@@ -93,7 +94,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		for (int j = 0; j < MAP_WIDTH; ++j)
 		{
 			if (m_Bombs[i][j] == nullptr) continue;
-
+			m_Bombs[i][j]->CheckPlayerOut(recvedData.position);
 			m_Bombs[i][j]->TimeUpdate();
 			if (m_Bombs[i][j]->IsTimeToExplose()) m_Bombs[i][j]->ChangeState(BombState::Explosion);
 			if (m_Bombs[i][j]->IsOnExplosion())
@@ -185,7 +186,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 					if (!IsInMapCoord(coord_)) continue;
 					if (!m_Bombs[coord_.y][coord_.x]) continue;
 					if (m_Bombs[coord_.y][coord_.x]->IsOnExplosion()) continue;
-					//m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
+					m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
 					
 					m_Bombs[coord_.y][coord_.x]->ChangeState(BombState::Explosion);
 					i = 0;
@@ -194,7 +195,17 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			} 
 		}
 	}
-	 
+
+	if (IsCollideToBomb(recvedData.position, recvedData.state))
+	{
+		if (recvedData.state == PlayerState::die)
+		{
+			int stop = 3;
+		}
+		recvedData.position = prevPosition;
+	}
+
+	// 터진 물풍선 제거
 	for (int i = 0; i < MAP_HEIGHT; ++i)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
@@ -209,6 +220,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			}
 		}
 	}
+	
 	GameSceneSendData sendData;
 	sendData.index = recvedData.playerIndex;
 	sendData.position.x = recvedData.position.x;
@@ -258,7 +270,6 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		cout << "\n";
 		m_DeletedBlock.clear();
 	}
-	
 	if (m_CreatedBomb.size() != 0)
 	{
 		toSendData += "<BombCreateFlag>:";
@@ -497,7 +508,7 @@ bool GameSceneProcessor::IsDestroyedBlock(Vector2i coord)
 	return result != m_DeletedBlock.end();
 }
 
-bool GameSceneProcessor::IsCollideInMap(Vector2f playerPosition)
+bool GameSceneProcessor::IsCollideToBlock(Vector2f playerPosition)
 {
 	if (!IsInMap(playerPosition)) return true;
 
@@ -516,6 +527,45 @@ bool GameSceneProcessor::IsCollideInMap(Vector2f playerPosition)
 		}
 	}
 
+	return false;
+}
+
+bool GameSceneProcessor::IsCollideToBomb(Vector2f playerPosition, PlayerState& state)
+{
+	if (!IsInMap(playerPosition)) return true;
+
+	// with bomb
+	for (int i = 0; i < MAP_HEIGHT; ++i)
+	{
+		for (int j = 0; j < MAP_WIDTH; ++j)
+		{
+			if (!m_Bombs[i][j]) continue;
+			
+			Vector2i playerCoord = GetCoordinates(playerPosition, { OBJECT_SIZE, OBJECT_SIZE });
+
+			if (IsCollide(playerPosition, { j, i }))
+			{
+				if (m_Bombs[i][j]->GetIsPlayerOn()) continue;
+				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
+				return true;
+			}
+
+			if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
+			{
+				vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
+
+				auto iter = find(branchCoords.begin(), branchCoords.end(), playerCoord);
+				if (iter == branchCoords.end()) continue;
+
+				state = PlayerState::die;
+			}
+		}
+	}
+	return false;
+}
+
+bool GameSceneProcessor::IsCollideToItem(Vector2f playerPosition)
+{
 	return false;
 }
 
