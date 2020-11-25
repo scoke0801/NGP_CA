@@ -28,7 +28,7 @@ void CSoundManager::AddStream(char*  szPath, Sound_Name varName)
 		if (stream)
 		{
 			m_mapSound[varName] = stream;
-//			m_mapSound.insert(std::pair <Sound_Name, FMOD_SOUND* >(varName, stream));
+			m_mapSound.insert(std::pair <Sound_Name, FMOD_SOUND* >(varName, stream));
 		}
 	}
 }
@@ -45,7 +45,7 @@ void CSoundManager::AddSound(char * szPath, Sound_Name varName)
 		if (sound)
 		{
 			m_mapSound[varName] = sound;
-			//m_mapSound.insert(std::pair <Sound_Name, FMOD_SOUND* >(varName, sound));
+			m_mapSound.insert(std::pair <Sound_Name, FMOD_SOUND* >(varName, sound));
 		}
 	}
 }

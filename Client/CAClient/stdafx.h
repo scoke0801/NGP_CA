@@ -2,7 +2,6 @@
 // 표준 시스템 포함 파일 또는 프로젝트 관련 포함 파일이
 // 들어 있는 포함 파일입니다.
 //
-
 #pragma once
 
 #include "targetver.h"
@@ -24,7 +23,9 @@
 #include <chrono>
 #include <cassert>
 #include <vector>
-#include <map>
+#include <map> 
+#include <set> 
+#include<string> 
 
 using namespace std;
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
@@ -33,29 +34,37 @@ using namespace std;
 #include <commdlg.h>
 #include "Resource.h"
 
+#include "Vector2D.h"
+
 #define CLIENT_WIDTH 1040	//클라이언트 넓이를 지정합니다.
 #define CLIENT_HEIGHT 780	//클라이언트 높이를 지정합니다.
 
-// 캡션 FPS 출력 여부 -------------------
-// 항상 캡션에 FPS를 출력		(0 : 비활성 | 1 : 활성)
-#define USE_CAPTIONFPS_ALWAYS	 1
+#define	MAP_WIDTH 15
+#define MAP_HEIGHT 13
 
-#if USE_CAPTIONFPS_ALWAYS
-#define SHOW_CAPTIONFPS 
-#elif _DEBUG	// Debug에서는 항상 실행
-#define SHOW_CAPTIONFPS 
+#define BUFSIZE 4096
+
+// 위치 값을 받아서 맵 상의 좌표값으로 계산하여 반환
+Vector2D<int> GetCoordinates(Vector2D<float> position, Vector2D<int> size);
+Vector2D<float> GetPositionCoord(Vector2D<int> coord);
+
+bool IsInMapCoord(Vector2D<int> coord);
+#define SAFE_DELETE(p) { if(p) {delete p;} (p) = nullptr ;}
+
+enum class Direction
+{
+	down = 0,
+	up,
+	left,
+	right
+};
+
+// 디버그 모드인 경우에
+// 클라이언트의 하위창으로 콘솔창을 사용하는 코드
+#ifdef _DEBUG
+#ifdef UNICODE
+	#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#else
+	#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 #endif
-
-#if defined(SHOW_CAPTIONFPS)
-#define MAX_UPDATE_FPS 1.0 / 3.0
 #endif
-
- //최대 FPS
-#define MAX_FPS 1.0 / 60.0
-//#if _DEBUG
-//#define MAX_FPS 0.0
-//#else
-//#define MAX_FPS 1.0 / 60.0
-//#endif
-//프레임을 따라잡기까지 최대 몇번 루프를 돌 것인지를 지정합니다.
-#define MAX_LOOP_TIME 50

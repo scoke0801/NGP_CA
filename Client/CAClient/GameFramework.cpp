@@ -1,11 +1,16 @@
 #include "stdafx.h"
 #include "Resource.h"
 #include "GameFramework.h"
+#include "TitleScene.h"
 #include "GameScene.h"
+#include "GameRecordScene.h"
 #include "LobbyScene.h"
+#include "Communicates.h"
 
-#define MAX_GAME_LOOP 30
+#define MAX_GAME_LOOP 30  
 #define FPS 1 / 60.0f
+//프레임을 따라잡기까지 최대 몇번 루프를 돌 것인지를 지정합니다.
+#define MAX_LOOP_TIME 50
 
 #define TITLE_LENGTH 50
 
@@ -22,14 +27,9 @@
 #if defined(SHOW_CAPTIONFPS)
 	#define MAX_UPDATE_FPS 1.0f / 5.0f
 #endif
-
-CFramework::CFramework()
-<<<<<<< Updated upstream
-{
-=======
-{ 
-	
->>>>>>> Stashed changes
+CFramework* CFramework::self = nullptr;
+CFramework::CFramework() 
+{  
 }
 
 CFramework::~CFramework()
@@ -38,15 +38,10 @@ CFramework::~CFramework()
 	{
 		delete m_pCurScene;
 		m_pCurScene = nullptr;
-	}
-<<<<<<< Updated upstream
-=======
-
-	
+	}  
 	if (m_Sock) closesocket(m_Sock);
 	
-	WSACleanup(); 
->>>>>>> Stashed changes
+	WSACleanup();  
 }
 
 void CFramework::init(HWND hWnd, HINSTANCE hInst)
@@ -56,24 +51,20 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	
 	::GetClientRect(hWnd, &m_rtClient);
 
-	m_prevTime = m_lastUpdateTime = chrono::system_clock::now();
+	BuildScene();
+	InitBuffers();
 
-	m_frameCount = 0;
-	m_fps = m_timeGap = m_updateGap = 0;
-
+	m_IsServerConnected = false;
+	 
+	_tcscpy_s(m_pszFrameRate, _T("Crazy Arcade( "));
 	LoadString(m_hInst, IDS_APP_TITLE, m_captionTitle, TITLE_LENGTH);
 #if defined(SHOW_CAPTIONFPS)
 	lstrcat(m_captionTitle, TEXT(" ("));
 #endif
 	m_titleLength = lstrlen(m_captionTitle);
-<<<<<<< Updated upstream
-	SetWindowText(m_hWnd, m_captionTitle);
-
-	BuildScene();
-	InitBuffers();
-=======
 	SetWindowText(m_hWnd, m_captionTitle); 
 }
+
 
 bool CFramework::PrepareCommunicate()
 {
@@ -90,6 +81,8 @@ bool CFramework::PrepareCommunicate()
 	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
 	serveraddr.sin_port = htons(SERVERPORT);
 
+	m_IsServerConnected = true;
+
 	// socket()
 	m_Sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_Sock == INVALID_SOCKET) 
@@ -99,7 +92,7 @@ bool CFramework::PrepareCommunicate()
 		// error_quit("socket()");
 		return false;
 	}
-	
+
 	// connect()
 	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR)
@@ -118,20 +111,19 @@ bool CFramework::PrepareCommunicate()
 
 void CFramework::Communicate()
 {
-	
 	if(m_pCurScene) 
 		m_pCurScene->Communicate(m_Sock);
-	
->>>>>>> Stashed changes
 }
 
 void CFramework::BuildScene()
 {
 	m_pCurScene = nullptr;
 
-	ChangeScene<CLobbyScene>();
-
+	ChangeScene<CNullScene>();
+	//ChangeScene<CTitleScene>(); 
+	//ChangeScene<CTitleScene>(); 
 	//ChangeScene<CGameScene>();
+	//ChangeScene<CLobbyScene>();
 }
 
 void CFramework::InitBuffers()
@@ -158,48 +150,65 @@ void CFramework::InitBuffers()
 
 void CFramework::preUpdate()
 {
-	int loopCount = 0;
+	//if (!m_IsServerConnected)
+	//{}
+	m_timeElapsed = std::chrono::system_clock::now() - m_currentTime;//현재시간과 이전시간을 비교해서
+	m_dLag = 0.0;
 
-	// 지난번 함수 호출부터 이번 함수 호출까지의 시간 경과를 계산합니다.
-	m_timeElapsed = std::chrono::system_clock::now() - m_prevTime;
-	m_prevTime = chrono::system_clock::now();
-	m_timeGap += m_timeElapsed.count();
+	ProcessInput();
 
-	// 계산한 시간의 차이가 지정된 시간보다 작게 될 때까지 업데이트를 반복합니다.
-	// 단, 시간이 과도하게 흘러 업데이트가 계속해서 반복되는 것을 막기 위해
-	// 제한된 횟수만큼만 반복할 수 있도록 변수를 설정합니다.
-	while (m_timeGap > FPS && loopCount++ < MAX_GAME_LOOP)
+	if (m_timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
 	{
-		update(m_timeGap);
+		m_currentTime = std::chrono::system_clock::now();//현재시간 갱신
 
-		m_timeGap -= FPS;
+		if (m_timeElapsed.count() > 0.0) m_fps = 1.0 / m_timeElapsed.count();
+
+		//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+		m_dLag += m_timeElapsed.count();
+		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
+		{
+			update(FPS);
+			m_dLag -= FPS;
+		}
 	}
+	// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+	else
+		return;
 
 	// 업데이트가 종료되면 렌더링을 진행합니다.
 	InitBuffers();
 	InvalidateRect(m_hWnd, &m_rtClient, FALSE);
 
-	//타이틀 바(캡션) 관련
 #if defined(SHOW_CAPTIONFPS)
+
 	m_updateElapsed = std::chrono::system_clock::now() - m_lastUpdateTime;
-	m_updateGap = m_updateElapsed.count();
-
-	// 지정된 시간마다 fps를 계산합니다.
-	if (m_updateGap > MAX_UPDATE_FPS)
-	{
-		m_fps = m_frameCount / m_updateGap;
+	if (m_updateElapsed.count() > MAX_UPDATE_FPS)
 		m_lastUpdateTime = std::chrono::system_clock::now();
-
-		m_updateGap = 0;
-		m_frameCount = 0;
-	}
 	else
-		++m_frameCount;
-	
+		return;
+
 	_itow_s(m_fps + 0.1f, m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, 10);
 	wcscat_s(m_captionTitle + m_titleLength, TITLE_LENGTH - m_titleLength, TEXT(" FPS)"));
 	SetWindowText(m_hWnd, m_captionTitle);
 #endif
+
+
+
+
+
+}
+
+void CFramework::ProcessInput()
+{
+	static UCHAR pKeysBuffer[256];
+	bool bProcessedByScene = false;
+	if (GetKeyboardState(pKeysBuffer) && m_pCurScene)
+		bProcessedByScene = m_pCurScene->ProcessInput(pKeysBuffer);
+
+	if (!bProcessedByScene)
+	{
+	}
+	
 }
 
 void CFramework::update(float timeElapsed)
@@ -210,27 +219,21 @@ void CFramework::update(float timeElapsed)
 
 void CFramework::draw(HDC hdc)
 {
-	
 	m_pCurScene->Draw(m_hdc);
-
 	BitBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 		m_hdc, 0,0, SRCCOPY);
-
-	
 }
 
 LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
-		m_pCurScene->ProcessMouseInput(hWnd, message, wParam, lParam);
 	case WM_LBUTTONDOWN:
-		m_pCurScene->ProcessMouseInput(hWnd, message, wParam, lParam);
+		m_pCurScene->ProcessMouseClick(hWnd, message, wParam, lParam);
+		break;
 	case WM_NCLBUTTONUP:
 	case WM_RBUTTONDOWN:
-		m_pCurScene->ProcessMouseInput(hWnd, message, wParam, lParam);
 	case WM_RBUTTONUP:
 		m_pCurScene->ProcessMouseInput(hWnd, message, wParam, lParam);
 		break;
@@ -238,11 +241,13 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	case WM_KEYDOWN:
 		m_pCurScene->ProcessKeyboardDownInput(hWnd, message, wParam, lParam);
 		break;
-	
 	case WM_KEYUP:
 		m_pCurScene->ProcessKeyboardUpInput(hWnd, message, wParam, lParam);
 		break;
 
+	case WM_CHAR:
+		m_pCurScene->ProcessCHARInput(hWnd, message, wParam, lParam);
+		break;
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
@@ -256,5 +261,60 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
+	return 0;
+}
+
+DWORD __stdcall ClientMain(LPVOID arg)
+{ 
+	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
+	std::chrono::system_clock::time_point currentTime;
+	std::chrono::duration<double> timeElapsed; // 시간이 얼마나 지났나
+	double dLag = 0.0f;
+	double fps  = 0.0f;
+
+	std::chrono::system_clock::time_point lastUpdateTime;
+	std::chrono::duration<double> updateElapsed;
+
+	while (1)
+	{
+		timeElapsed = std::chrono::system_clock::now() - currentTime;//현재시간과 이전시간을 비교해서
+		dLag = 0.0;
+
+		CFramework::GetInstance()->ProcessInput();
+
+		if ( timeElapsed.count() > FPS)				//지정된 시간이 흘렀다면
+		{
+			currentTime = std::chrono::system_clock::now();//현재시간 갱신
+
+			if (timeElapsed.count() > 0.0) fps = 1.0 / timeElapsed.count();
+
+			//게임 시간이 늦어진 경우 이를 따라잡을 때 까지 업데이트 시킵니다.
+			dLag += timeElapsed.count();
+			for (int i = 0; dLag > FPS && i < MAX_LOOP_TIME; ++i)
+			{
+				CFramework::GetInstance()->Communicate();
+				dLag -= FPS;
+			}
+		}
+		// 최대 FPS 미만의 시간이 경과하면 진행 생략(Frame Per Second)
+		else
+			continue;
+
+#if defined(SHOW_CAPTIONFPS)
+
+		updateElapsed = std::chrono::system_clock::now() - CFramework::GetInstance()->m_lastUpdateTime;
+		if (updateElapsed.count() > MAX_UPDATE_FPS)
+			lastUpdateTime = std::chrono::system_clock::now();
+		else
+			continue;
+
+		_itow_s( fps + 0.1f,
+			CFramework::GetInstance()->m_captionTitle + CFramework::GetInstance()->m_titleLength,
+			TITLE_LENGTH - CFramework::GetInstance()->m_titleLength, 10);
+		wcscat_s(CFramework::GetInstance()->m_captionTitle + CFramework::GetInstance()->m_titleLength, TITLE_LENGTH - CFramework::GetInstance()->m_titleLength, TEXT(" FPS)"));
+		SetWindowText(CFramework::GetInstance()->m_hWnd, CFramework::GetInstance()->m_captionTitle);
+#endif
+	}
+
 	return 0;
 }

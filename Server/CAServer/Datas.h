@@ -2,12 +2,12 @@
 
 #define	MAP_WIDTH 15
 #define MAP_HEIGHT 13
- 
+
 #include "Vector2D.h"
 
 enum class SceneType
 {
-	TitleScene=0,
+	TitleScene = 0,
 	LobbyScene,
 	GameScene,
 	GameRecordScene
@@ -16,16 +16,11 @@ enum class SceneType
 // 여기를 채워 주세요
 #pragma region LobbySceneDatas
 struct LobbySceneRecvData
-<<<<<<< Updated upstream
 {
+	int Thread_Num = 0;
 	bool is_All_Ready;
-=======
-{ 
-	int Thread_Num=0;
-
 	bool Player2_Ready;
 	bool Player3_Ready;
->>>>>>> Stashed changes
 	string chatData;
 	bool isGameStart;
 };
@@ -34,7 +29,7 @@ struct LobbySceneSendData
 	int Thread_Num;
 
 	bool is_All_Ready;
-	string chatData;
+	vector<string> chatData;
 	bool isGameStart;
 };
 #pragma endregion
@@ -43,9 +38,13 @@ struct LobbySceneSendData
 #pragma region TitleSceneDatas;
 struct TitleSceneRecvData
 {
+	string id;
+	string pw;
+	bool isNew;
 };
 struct TitleSceneSendData
 {
+	bool result;
 };
 #pragma endregion 
 
@@ -61,28 +60,40 @@ struct GameRecordSceneSendData
 
 
 #pragma region GameSceneDatas
+
+#define PlAYER_SPEED 52.0f
+enum class PlayerState
+{
+	wait = 0,
+	move,
+	trap = 4,
+	die,
+	live,
+};
+enum class Direction
+{
+	down = 0,
+	up,
+	left,
+	right
+};
 struct GameSceneRecvData
 {
 	int playerIndex;
 	Vector2f position;
 	int waterRange;
 	int speed;
+	Direction direction;
 	int state;
-	int mapData[width][height];
+	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
-
-enum class PlayerState
-{
-
-};
-
-
 struct GameSceneSendData
-{
+{ 
+	UINT index;
 	Vector2f position;
 	int speed;
 	PlayerState state;
-	int mapData[width][height];
+	int mapData[MAP_HEIGHT][MAP_WIDTH];
 	bool isGameEnd;
 };
 #pragma endregion

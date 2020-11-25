@@ -37,7 +37,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -89,7 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
@@ -104,7 +104,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -116,7 +116,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
@@ -144,6 +144,8 @@
   <ItemGroup>
     <ClInclude Include="Block.h" />
     <ClInclude Include="Bomb.h" />
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="Communicates.h" />
     <ClInclude Include="Datas.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameScene.h" />
@@ -164,6 +166,8 @@
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Bomb.cpp" />
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Communicates.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="Item.cpp" />
@@ -185,9 +189,6 @@
   <ItemGroup>
     <Image Include="CAClient.ico" />
     <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

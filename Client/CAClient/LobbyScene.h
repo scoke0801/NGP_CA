@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include "Datas.h"
 
 class CFramework;
 
@@ -14,17 +15,14 @@ public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
 
-	virtual void Communicate();
+	virtual void Communicate(SOCKET& sock);
 
-	
 	virtual LRESULT ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) { return 0; }
-<<<<<<< Updated upstream
-	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){}
-	virtual void ProcessKeyboardInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
-=======
+
 	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void ProcessKeyboardUpInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
->>>>>>> Stashed changes
+
+	virtual void ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	bool Player2_Exist;
@@ -35,8 +33,6 @@ public:
 	bool Player3_Ready = false;
 	bool isGameStart;
 
-	string chatData;
-
 	CFramework *m_Frame;
 
 private:
@@ -44,14 +40,15 @@ private:
 	CImage m_Player2_Images[2];
 	CImage m_Player3_Images[2];
 
-<<<<<<< Updated upstream
-=======
+	LobbySceneSendData m_Player_c[2];
+	LobbySceneSendData m_Player_n;
 	string is_Select;
 	string m_Message;
+
+
 
 	char buf[BUFSIZ];
 	
 	TCHAR* StringToTCHAR(string& s);
->>>>>>> Stashed changes
 };
 
