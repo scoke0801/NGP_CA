@@ -149,6 +149,40 @@ void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords)
     }
 }
 
+void GetCoordsFromText(const char* token, int num, vector<int>& names, vector<Vector2i>& coords)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2i coord;
+        int name;
+        int count = 0; 
+        for (int j = 0; j < strlen(token); ++j, ++count)
+        {
+            char temp[20] = {};
+
+            if (token[j] == ' ')
+            {
+                strncpy(temp, token, count); 
+                name = atof(temp);  
+                for (int k = j + 1, count_ = 0; k < strlen(token); ++k, ++count_)
+                {
+                    if (token[k] == ' ')
+                    {
+                        strncpy(temp, token + j + 1, 2);
+                        coord.x = atof(temp); 
+                     
+                        strncpy(temp, token + j + k, 2);
+                        coord.y = atof(temp);
+                    }
+                } 
+                coords.push_back(coord);
+                names.push_back(name);
+            } 
+        }
+    }
+}
+
 int ConvertoIntFromText(const char* text, const char* token)
 {
     char buf[256];

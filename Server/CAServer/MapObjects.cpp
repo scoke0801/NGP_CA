@@ -58,3 +58,10 @@ CBlock::CBlock(Vector2i coord, bool isCanDestroy, bool isCanMove)
 	m_IsCanDestroy = isCanDestroy;
 	m_IsCanMove = isCanMove;
 }
+
+CItem::CItem(ItemName name, Vector2i coord)
+{
+	m_Name = name;
+	m_Coordinates = coord;
+	m_Position = GameSceneProcessor::GetInstance()->GetPositionCoord(coord);
+}

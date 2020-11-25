@@ -153,7 +153,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::GameScene:
-			GameSceneProcessor::GetInstancec()->ProcessGameScene(client_sock);
+			GameSceneProcessor::GetInstance()->ProcessGameScene(client_sock);
 			//ProcessGameScene(client_sock, Data.Thread_Num);
 			break;
 

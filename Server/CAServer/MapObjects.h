@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Datas.h"
 enum class BombState
 {
 	Wait = 0,
@@ -79,7 +79,9 @@ private:
 	Vector2i m_Coordinates;
 	Vector2f m_Position;
 
+	ItemName m_Name;
 public:
-	CItem();
+	CItem(ItemName name, Vector2i coord);
 
+	ItemName GetName() const { return m_Name; }
 };

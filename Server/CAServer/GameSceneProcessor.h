@@ -16,6 +16,8 @@ private:
 	vector<Vector2i> m_DeletedBlock;
 	vector<Vector2i> m_DeletedBomb;
 	vector<Vector2i> m_CreatedBomb;
+	vector<Vector2i> m_DeletedItem;
+	vector<Vector2i> m_CreatedItem;
 
 	GameSceneProcessor() { InitMap(); }
 
@@ -23,7 +25,7 @@ private:
 	void operator=(const GameSceneProcessor& other) = delete;
 
 public:
-	static GameSceneProcessor* GetInstancec()
+	static GameSceneProcessor* GetInstance()
 	{
 		static GameSceneProcessor self;
 		return &self;

@@ -104,8 +104,8 @@ void CGameScene::Update(float timeElapsed)
 
 				int itemCreate = rand() % 10;
 				int itemName = rand() % (int)ItemName::count;
-				if (itemCreate <= 2)
-					m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord(coord));
+				//if (itemCreate <= 2)
+				//	m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord(coord));
 
 			}
 		}
@@ -178,35 +178,6 @@ void CGameScene::Update(float timeElapsed)
 
 				delete m_Items[i][j];
 				m_Items[i][j] = nullptr;
-			}
-		}
-
-		// 플레이어 - 물풍선 충돌 처리
-		for (int i = 0; i < MAP_HEIGHT; ++i)
-		{
-			for (int j = 0; j < MAP_WIDTH; ++j)
-			{
-				if (!m_Bombs[i][j]) continue; 
-				// if (m_Bombs[i][j]->GetPlayer() == player) continue;
-				Vector2i playerCoord = GetCoordinates(player->GetPosition(), player->GetSize()); 
-				bool bCollide = m_Bombs[i][j]->IsCollide(player);
-				
-				if (bCollide)	// 일반 충돌 처리
-				{
-					//player->FixCollision();
-				}
-
-#ifndef _DEBUG
-				if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
-				{
-					vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
-					
-					auto iter = find(branchCoords.begin(), branchCoords.end(), playerCoord);
-					if (iter == branchCoords.end()) continue;
-
-					player->ChangeState(PlayerState::die);
-				}
-#endif
 			}
 		}
 		if (!player->IsInMap())
@@ -383,6 +354,37 @@ void CGameScene::Communicate(SOCKET& sock)
 				cout << "x : " << coord.x << " y : " << coord.y << " ";
 			}
 			cout << "num : [" << num << "]\n";
+		}
+		else if (strstr(token, "<CreatedItem>:"))
+		{
+			vector<Vector2i> createdItem;
+			vector<int> itemNames;
+			int num = ConvertoIntFromText(token, "<CreatedItem>:");
+			GetCoordsFromText(token, num, itemNames, createdItem);
+			cout << "CreatedItem : ";
+
+			int idx = 0;
+			for (auto coord : createdItem)
+			{
+				m_Items[coord.y][coord.x] = new CItem((ItemName)itemNames[idx++], GetPositionCoord(coord));
+				 
+				cout << "x : " << coord.x << " y : " << coord.y << " "; 
+			} 
+		}
+		else if (strstr(token, "<DeletedItem>:"))
+		{
+			vector<Vector2i> deletedItem;
+			int num = ConvertoIntFromText(token, "<DeletedItem>:");
+			GetCoordsFromText(token, num, deletedItem);
+			cout << "DeletedItem : ";
+
+			int idx = 0;
+			for (auto coord : deletedItem)
+			{
+				delete m_Items[coord.y][coord.x];
+				m_Items[coord.y][coord.x] = nullptr;
+				cout << "x : " << coord.x << " y : " << coord.y << " ";
+			}
 		}
 		token = strtok(NULL, "\n");
 	}
