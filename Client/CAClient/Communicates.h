@@ -22,4 +22,5 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval);
 bool RecvFrameData(SOCKET& sock, char* buf, int& retval);
 
 Vector2f GetPositionFromText(const char* text);
+void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords);
 int ConvertoIntFromText(const char* text, const char* token);

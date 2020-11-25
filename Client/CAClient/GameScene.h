@@ -13,8 +13,7 @@ enum class MAP_TILE_TYPE
 	BLOCK,
 	BOMB,
 };
-
-
+ 
 class CGameScene : public CScene
 {
 private:

@@ -17,3 +17,4 @@
 *.res
 Server/.vs/CAServer/v16/Browse.VC.db-shm
 Server/.vs/CAServer/v16/Browse.VC.db-wal
+Client/CAClient/Debug/gamescene.obj.enc

@@ -74,105 +74,6 @@ void CGameScene::Update(float timeElapsed)
 
 			m_Bombs[i][j]->Update(timeElapsed);
 
-			if (m_Bombs[i][j]->IsTimeToExplose())
-			{
-
-				//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
-				m_Bombs[i][j]->ChangeState(BombState::Explosion);
-			}
-
-			if (m_Bombs[i][j]->IsOnExplosion())
-			{
-				const int power = m_Bombs[i][j]->GetPower();
-
-				vector<Vector2i> coords;
-				Vector2i coord;
-
-				for (int z = 1; z < power; ++z)//down
-				{
-					coord = { j, i + z };	
-					coords.push_back(coord);
-					if (!IsInMapCoord(coord)) continue;
-					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
-					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) break;
-					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					break;
-				}
-					
-				for (int z = 1; z < power; ++z) //up
-				{
-					coord = { j, i - z }; 
-					coords.push_back(coord);
-					if (!IsInMapCoord(coord)) continue; 
-					if (m_Items[coord.y][coord.x])  SAFE_DELETE(m_Items[coord.y][coord.x]);
-					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy())
-					{
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if(iter != coords.end()) coords.erase(iter);
-						break;
-					}
-					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					{
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if (iter != coords.end()) coords.erase(iter);
-						break;
-					} 
-				}
-				for (int z = 1; z < power; ++z)//left
-				{
-					coord = { j - z, i };
-					coords.push_back(coord);
-					if (!IsInMapCoord(coord)) continue;
-					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
-					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if (iter != coords.end()) coords.erase(iter);
-						break;
-					}
-					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					{
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if (iter != coords.end()) coords.erase(iter);
-						break;
-					}
-				}
-				for (int z = 1; z < power; ++z) //right
-				{
-					coord = { j + z, i };
-					coords.push_back(coord);
-					if (!IsInMapCoord(coord)) continue;
-					if (m_Items[coord.y][coord.x]) SAFE_DELETE(m_Items[coord.y][coord.x]);
-					if (!m_Blocks[coord.y][coord.x]) continue;
-					if (!m_Blocks[coord.y][coord.x]->IsCanDestroy()) {
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if (iter != coords.end()) coords.erase(iter);
-						break;
-					}
-					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-					{
-						auto iter = find(coords.begin(), coords.end(), coord);
-						if (iter != coords.end()) coords.erase(iter);
-						break;
-					}
-				}
-
-				coords.push_back({ j, i });
-				for (auto coord : coords)
-				{
-					if (!IsInMapCoord(coord)) continue;
-					if (!m_Bombs[coord.y][coord.x]) continue; 
-					m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
-
-					if (m_Bombs[coord.y][coord.x]->GetState() != BombState::Wait) continue; 
-					m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
-					//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_WAVE);
-				}
-				m_Bombs[i][j]->SetLastBranchCoords(coords);
-			}
-
 			if (m_Bombs[i][j]->CheckDelete())
 			{
 				Vector2D<int> coord = GetCoordinates(m_Bombs[i][j]->GetPosition(), m_Bombs[i][j]->GetSize());
@@ -378,6 +279,7 @@ void CGameScene::Communicate(SOCKET& sock)
 
 	toSendData += "<PlayerIndex>:";
 	toSendData += to_string(data.playerIndex);
+	toSendData += "\n";
 
 	toSendData += "<Power>:";
 	toSendData += to_string(data.waterRange);
@@ -400,6 +302,7 @@ void CGameScene::Communicate(SOCKET& sock)
 		toSendData += "<BombCreateFlag>:";
 		toSendData += m_Players[0]->GetCreateBombFlag();
 		toSendData += "\n";
+		m_Players[0]->SetCreateBombFlag(false);
 	}
 	SendFrameData(sock, toSendData, retVal);
 
@@ -410,39 +313,76 @@ void CGameScene::Communicate(SOCKET& sock)
 	//cout << "¹ÞÀº °ª" << buffer << "\n";
 	char* token = strtok(buffer, "\n");
 	int index = 0;
-	Vector2f position;
+	Vector2f position; 
+	Vector2f prevPosition = m_Players[0]->GetPosition();
+
 	while (token != NULL)
 	{
 		if (strstr(token, "<PlayerIndex>:"))
 		{
 			index = ConvertoIntFromText(token, "<PlayerIndex>:");
-			cout << "<PlayerIndex>: " << index << " \n";
+			//cout << "<PlayerIndex>: " << index << " \n";
 		}
 		else if (strstr(token, "<Position>:"))       //(token, "<position>:"))
 		{
 			position = GetPositionFromText(token);
-			cout << "x : " << position.x << " y : " <<
-				position.y << "\n";
+			//cout << "x : " << position.x << " y : " << position.y << "\n";
 			m_Players[index]->SetPosition(position);
 		}
 		else if (strstr(token, "<IsGameEnd>:"))
 		{
-			cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
+			//cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
 		}
 		else if (strstr(token, "<Speed>:"))
 		{
-			cout << "<Speed>: " << ConvertoIntFromText(token, "<Speed>:") << " \n";
+			//cout << "<Speed>: " << ConvertoIntFromText(token, "<Speed>:") << " \n";
 		}
 		else if (strstr(token, "<PlayerState>:"))
 		{
-			cout << "<PlayerState>: " << ConvertoIntFromText(token, "<PlayerState>:") << " \n";
+			//cout << "<PlayerState>: " << ConvertoIntFromText(token, "<PlayerState>:") << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
-			Vector2D<int> coord = GetCoordinates(m_Players[0]->GetPosition(), m_Players[0]->GetSize());
-			CreateBomb(coord);
-			//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+			vector<Vector2i> createdBlock;
+			int num = ConvertoIntFromText(token, "<BombCreateFlag>:");
+			GetCoordsFromText(token, num, createdBlock);
+			cout << "CreatedBomb : ";
+			for (auto coord : createdBlock)
+			{
+				CreateBomb(coord);
+				cout << "x : " << coord.x << " y : " << coord.y << " ";
+			}
+			cout << "\n";
+			////m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
 			m_Players[0]->SetCreateBombFlag(false);
+		}
+		else if (strstr(token, "<DeletedBlock>:"))
+		{
+			vector<Vector2i> deletedBlock;
+			int num = ConvertoIntFromText(token, "<DeletedBlock>:");
+			GetCoordsFromText(token, num, deletedBlock);
+			cout << "DeletedBlock : ";
+			for (auto coord : deletedBlock)
+			{ 
+				if(m_Blocks[coord.y][coord.x])
+	 				m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
+				cout << "x : " << coord.x << " y : " << coord.y << " ";
+			}
+			cout << "\n";
+		}					   
+		else if (strstr(token, "<DeletedBomb>:"))
+		{
+			vector<Vector2i> deletedBomb;
+			int num = ConvertoIntFromText(token, "<DeletedBomb>:");
+			GetCoordsFromText(token, num, deletedBomb);
+			cout << "DeletedBomb : ";
+			for (auto coord : deletedBomb)
+			{
+				m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
+				--num;
+				cout << "x : " << coord.x << " y : " << coord.y << " ";
+			}
+			cout << "num : [" << num << "]\n";
 		}
 		token = strtok(NULL, "\n");
 	}
@@ -628,6 +568,7 @@ void CGameScene::CreateBomb(Vector2D<int> coordinate)
 
 	m_Bombs[coordinate.y][coordinate.x]->SetPlayer(m_Players[0]);
 	m_Players[0]->ConnectBomb(m_Bombs[coordinate.y][coordinate.x]);
+	//cout << "CreateBomb : x - " << coordinate.x << " y - " << coordinate.y << "\n";
 }
 
 void CGameScene::CreateBomb()

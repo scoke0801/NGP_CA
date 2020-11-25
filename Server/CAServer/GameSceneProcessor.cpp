@@ -22,32 +22,32 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		if (strstr(token, "<PlayerIndex>:"))
 		{
 			recvedData.playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
-			cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
+			//cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
 		}
 		else if (strstr(token, "<Position>:"))
 		{
 			recvedData.position = GetPositionFromText(token);
-			cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
-		}
+			//cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
+		}						
 		else if (strstr(token, "<Power>:"))
 		{
 			recvedData.power = ConvertoIntFromText(token, "<Power>:");
-			cout << "<Power>: " << recvedData.power << " \n";
+			//cout << "<Power>: " << recvedData.power << " \n";
 		}
 		else if (strstr(token, "<Speed>:"))
 		{
 			recvedData.speed = ConvertoIntFromText(token, "<Speed>:");
-			cout << "<Speed>: " << recvedData.speed << " \n";
+			//cout << "<Speed>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<Direction>:"))
 		{
 			recvedData.direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-			cout << "<Direction>: " << (int)recvedData.direction << " \n";
+			//cout << "<Direction>: " << (int)recvedData.direction << " \n";
 		}
 		else if (strstr(token, "<PlayerState>:"))
 		{
 			recvedData.state = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
-			cout << "<PlayerState>: " << (int)recvedData.state << " \n";
+			//cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
@@ -69,7 +69,6 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			recvedData.position.y = recvedData.position.y - (recvedData.speed * PlAYER_SPEED * FPS);
 		if (recvedData.direction == Direction::down)
 			recvedData.position.y = recvedData.position.y + (recvedData.speed * PlAYER_SPEED * FPS);
-
 		break;
 	case PlayerState::wait:
 		break;
@@ -82,12 +81,134 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	default:
 		break;
 	}
-
+	// Block - Player 충돌체크
 	if (IsCollideInMap(recvedData.position))
 	{
 		recvedData.position = prevPosition;
 	}
 
+	// 물풍선 - Block,Player 충돌체크
+	for (int i = 0; i < MAP_HEIGHT; ++i)
+	{
+		for (int j = 0; j < MAP_WIDTH; ++j)
+		{
+			if (m_Bombs[i][j] == nullptr) continue;
+
+			m_Bombs[i][j]->TimeUpdate();
+			if (m_Bombs[i][j]->IsTimeToExplose()) m_Bombs[i][j]->ChangeState(BombState::Explosion);
+			if (m_Bombs[i][j]->IsOnExplosion())
+			{
+				int power = m_Bombs[i][j]->GetPower();
+
+				vector<Vector2i> coords;
+				Vector2i coord = { j, i }; 
+
+				for (int i = 1; i <= power; ++i)	// down
+				{
+					Vector2i temp = { coord.x, coord.y + i };
+					if (IsDestroyedBlock(temp)) break;
+
+					coords.push_back(temp);
+					if (!IsInMapCoord(temp)) continue;
+					// 아이템 처리
+					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+					
+					auto iter = find(coords.begin(), coords.end(), coord);
+					if (iter != coords.end()) coords.erase(iter);
+
+					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+					m_DeletedBlock.push_back(temp);
+					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+					break;
+				}
+				for (int i = 1; i <= power; ++i)	// up
+				{
+					Vector2i temp = { coord.x, coord.y - i };
+					if (IsDestroyedBlock(temp)) break;
+
+					coords.push_back(temp);
+					if (!IsInMapCoord(temp)) continue;
+					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+					auto iter = find(coords.begin(), coords.end(), coord);
+					if (iter != coords.end()) coords.erase(iter);
+
+					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+					m_DeletedBlock.push_back(temp);
+					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+					break;
+				}
+				for (int i = 1; i <= power; ++i)	// left
+				{
+					Vector2i temp = { coord.x - i, coord.y };
+					if (IsDestroyedBlock(temp)) break;
+
+					coords.push_back(temp);
+					if (!IsInMapCoord(temp)) continue;
+					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+					auto iter = find(coords.begin(), coords.end(), coord);
+					if (iter != coords.end()) coords.erase(iter);
+
+					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+					m_DeletedBlock.push_back(temp);
+					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+					break;
+				}
+				for (int i = 1; i <= power; ++i)	// right
+				{
+					Vector2i temp = { coord.x + i, coord.y }; 
+					if (IsDestroyedBlock(temp)) break;
+
+					coords.push_back(temp);
+					if (!IsInMapCoord(temp)) continue; 
+					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+					auto iter = find(coords.begin(), coords.end(), coord);
+					if (iter != coords.end()) coords.erase(iter);
+
+					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+					m_DeletedBlock.push_back(temp);
+					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+
+					break;
+				}
+
+				coords.push_back(coord); 
+
+				for (auto coord_ : coords)
+				{
+					if (!IsInMapCoord(coord_)) continue;
+					if (!m_Bombs[coord_.y][coord_.x]) continue;
+					if (m_Bombs[coord_.y][coord_.x]->IsOnExplosion()) continue;
+					//m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
+					
+					m_Bombs[coord_.y][coord_.x]->ChangeState(BombState::Explosion);
+					i = 0;
+					j = 0;
+				}
+			} 
+		}
+	}
+	 
+	for (int i = 0; i < MAP_HEIGHT; ++i)
+	{
+		for (int j = 0; j < MAP_WIDTH; ++j)
+		{
+			if (m_Bombs[i][j] == nullptr) continue;
+			if (m_Bombs[i][j]->IsOnExplosion())
+			{
+				Vector2i coord = m_Bombs[i][j]->GetCoordinate();
+				m_DeletedBomb.push_back(coord);
+				delete m_Bombs[coord.y][coord.x];
+				m_Bombs[coord.y][coord.x] = nullptr;
+			}
+		}
+	}
 	GameSceneSendData sendData;
 	sendData.index = recvedData.playerIndex;
 	sendData.position.x = recvedData.position.x;
@@ -120,13 +241,58 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	toSendData += to_string(sendData.isGameEnd);
 	toSendData += "\n";
 
-	if (sendData.bombCreateFlag)
+	if (m_DeletedBlock.size() != 0) 
+	{
+		toSendData += "<DeletedBlock>:";
+		toSendData += to_string(m_DeletedBlock.size());
+		toSendData += "\n";
+		cout << "DeletedBlock : ";
+		for(int i = 0; i <m_DeletedBlock.size(); ++i)
+		{
+			toSendData += to_string(m_DeletedBlock[i].x);
+			toSendData += " ";
+			toSendData += to_string(m_DeletedBlock[i].y);	
+			toSendData += "\n";
+			cout << "x : " << m_DeletedBlock[i].x << " y : " << m_DeletedBlock[i].y << " ";
+		} 
+		cout << "\n";
+		m_DeletedBlock.clear();
+	}
+	
+	if (m_CreatedBomb.size() != 0)
 	{
 		toSendData += "<BombCreateFlag>:";
-		toSendData += sendData.bombCreateFlag;
+		toSendData += to_string(m_CreatedBomb.size());
 		toSendData += "\n";
+		cout << "CreatededBomb(size:" << m_CreatedBomb.size() << ") ";
+		for (int i = 0; i < m_CreatedBomb.size(); ++i)
+		{
+			toSendData += to_string(m_CreatedBomb[i].x);
+			toSendData += " ";
+			toSendData += to_string(m_CreatedBomb[i].y);
+			toSendData += "\n";
+			cout << "x : " << m_CreatedBomb[i].x << " y : " << m_CreatedBomb[i].y << " ";
+		}
+		cout << "\n"; 
+		m_CreatedBomb.clear();
 	}
-
+	if (m_DeletedBomb.size() != 0)
+	{
+		toSendData += "<DeletedBomb>:";
+		toSendData += to_string(m_DeletedBomb.size());
+		toSendData += "\n";
+		cout << "DeletedBomb(size:" << m_DeletedBomb.size() << ") ";
+		for (int i = 0; i < m_DeletedBomb.size(); ++i)
+		{
+			toSendData += to_string(m_DeletedBomb[i].x);
+			toSendData += " ";
+			toSendData += to_string(m_DeletedBomb[i].y);
+			toSendData += "\n";
+			cout << "x : " << m_DeletedBomb[i].x << " y : " << m_DeletedBomb[i].y << " ";
+		}
+		cout << "\n";
+		m_DeletedBomb.clear();
+	}
 	auto res = SendFrameData(socket, toSendData, receivedSize);
 }
 // mbstowcs unsafe###
@@ -244,12 +410,11 @@ void GameSceneProcessor::InitMap()
 			if (mapData[i][j] == BlockName::HOUSE_YELLOW) isCanDestroy = false;
 			if (mapData[i][j] == BlockName::TREE) isCanDestroy = false;
 
-			//CBlock* block = new CBlock(mapData[i][j], position, isCanDestroy);
-
-			//Vector2D<int> coord = GetCoordinates(block->GetPosition(), block->GetSize());
+			CBlock* block = new CBlock({i,j}, isCanDestroy, true);
+			 
 			m_Map[i][j] = MapTileType::BLOCK;
 
-			//m_Blocks[i][j] = block;
+			m_Blocks[i][j] = block;
 		}
 	}
 }
@@ -260,7 +425,7 @@ Vector2D<int> GameSceneProcessor::GetCoordinates(Vector2D<float> position, Vecto
 	Vector2D<int> TileStartPosition = { 26, 53 };
 	coordinate.x = (position.x + size.x * 0.5f - TileStartPosition.x);// / OBJECT_SIZE;
 	coordinate.y = (position.y + size.y * 0.5f - TileStartPosition.y);// / OBJECT_SIZE;
-	if (coordinate.x > 0)  coordinate.x /= OBJECT_SIZE;
+	if (coordinate.x > 0) coordinate.x /= OBJECT_SIZE;
 	if (coordinate.y > 0) coordinate.y /= OBJECT_SIZE;
 
 	return coordinate;
@@ -273,6 +438,15 @@ Vector2D<float> GameSceneProcessor::GetPositionCoord(Vector2D<int> coord)
 	position.x = coord.x * OBJECT_SIZE + TileStartPosition.x;
 	position.y = coord.y * OBJECT_SIZE + TileStartPosition.y;
 	return position;
+}
+
+bool GameSceneProcessor::IsInMapCoord(Vector2D<int> coord)
+{
+	if (coord.x < 0) return false;
+	if (coord.x >= MAP_WIDTH) return false;
+	if (coord.y < 0) return false;
+	if (coord.y >= MAP_HEIGHT) return false;
+	return true;
 }
 
 bool GameSceneProcessor::IsCollide(Vector2f position, Vector2i targetIdx)
@@ -308,7 +482,19 @@ RECT GameSceneProcessor::GetCollisionRect(Vector2f pos)
 
 void GameSceneProcessor::CreateBomb(Vector2f pos, int power)
 {
-	m_Bombs.push_back(new CBomb(pos, power));
+	Vector2i coord = GetCoordinates(pos, { OBJECT_SIZE, OBJECT_SIZE });
+	if (!m_Bombs[coord.y][coord.x])
+	{ 
+		m_Bombs[coord.y][coord.x] = new CBomb(pos, power); 
+		m_CreatedBomb.push_back(coord); 
+		//cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
+	}
+}
+
+bool GameSceneProcessor::IsDestroyedBlock(Vector2i coord)
+{
+	auto result = find(m_DeletedBlock.begin(), m_DeletedBlock.end(), coord);
+	return result != m_DeletedBlock.end();
 }
 
 bool GameSceneProcessor::IsCollideInMap(Vector2f playerPosition)
@@ -324,7 +510,7 @@ bool GameSceneProcessor::IsCollideInMap(Vector2f playerPosition)
 
 			if (IsCollide(playerPosition, { j, i }))
 			{
-				cout << "충돌확인 i : " << i << " j : " << j << "\n";
+				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
 				return true;
 			}
 		}

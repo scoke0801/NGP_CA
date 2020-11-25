@@ -125,6 +125,30 @@ Vector2f GetPositionFromText(const char* text)
     return { -1,-1 };
 }
 
+void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2i coord;
+        int count = 0;
+        for (int i = 0; i < strlen(token); ++i, ++count)
+        {
+            if (token[i] == ' ')
+            {
+                char temp[20] = {};
+                strncpy(temp, token, count);
+                coord.x = atof(temp);
+                strncpy(temp, token + i, strlen(token) - i);
+                coord.y = atof(temp);
+               
+                coords.push_back(coord);
+                break;
+            }
+        } 
+    }
+}
+
 int ConvertoIntFromText(const char* text, const char* token)
 {
     char buf[256];
