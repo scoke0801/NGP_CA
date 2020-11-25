@@ -35,6 +35,8 @@ public:
 	CGameScene();
 	~CGameScene();
 
+	virtual void SendDataToNextScene(void* pContext) {}
+
 public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
@@ -52,7 +54,8 @@ private:
 	void InitMap();
 	void LoadImages();
 
-	void CreateBomb(Vector2D<int> coordinate);
+	void CreateBomb(Vector2D<int> coordinate);	// 클라이언트에서 처리
+	void CreateBomb();	// 서버에서 처리
 
 	bool CalcNextCoordinates(Vector2D<int>& coord, Direction dir);
 };

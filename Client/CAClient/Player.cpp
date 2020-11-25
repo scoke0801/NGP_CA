@@ -21,6 +21,7 @@ CPlayer::CPlayer(Vector2D<float> position)
 	LoadSounds();
 
 	m_State = PlayerState::wait;
+	m_BoomCreateFlag = false;
 }
 
 CPlayer::~CPlayer()

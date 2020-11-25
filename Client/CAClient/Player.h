@@ -50,7 +50,7 @@ private:
 	vector<CBomb*> m_Bombs;	// 현재 플레이어가 만든 물풍선
 
 	float m_TimeSum;
-	
+	bool m_BoomCreateFlag; // 서버에서 물풍선 생성 여부
 public:
 	CPlayer(Vector2D<float> position);
 	~CPlayer();
@@ -89,6 +89,9 @@ public:
 	void SetID(string id) { m_ID = id; }
 
 	bool CanCreateBomb();
+	void SetCreateBombFlag(bool flag) { m_BoomCreateFlag = flag; }
+	bool GetCreateBombFlag() { return m_BoomCreateFlag; }
+
 private:
 	void LoadImages();
 	void LoadSounds();

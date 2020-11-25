@@ -394,6 +394,13 @@ void CGameScene::Communicate(SOCKET& sock)
 	toSendData += "<PlayerState>:";
 	toSendData += to_string(data.state);
 	toSendData += "\n";
+
+	if (m_Players[0]->GetCreateBombFlag())
+	{
+		toSendData += "<BombCreateFlag>:";
+		toSendData += m_Players[0]->GetCreateBombFlag();
+		toSendData += "\n";
+	}
 	SendFrameData(sock, toSendData, retVal);
 
 	char buffer[BUFSIZE + 1];
@@ -429,6 +436,13 @@ void CGameScene::Communicate(SOCKET& sock)
 		else if (strstr(token, "<PlayerState>:"))
 		{
 			cout << "<PlayerState>: " << ConvertoIntFromText(token, "<PlayerState>:") << " \n";
+		}
+		else if (strstr(token, "<BombCreateFlag>:"))
+		{
+			Vector2D<int> coord = GetCoordinates(m_Players[0]->GetPosition(), m_Players[0]->GetSize());
+			CreateBomb(coord);
+			//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+			m_Players[0]->SetCreateBombFlag(false);
 		}
 		token = strtok(NULL, "\n");
 	}
@@ -480,8 +494,9 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
 			if (m_Players[0]->CanCreateBomb()) {
-				CreateBomb(coord);
+				//CreateBomb(coord);
 				//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+				m_Players[0]->SetCreateBombFlag(true);
 			}
 		}
 		break;
@@ -504,7 +519,6 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 void CGameScene::InitMap()
 {
 	//0, Y, R, Y, R, 0, 0, 0, B, 0, YH, R, YH, 0, YH
-
 	BlockName mapData[MAP_HEIGHT][MAP_WIDTH];
 	ZeroMemory(mapData, sizeof(mapData));
 	mapData[0][1] = mapData[0][3] 
@@ -614,6 +628,11 @@ void CGameScene::CreateBomb(Vector2D<int> coordinate)
 
 	m_Bombs[coordinate.y][coordinate.x]->SetPlayer(m_Players[0]);
 	m_Players[0]->ConnectBomb(m_Bombs[coordinate.y][coordinate.x]);
+}
+
+void CGameScene::CreateBomb()
+{
+	m_Players[0]->SetCreateBombFlag(true);
 }
 
 bool CGameScene::CalcNextCoordinates(Vector2D<int>& coord, Direction dir)
