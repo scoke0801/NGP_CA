@@ -10,7 +10,7 @@ class GameSceneProcessor
 {
 private:
 	MapTileType			m_Map[MAP_HEIGHT][MAP_WIDTH];
-
+	MapDatas			m_MapToSend[MAP_HEIGHT][MAP_WIDTH];
 	CItem* m_Items[MAP_HEIGHT][MAP_WIDTH];
 	CBlock* m_Blocks[MAP_HEIGHT][MAP_WIDTH];
 	CBomb* m_Bombs[MAP_HEIGHT][MAP_WIDTH];
@@ -20,8 +20,7 @@ private:
 	vector<Vector2i>	m_DeletedBomb;
 	vector<Vector2i>	m_CreatedBomb;
 	vector<Vector2i>	m_DeletedItem;
-	vector<Vector2i>	m_CreatedItem;
-	bool				m_Communicated[4];
+	vector<Vector2i>	m_CreatedItem; 
 
 	int					m_ClientNum = 0;
 	int					m_SendCount = 0;
@@ -30,8 +29,7 @@ private:
 	GameSceneProcessor()
 	{
 		InitializeCriticalSection(&m_cs);
-			ZeroMemory(m_Players, sizeof(m_Players));
-		ZeroMemory(m_Communicated, sizeof(m_Communicated));
+		ZeroMemory(m_Players, sizeof(m_Players)); 
 		InitMap();
 	}
 	~GameSceneProcessor() { DeleteCriticalSection(&m_cs); }
@@ -58,7 +56,7 @@ public:
 	// 충돌 처리 계산을 위한 함수들
 	bool IsCollideToBlock(Vector2f playerPosition);
 	bool IsCollideToBomb(Vector2f playerPosition, PlayerState& state);
-	bool IsCollideToItem(Vector2f playerPosition);
+	bool IsCollideToItem(Vector2f playerPosition, int& speed, int& power, int& maxBomb);
 	bool IsInMap(Vector2f position); // 좌표가 맵 안에 있는지 확인
 
 	void CreateBomb(Vector2f pos, int power, int index);

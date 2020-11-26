@@ -78,10 +78,19 @@ public:
 	void MoreBomb() { m_MaxBomb += 1; }
 
 	int GetPower() { return m_Power; }
+	void SetPower(int power) { m_Power = power; }
+
 	int GetMaxBomb() { return m_MaxBomb; }
+	void SetBombNum(int bombNum) { m_MaxBomb = bombNum; }
+
 	int GetSpeed() { return m_Speed; }
+	void SetSpeed(int speed) { m_Speed = speed; }
+
 	PlayerState GetState() { return m_State; }
+	
 	Direction GetDirection() const {return m_Dir;}
+	void SetDirection(Direction dir) { m_Dir = dir; }
+	
 	UINT GetIndex() const { return m_Idx; }
 	string GetID() const { return m_ID; }
 

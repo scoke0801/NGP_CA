@@ -93,6 +93,10 @@ private:
 	Vector2f m_Position;
 	int m_Index;
 	PlayerState m_State;
+	Direction m_Direction;
+	int m_Power;
+	int m_Speed;
+	int m_BombNum;
 
 public:
 	CPlayer(Vector2f position, int index, PlayerState state = PlayerState::wait);
@@ -104,4 +108,16 @@ public:
 	Vector2f GetPosition() const { return m_Position; }
 
 	int GetIndex() const { return m_Index; }
+
+	void SetDirection(Direction dir) { m_Direction = dir; }
+	Direction GetDirection() const { return m_Direction; }
+
+	void SetPower(int power) { m_Power = power;}
+	int GetPower() const { return m_Power; }
+	
+	void SetSpeed(int speed) { m_Speed = speed; }
+	int GetSpeed() const { return m_Speed; }
+
+	void SetBombNum(int bombNum) { m_BombNum = bombNum; }
+	int GetBombNum() const { return m_BombNum; }
 };

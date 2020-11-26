@@ -93,8 +93,8 @@ void CGameScene::Update(float timeElapsed)
 				Vector2D<int> coord = GetCoordinates(m_Bombs[i][j]->GetPosition(), m_Bombs[i][j]->GetSize());
 				m_Map[coord.y][coord.x] = MAP_TILE_TYPE::EMPTY;
 
-				CPlayer* player = m_Bombs[i][j]->GetPlayer();
-				player->EraseBomb(m_Bombs[i][j]);
+				//CPlayer* player = m_Bombs[i][j]->GetPlayer();
+				//player->EraseBomb(m_Bombs[i][j]);
 				delete m_Bombs[i][j];
 				m_Bombs[i][j] = nullptr;
 			}
@@ -159,35 +159,7 @@ void CGameScene::Update(float timeElapsed)
 		//			m_Blocks[i][j] = nullptr;
 		//		}
 		//	}
-		//}
-		// 플레이어 - 아이템 충돌 처리
-		for (int i = 0; i < MAP_HEIGHT; ++i)
-		{
-			for (int j = 0; j < MAP_WIDTH; ++j)
-			{
-				if (!m_Items[i][j]) continue;
-				if (!player->IsCollide(m_Items[i][j])) continue;
-				ItemName itemName = m_Items[i][j]->GetItemName();
-				switch (itemName)
-				{
-				case ItemName::ballon:
-					player->MoreBomb();
-					break;
-				case ItemName::nuclear:
-					player->PowerUp(999);
-					break;
-				case ItemName::skate:
-					player->SpeedUp();
-					break;
-				case ItemName::potion:
-					player->PowerUp(1);
-					break;
-				}
-
-				delete m_Items[i][j];
-				m_Items[i][j] = nullptr;
-			}
-		} 
+		//} 
 	}
 }
 
@@ -243,6 +215,7 @@ void CGameScene::Communicate(SOCKET& sock)
 	data.speed = m_Player->GetSpeed();
 	data.direction = m_Player->GetDirection();
 	data.state = (int)m_Player->GetState();
+	data.bombNum = m_Player->GetMaxBomb();
 	//data.mapData = m_Map;
 
 	toSendData.clear();
@@ -263,6 +236,10 @@ void CGameScene::Communicate(SOCKET& sock)
 
 	toSendData += "<Speed>:";
 	toSendData += to_string(data.speed);
+	toSendData += "\n";
+
+	toSendData += "<BombNum>:";
+	toSendData += to_string(data.bombNum);
 	toSendData += "\n";
 
 	toSendData += "<Direction>:";
@@ -295,126 +272,135 @@ void CGameScene::Communicate(SOCKET& sock)
 
 	while (token != NULL)
 	{
-		if (strstr(token, "<PlayerIndex>:"))
-		{
-			index = ConvertoIntFromText(token, "<PlayerIndex>:");
-			//cout << "<PlayerIndex>: " << index << " \n";
-		}
-		else if (strstr(token, "<Position>:"))       //(token, "<position>:"))
-		{
-			m_ClientIdx;
-			position = GetPositionFromText(token);
-			//cout << "x : " << position.x << " y : " << position.y << "\n";
-			m_Players[index]->SetPosition(position);
-		}
-		else if (strstr(token, "<IsGameEnd>:"))
+		if (strstr(token, "<IsGameEnd>:"))
 		{
 			//cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
-		}
-		else if (strstr(token, "<Speed>:"))
-		{
-			//cout << "<Speed>: " << ConvertoIntFromText(token, "<Speed>:") << " \n";
-		}
-		else if (strstr(token, "<PlayerState>:"))
-		{
-			//cout << "<PlayerState>: " << ConvertoIntFromText(token, "<PlayerState>:") << " \n";
-		}
-		else if (strstr(token, "<BombCreateFlag>:"))
-		{
-			vector<Vector2i> createdBlock;
-			int num = ConvertoIntFromText(token, "<BombCreateFlag>:");
-			GetCoordsFromText(token, num, createdBlock);
-			cout << "CreatedBomb : [index : "  << index << "] ";
-			for (auto coord : createdBlock)
-			{
-				CreateBomb(coord);
-				cout << "x : " << coord.x << " y : " << coord.y << " ";
-			}
-			cout << "\n";
-			////m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
-			m_Player->SetCreateBombFlag(false);
-		}
-		else if (strstr(token, "<DeletedBlock>:"))
-		{
-			vector<Vector2i> deletedBlock;
-			int num = ConvertoIntFromText(token, "<DeletedBlock>:");
-			GetCoordsFromText(token, num, deletedBlock);
-			cout << "DeletedBlock : [index : " << index << "] ";
-			for (auto coord : deletedBlock)
-			{
-				if (m_Blocks[coord.y][coord.x])
-					m_Blocks[coord.y][coord.x]->ChangeState(BlockState::Destroyed);
-				cout << "x : " << coord.x << " y : " << coord.y << " ";
-			}
-			cout << "\n";
-		}
-		else if (strstr(token, "<DeletedBomb>:"))
-		{
-			vector<Vector2i> deletedBomb;
-			int num = ConvertoIntFromText(token, "<DeletedBomb>:");
-			GetCoordsFromText(token, num, deletedBomb);
-			cout << "DeletedBomb : [index : " << index << "] ";
-			for (auto coord : deletedBomb)
-			{
-				if (!m_Bombs[coord.y][coord.x]) continue;
-				m_Bombs[coord.y][coord.x]->ChangeState(BombState::Explosion);
-				--num;
-				cout << "x : " << coord.x << " y : " << coord.y << " ";
-			}
-			cout << "num : [" << num << "]\n";
-		}
-		else if (strstr(token, "<CreatedItem>:"))
-		{
-			vector<Vector2i> createdItem;
-			vector<int> itemNames;
-			int num = ConvertoIntFromText(token, "<CreatedItem>:");
-			GetCoordsFromText(token, num, itemNames, createdItem);
-			cout << "CreatedItem : [index : " << index << "] ";
-
-			int idx = 0;
-			for (auto coord : createdItem)
-			{
-				m_Items[coord.y][coord.x] = new CItem((ItemName)itemNames[idx++], GetPositionCoord(coord));
-
-				cout << "x : " << coord.x << " y : " << coord.y << " ";
-			}
-			cout << "\n";
-		}
-		else if (strstr(token, "<DeletedItem>:"))
-		{
-			vector<Vector2i> deletedItem;
-			int num = ConvertoIntFromText(token, "<DeletedItem>:");
-			GetCoordsFromText(token, num, deletedItem);
-			cout << "DeletedItem : [index : " << index << "] ";
-
-			int idx = 0;
-			for (auto coord : deletedItem)
-			{
-				delete m_Items[coord.y][coord.x];
-				m_Items[coord.y][coord.x] = nullptr;
-				cout << "x : " << coord.x << " y : " << coord.y << " ";
-			}
-			cout << "\n";
-		}
+		} 
 		else if (strstr(token, "<Players>:"))
 		{
 			vector<int> states;
 			vector<int> indices;
 			vector<Vector2f> positions;
 			int num = ConvertoIntFromText(token, "<Players>:");
-			GetPlayerInfoFromText(token, num, indices, states, positions);
-			//cout << "Players : ";
 			
-			int i = 0;
-			 
-			for (int i = 0; i < indices.size(); ++i)
-			{ //
-				//if (m_Players[indices[i]] == m_Player) continue;
-				if (m_Players[indices[i]]->GetState() != (PlayerState)states[indices[i]])
-					m_Players[indices[i]]->ChangeState((PlayerState)states[indices[i]]);
-				m_Players[indices[i]]->SetPosition(positions[indices[i]]);
+			
+			for (int i = 0; i < num; ++i)
+			{
+				token = strtok(NULL, "\n");
+				char temp[30] = {};
+				strcpy(temp, token);
+				int index = atoi(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				int state = atoi(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				float posX = atof(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				float posY = atof(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				int speed = atoi(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				int power = atoi(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				int bombNum = atoi(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				int direction = atoi(temp);
+				if (m_Players[index]->GetState() != (PlayerState)state)
+				{
+					if((PlayerState)state != PlayerState::die)
+						m_Players[index]->ChangeState((PlayerState)state);
+				}
+					
+				m_Players[index]->SetPosition({ posX, posY });
+				m_Players[index]->SetPower(power);
+				m_Players[index]->SetSpeed(speed);
+				m_Players[index]->SetBombNum(bombNum);
+				m_Players[index]->SetDirection((Direction)direction);
 			}
-			//cout << "\n";
+			int stop = 3; 
+		}
+		else if (strstr(token, "<Map>:"))
+		{
+			token = strtok(NULL, "\n");
+			MapDatas m_MapToDatas[MAP_HEIGHT][MAP_WIDTH];
+			for (int i = 0; i < MAP_HEIGHT; ++i)
+			{
+				//token = strtok(NULL, "\n");
+				char temp[30] = {};
+				int k = 0;
+				for (int j = 0; j < MAP_WIDTH; ++j)
+				{
+					MapDatas mapData  = (MapDatas)atoi(strncpy(temp, token, 2));
+					m_MapToDatas[i][j] = mapData;
+
+					token = strtok(NULL, "\n");
+				} 
+			}
+			for (int i = 0; i < MAP_HEIGHT; ++i)
+			{
+				for (int j = 0; j < MAP_WIDTH; ++j)
+				{
+					switch (m_MapToDatas[i][j])
+					{
+					case MapDatas::BlockDeleted:
+						if (!m_Blocks[i][j]) break; 
+						m_Blocks[i][j]->ChangeState(BlockState::Destroyed);
+						break;
+					case MapDatas::ItemCreated_Ballon:
+					case MapDatas::ItemCreated_Nuclear:
+					case MapDatas::ItemCreated_Potion:
+					case MapDatas::ItemCreated_Skate:
+					{
+						if (m_Items[i][j])break;
+						if (m_Blocks[i][j]) 
+							m_Blocks[i][j]->ChangeState(BlockState::Destroyed);
+						int itemName = (int)m_MapToDatas[i][j];
+						itemName -= (int)MapDatas::ItemCreated_Ballon;
+						m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord({ j, i }));
+						break;
+					}
+					case MapDatas::ItemDeleted:
+						if (!m_Items[i][j])break;
+						SAFE_DELETE(m_Items[i][j]);
+						break;
+					case MapDatas::BombCreated_0:
+					case MapDatas::BombCreated_1:
+					case MapDatas::BombCreated_2:
+					case MapDatas::BombCreated_3:
+					case MapDatas::BombCreated_4:
+					case MapDatas::BombCreated_5:
+					case MapDatas::BombCreated_6:
+					case MapDatas::BombCreated_7:
+					case MapDatas::BombCreated_8:
+					case MapDatas::BombCreated_9:
+					{
+						if (m_Bombs[i][j]) break;
+						int power = (int)m_MapToDatas[i][j];
+						power -= (int)MapDatas::BombCreated_0;
+						m_Bombs[i][j] = new CBomb(GetPositionCoord({ j, i }), power);
+						break;
+					}
+					case MapDatas::BombDeleted:
+						if (!m_Bombs[i][j])break;
+						if (m_Bombs[i][j]->IsOnExplosion())break;
+						m_Bombs[i][j]->ChangeState(BombState::Explosion);
+						break;
+					}
+				}
+			}
 		}
 		token = strtok(NULL, "\n");
 	}
