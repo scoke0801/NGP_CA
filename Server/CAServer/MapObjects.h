@@ -29,19 +29,20 @@ private:
 	// 물풍선 초기 생성 이후, 플레이어가 물풍선 위에 있는 문제 해결 위한 변수
 	bool			m_PlayerIsOn;
 	Vector2f		m_PlayerPosition;
+	int				m_PlayerIndex;
 
 	// 시간 처리를 위한 변수입니다. 
 	std::chrono::system_clock::time_point m_CreatedTime;
 	std::chrono::duration<double> m_timeElapsed; // 시간이 얼마나 지났나
 
 public:
-	CBomb(Vector2D<float> position, int power);
+	CBomb(Vector2D<float> position, int power, int index);
 
 	void TimeUpdate();
 	bool IsTimeToExplose();
 	bool IsOnExplosion() const { return m_State == BombState::Explosion; }
 
-	void CheckPlayerOut(Vector2f playerPos);
+	void CheckPlayerOut(Vector2f playerPos, int index);
 
 	void ChangeState(BombState state) { m_State = state; }
 	BombState GetState() const { return m_State; }
@@ -84,4 +85,23 @@ public:
 	CItem(ItemName name, Vector2i coord);
 
 	ItemName GetName() const { return m_Name; }
+};
+
+class CPlayer
+{
+private:
+	Vector2f m_Position;
+	int m_Index;
+	PlayerState m_State;
+
+public:
+	CPlayer(Vector2f position, int index, PlayerState state = PlayerState::wait);
+
+	void SetState(PlayerState state) { m_State = state; }
+	PlayerState GetState() const { return m_State; }
+
+	void SetPosition(Vector2f position) { m_Position = position; }
+	Vector2f GetPosition() const { return m_Position; }
+
+	int GetIndex() const { return m_Index; }
 };

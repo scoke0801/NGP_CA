@@ -8,7 +8,8 @@ enum class SceneType
 	LobbyScene = 0,
 	TitleScene,
 	GameScene,
-	GameRecordScene
+	GameRecordScene,
+	NullScene
 };
 
 class CScene
@@ -23,7 +24,7 @@ protected:
 
 protected:
 	template<class SceneName>
-	void ChangeScene(void* pContext = nullptr) { m_pFramework->ChangeScene<SceneName>(); }
+	void ChangeScene(void* pContext = nullptr) { m_pFramework->ChangeScene<SceneName>(pContext); }
 
 public:
 	CScene();
@@ -53,13 +54,16 @@ class CNullScene : public CScene
 {
 private:
 	CImage m_Image;
+
+	int m_Idx = 0;
+	int m_ID = 0;
 public:
 	CNullScene(); 
 
 	virtual void Update(float timeElapsed) {}
 	virtual void Draw(HDC hdc);
 
-	virtual void Communicate(SOCKET& sock) {}
+	virtual void Communicate(SOCKET& sock);
 
 	virtual bool ProcessInput(UCHAR* pKeysBuffer) { return false; }
 

@@ -45,9 +45,9 @@ void CBomb::Draw(HDC hdc)
 
 void CBomb::Update(float timeElapsed)
 {
-	CheckPlayerOut();
+	//CheckPlayerOut();
 	Animate(timeElapsed);
-	m_ExplosionTime += timeElapsed;
+	//m_ExplosionTime += timeElapsed;
 }
 
 void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])

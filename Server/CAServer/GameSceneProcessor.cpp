@@ -5,14 +5,21 @@
 
 bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 {
+	EnterCriticalSection(&m_cs);
+
 	int receivedSize;
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 
 	Vector2f prevPosition; 
 	GameSceneRecvData recvedData;
+	ZeroMemory(&recvedData, sizeof(recvedData));
 
-	if (!RecvFrameData(socket, buffer, receivedSize)) return 0;
+	if (!RecvFrameData(socket, buffer, receivedSize))
+	{
+		LeaveCriticalSection(&m_cs);
+		return 0;
+	}
 	//cout << buffer;
 	char* token = strtok(buffer, "\n");
 	bool bombCreateFlag = false;
@@ -22,12 +29,23 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		if (strstr(token, "<PlayerIndex>:"))
 		{
 			recvedData.playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
+			if (m_Communicated[recvedData.playerIndex])
+			{
+				string temp = " \n";
+				auto res = SendFrameData(socket, temp, receivedSize);
+				LeaveCriticalSection(&m_cs);
+				return true;
+			}
+			else
+				m_Communicated[recvedData.playerIndex] = true;
+			
 			//cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
 		}
 		else if (strstr(token, "<Position>:"))
 		{
 			recvedData.position = GetPositionFromText(token);
 			prevPosition = recvedData.position;
+
 			//cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
 		}						
 		else if (strstr(token, "<Power>:"))
@@ -53,7 +71,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
 			bombCreateFlag = true;
-			CreateBomb(recvedData.position, recvedData.power);
+			CreateBomb(recvedData.position, recvedData.power, recvedData.playerIndex);
 		}
 		token = strtok(NULL, "\n");
 	}
@@ -61,6 +79,10 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	switch (recvedData.state)
 	{
 	case PlayerState::move:
+		if (recvedData.playerIndex == 1)
+		{
+			int stop = 3;
+		}
 		prevPosition = recvedData.position;
 		if (recvedData.direction == Direction::left)
 			recvedData.position.x = recvedData.position.x - (recvedData.speed * PlAYER_SPEED * FPS);
@@ -83,16 +105,9 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		break;
 	}
 	// 플레이어가 맵 밖으로 나가지않도록
-	if (!IsInMap(recvedData.position))
-	{
-		recvedData.position = prevPosition;
-	}
-
+	if (!IsInMap(recvedData.position)) recvedData.position = prevPosition;
 	// Block - Player 충돌체크
-	if (IsCollideToBlock(recvedData.position))
-	{
-		recvedData.position = prevPosition;
-	}
+	if (IsCollideToBlock(recvedData.position)) recvedData.position = prevPosition;
 
 	// Bomb - Block,Item 충돌체크
 	for (int i = 0; i < MAP_HEIGHT; ++i)
@@ -100,7 +115,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		for (int j = 0; j < MAP_WIDTH; ++j)
 		{
 			if (m_Bombs[i][j] == nullptr) continue;
-			m_Bombs[i][j]->CheckPlayerOut(recvedData.position);
+			m_Bombs[i][j]->CheckPlayerOut(recvedData.position, recvedData.playerIndex);
 			m_Bombs[i][j]->TimeUpdate();
 			if (m_Bombs[i][j]->IsTimeToExplose()) m_Bombs[i][j]->ChangeState(BombState::Explosion);
 			if (m_Bombs[i][j]->IsOnExplosion())
@@ -272,8 +287,14 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	sendData.speed = recvedData.speed;
 	sendData.state = recvedData.state;
 	sendData.isGameEnd = false;
-	sendData.bombCreateFlag = bombCreateFlag;
-	//int mapData[width][height]; 
+	sendData.bombCreateFlag = bombCreateFlag; 
+
+	// 갱신된 정보 반영
+	if (m_Players[recvedData.playerIndex])
+	{
+		m_Players[recvedData.playerIndex]->SetPosition(recvedData.position);
+		m_Players[recvedData.playerIndex]->SetState(recvedData.state);
+	}
 
 	string toSendData;
 	toSendData = "<Position>:";
@@ -297,6 +318,23 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	toSendData += to_string(sendData.isGameEnd);
 	toSendData += "\n";
 
+	toSendData += "<Players>:";
+	toSendData += to_string(m_ClientNum);
+	toSendData += "\n";
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	{
+		if (m_Players[i] != nullptr)
+		{
+			toSendData += to_string(m_Players[i]->GetIndex());
+			toSendData += " ";
+			toSendData += to_string((int)m_Players[i]->GetState());
+			toSendData += "\n";
+			toSendData += to_string(m_Players[i]->GetPosition().x);
+			toSendData += " ";
+			toSendData += to_string(m_Players[i]->GetPosition().y);
+		}
+		toSendData += "\n";
+	}
 	if (m_DeletedBlock.size() != 0) 
 	{
 		toSendData += "<DeletedBlock>:";
@@ -312,7 +350,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			cout << "x : " << m_DeletedBlock[i].x << " y : " << m_DeletedBlock[i].y << " ";
 		} 
 		cout << "\n";
-		m_DeletedBlock.clear();
+		//m_DeletedBlock.clear();
 	}
 	if (m_CreatedBomb.size() != 0)
 	{
@@ -329,7 +367,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			cout << "x : " << m_CreatedBomb[i].x << " y : " << m_CreatedBomb[i].y << " ";
 		}
 		cout << "\n"; 
-		m_CreatedBomb.clear();
+		//m_CreatedBomb.clear();
 	}
 	if (m_DeletedBomb.size() != 0)
 	{
@@ -346,7 +384,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			cout << "x : " << m_DeletedBomb[i].x << " y : " << m_DeletedBomb[i].y << " ";
 		}
 		cout << "\n";
-		m_DeletedBomb.clear();
+		//m_DeletedBomb.clear();
 	}
 	if (m_CreatedItem.size() != 0)
 	{
@@ -367,7 +405,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			cout << "x : " << m_CreatedItem[i].x << " y : " << m_CreatedItem[i].y << " ";
 		}
 		cout << "\n";
-		m_CreatedItem.clear();
+		//m_CreatedItem.clear();
 	}
 	if (m_DeletedItem.size() != 0)
 	{
@@ -384,9 +422,36 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			cout << "x : " << m_DeletedItem[i].x << " y : " << m_DeletedItem[i].y << " ";
 		}
 		cout << "\n";
-		m_DeletedItem.clear(); 
+		//m_DeletedItem.clear(); 
 	}
-	auto res = SendFrameData(socket, toSendData, receivedSize);
+	
+	m_SendCount = 0;
+	for (int i = 0; i < m_ClientNum; ++i)
+	{
+		if (!m_Communicated[i]) break;
+		++m_SendCount;
+	}
+	
+	if (m_SendCount >= m_ClientNum)
+	{
+		m_DeletedBlock.clear();
+		m_CreatedBomb.clear();
+		m_DeletedBomb.clear();
+		m_CreatedItem.clear();
+		m_DeletedItem.clear();
+		m_SendCount = 0;
+
+		for (int i = 0; i < 4; ++i)
+		{
+			m_Communicated[i] = false;
+		}
+		//ZeroMemory(m_Communicated, sizeof(m_Communicated));
+	}
+	auto res = SendFrameData(socket, toSendData, receivedSize); 
+	
+	LeaveCriticalSection(&m_cs);
+	
+	return res;
 }
 // mbstowcs unsafe###
 Vector2f GameSceneProcessor::GetPositionFromText(const char* text)
@@ -512,6 +577,27 @@ void GameSceneProcessor::InitMap()
 	}
 }
 
+void GameSceneProcessor::InitPlayers()
+{
+	Vector2i TileStartPosition = { 26, 53 };
+	const Vector2f Positions[5] =
+	{
+		{(float)TileStartPosition.x + OBJECT_SIZE * 13,
+		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
+		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		{(float)TileStartPosition.x + OBJECT_SIZE * 1,
+		 (float)TileStartPosition.y + OBJECT_SIZE * 11},
+		{(float)TileStartPosition.x + OBJECT_SIZE * 14,
+		 (float)TileStartPosition.y + OBJECT_SIZE * 11},
+		{ -1000.0f, -1000.0f }
+	};
+	for (int i = 0; i < m_ClientNum; ++i)
+	{
+		m_Players[i] = new CPlayer(Positions[i], i);
+	}
+}
+
 Vector2D<int> GameSceneProcessor::GetCoordinates(Vector2D<float> position, Vector2D<int> size)
 {
 	Vector2D<int> coordinate;
@@ -573,12 +659,12 @@ RECT GameSceneProcessor::GetCollisionRect(Vector2f pos)
 	return rt;
 }
 
-void GameSceneProcessor::CreateBomb(Vector2f pos, int power)
+void GameSceneProcessor::CreateBomb(Vector2f pos, int power, int index)
 {
 	Vector2i coord = GetCoordinates(pos, { OBJECT_SIZE, OBJECT_SIZE });
 	if (!m_Bombs[coord.y][coord.x])
 	{ 
-		m_Bombs[coord.y][coord.x] = new CBomb(pos, power); 
+		m_Bombs[coord.y][coord.x] = new CBomb(pos, power, index);
 		m_CreatedBomb.push_back(coord); 
 		//cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
 	}

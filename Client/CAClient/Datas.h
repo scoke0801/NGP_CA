@@ -46,6 +46,11 @@ struct GameRecordSceneSendData
 
 
 #pragma region GameSceneDatas
+struct LobbyToGameSceneData
+{
+	int idx;
+	int id;
+};
 struct GameSceneRecvData
 {
 	Vector2f position;

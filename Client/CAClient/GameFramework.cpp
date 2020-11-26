@@ -34,13 +34,16 @@ CFramework::CFramework()
 
 CFramework::~CFramework()
 {
+	if (m_Sock)
+	{ 
+		closesocket(m_Sock);
+	}
 	if (m_pCurScene)
 	{
 		delete m_pCurScene;
 		m_pCurScene = nullptr;
 	}  
-	if (m_Sock) closesocket(m_Sock);
-	
+	 
 	WSACleanup();  
 }
 
@@ -64,8 +67,7 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 	m_titleLength = lstrlen(m_captionTitle);
 	SetWindowText(m_hWnd, m_captionTitle); 
 }
-
-
+ 
 bool CFramework::PrepareCommunicate()
 {
 	//CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
@@ -111,8 +113,7 @@ bool CFramework::PrepareCommunicate()
 
 void CFramework::Communicate()
 {
-	if(m_pCurScene) 
-		m_pCurScene->Communicate(m_Sock);
+	if(m_pCurScene)  m_pCurScene->Communicate(m_Sock);
 }
 
 void CFramework::BuildScene()
@@ -204,13 +205,11 @@ void CFramework::ProcessInput()
 	if (!bProcessedByScene)
 	{
 	}
-	
 }
 
 void CFramework::update(float timeElapsed)
 {
-	m_pCurScene->Update(timeElapsed);
-	
+	m_pCurScene->Update(timeElapsed); 
 }
 
 void CFramework::draw(HDC hdc)

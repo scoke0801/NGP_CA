@@ -183,6 +183,49 @@ void GetCoordsFromText(const char* token, int num, vector<int>& names, vector<Ve
     }
 }
 
+void GetPlayerInfoFromText(const char* token, int num, vector<int>& indices, vector<int>& states, vector<Vector2f>& positions)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2f position;
+        int state;
+        int index;
+        int count = 0;
+        for (int j = 0; j < strlen(token); ++j, ++count)
+        {
+            char temp[20] = {};
+
+            if (token[j] == ' ')
+            {
+                strncpy(temp, token, count);
+                index = atoi(temp);
+
+                strncpy(temp, token + j, strlen(token) - j);
+                state = atoi(temp);
+
+                token = strtok(NULL, "\n");
+                count = 0;
+                for (int k = 0; k < strlen(token); ++k, ++count)
+                {
+                    if (token[k] != ' ') continue;
+
+                    strncpy(temp, token, count);
+                    position.x = atof(temp);
+
+                    strncpy(temp, token + k, strlen(token) - k);
+                    position.y = atof(temp);
+                } 
+                
+                indices.push_back(index);
+                positions.push_back(position);
+                states.push_back(state);
+                break;
+            }
+        }
+    }
+}
+
 int ConvertoIntFromText(const char* text, const char* token)
 {
     char buf[256];

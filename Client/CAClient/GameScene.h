@@ -17,7 +17,11 @@ enum class MAP_TILE_TYPE
 class CGameScene : public CScene
 {
 private:
-	vector<CPlayer*>	m_Players;
+	int m_ClientIdx = 0;
+	int m_ClientID  = 0;
+	CPlayer*			m_Players[4];
+	//vector<CPlayer*>	m_Players;	// 전체 플레이어
+	CPlayer*			m_Player;	// 클라이언트에 조종하는 플레이어
 
 	CItem				*m_Items[MAP_HEIGHT][MAP_WIDTH];
 	CBomb				*m_Bombs[MAP_HEIGHT][MAP_WIDTH];
@@ -34,7 +38,7 @@ public:
 	CGameScene();
 	~CGameScene();
 
-	virtual void SendDataToNextScene(void* pContext) {}
+	virtual void SendDataToNextScene(void* pContext);
 
 public:
 	virtual void Update(float timeElapsed);

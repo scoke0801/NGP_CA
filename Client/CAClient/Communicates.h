@@ -24,4 +24,5 @@ bool RecvFrameData(SOCKET& sock, char* buf, int& retval);
 Vector2f GetPositionFromText(const char* text);
 void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords);
 void GetCoordsFromText(const char* token, int num, vector<int>& names, vector<Vector2i>& coords);
+void GetPlayerInfoFromText(const char* token, int num, vector<int>& indices, vector<int>& states, vector<Vector2f>& positions);
 int ConvertoIntFromText(const char* text, const char* token);

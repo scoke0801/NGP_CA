@@ -2,7 +2,7 @@
 #include "MapObjects.h"
 #include "GameSceneProcessor.h"
 
-CBomb::CBomb(Vector2D<float> position, int power)
+CBomb::CBomb(Vector2D<float> position, int power, int index)
 {
 	m_CreatedTime = std::chrono::system_clock::now();
 
@@ -10,6 +10,7 @@ CBomb::CBomb(Vector2D<float> position, int power)
 	m_PlayerPosition = m_Position = position;
 	m_Power = power;
 	m_State = BombState::Wait;
+	m_PlayerIndex = index;
 
 	m_Coordinates = GameSceneProcessor::GetCoordinates(position, { OBJECT_SIZE, OBJECT_SIZE });
 }
@@ -25,10 +26,10 @@ bool CBomb::IsTimeToExplose()
 	return m_timeElapsed.count() > EXPLOSION_TIME;
 }
 
-void CBomb::CheckPlayerOut(Vector2f playerPosition)
+void CBomb::CheckPlayerOut(Vector2f playerPosition, int index)
 {
 	if (!m_PlayerIsOn) return;
-
+	if (index != m_PlayerIndex) return;
 	Vector2f pos = GameSceneProcessor::GetPositionCoord(m_Coordinates);
 
 	RECT rtThis = GameSceneProcessor::GetCollisionRect(pos);
@@ -64,4 +65,11 @@ CItem::CItem(ItemName name, Vector2i coord)
 	m_Name = name;
 	m_Coordinates = coord;
 	m_Position = GameSceneProcessor::GetInstance()->GetPositionCoord(coord);
+}
+
+CPlayer::CPlayer(Vector2f position, int index, PlayerState state)
+{
+	m_Position = position;
+	m_Index = index;
+	m_State = state;
 }

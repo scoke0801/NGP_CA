@@ -108,15 +108,20 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-
-	
+	int idx = Data.Thread_Num;
 	int retval = 0;
+
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
 
 	Data.Thread_Num++;
+	GameSceneProcessor::GetInstance()->IncreaseClientNum();
+	cout << "Increased GameSceneProcessor::ClientNum : "
+		<< GameSceneProcessor::GetInstance()->GetClientNum() << "\n";
 
+	// 임시코드
+	GameSceneProcessor::GetInstance()->InitPlayers();
 	cout << Data.Thread_Num << "번 클라가 접속했습니다." << endl;
 
 	// +1, null value
@@ -138,9 +143,9 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 	while (1) {
 		// 2 현재 통신하는 클라이언트의 Scene타입을 받아온다.
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) break;
 		//cout << "씬 번호" << atoi(buffer);
-
+		//if (strcmp(buffer, "Quit")) break;
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
@@ -154,18 +159,31 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		case SceneType::GameScene:
 			GameSceneProcessor::GetInstance()->ProcessGameScene(client_sock);
-			//ProcessGameScene(client_sock, Data.Thread_Num);
 			break;
 
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
+		default:
+		{ 
+			int retval = 0;  
+
+			 // 3 현재 접속한 플레이어의 수를 넘겨준다.
+			string temp = to_string(idx);
+			temp += " ";
+			temp += to_string((int)GetCurrentThreadId()); 
+			
+			int res = GetCurrentThreadId();
+			SendFrameData(client_sock, temp, retval);
 		}
-		 
+			break;
+		}
 	}
 
 	Data.Thread_Num--;
-
+	GameSceneProcessor::GetInstance()->DecreaseClientNum();
+	cout << "Decreased GameSceneProcessor::ClientNum : "
+		<< GameSceneProcessor::GetInstance()->GetClientNum() << "\n";
 	// closesocket()
 	closesocket(client_sock);
 
