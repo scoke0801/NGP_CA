@@ -72,7 +72,9 @@ void CGameScene::SendDataToNextScene(void* pContext)
 	{
 		SAFE_DELETE(m_Players[m_ClientIdx]);	
 	}
+	//m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], PlayerName::Dao);
 	m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
+
 	m_Players[m_ClientIdx]->SetIndex(m_ClientIdx);
 	m_Player = m_Players[m_ClientIdx];
 
@@ -619,7 +621,7 @@ void CGameScene::LoadImages()
 {
 	// 52, 52
 	m_TileStartPosition = { 26, 53 };  
-	m_UIImage.Load(_T("assets/ui_bg_.png"));
+	m_UIImage.Load(_T("assets/ui_bg.png"));
 	m_PlayerArrow.Load(_T("assets/player/solo_player.bmp"));
 }
 

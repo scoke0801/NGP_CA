@@ -24,6 +24,11 @@ enum class PlayerState
 #define POWER_LIMIT 6
 #define PLAYER_SPEED_LIMIT 7
 
+enum class PlayerName
+{
+	Bazzi,
+	Dao
+};
 class CBomb;
 class CPlayer : public CGameObject
 {
@@ -53,7 +58,7 @@ private:
 	float m_TimeSum;
 	bool m_BoomCreateFlag; // 서버에서 물풍선 생성 여부
 public:
-	CPlayer(Vector2D<float> position);
+	CPlayer(Vector2D<float> position, PlayerName name = PlayerName::Bazzi);
 	~CPlayer();
 
 public:
@@ -110,7 +115,7 @@ public:
 	bool GetCreateBombFlag() { return m_BoomCreateFlag; }
 
 private:
-	void LoadImages();
+	void LoadImages(PlayerName name);
 	void LoadSounds();
 	void Animate(float timeElapsed);
 };
