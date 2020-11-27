@@ -5,7 +5,9 @@
 #pragma comment(lib, "ws2_32")
 #include <WinSock2.h> 
 
-#define SERVERIP   "127.0.0.1"
+//#define SERVERIP   "127.0.0.1"
+//#define SERVERIP   "192.168.35.118"
+#define SERVERIP   "211.207.24.227"
 #define SERVERPORT 9000
 #define MAX_FILE_NAME_LAN 256
 

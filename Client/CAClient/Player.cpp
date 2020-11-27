@@ -5,6 +5,7 @@ CPlayer::CPlayer(Vector2D<float> position)
 {
 	m_Position = position;
 
+	m_CurrentBombNum = 0;
 	m_Power = 3;
 	m_MaxBomb = 2;
 	m_Speed = 2;
@@ -30,6 +31,7 @@ CPlayer::~CPlayer()
 
 void CPlayer::Draw(HDC hdc)
 {
+	DrawPlayerInfo(hdc);
 	if (m_State != PlayerState::die)
 	{
 		m_Images[(int)m_currentAnimation].TransparentBlt(
@@ -54,6 +56,18 @@ void CPlayer::Draw(HDC hdc)
 			m_AnimationSizes[(int)m_currentAnimation].y,
 			RGB(255, 0, 255));
 	}
+}
+
+void CPlayer::DrawPlayerInfo(HDC hdc)
+{
+	SetBkMode(hdc, TRANSPARENT);
+	m_PortraitImage.TransparentBlt(hdc,
+		860, 136 + (m_Idx * 56), 55, 38,
+		0, 0,  64, 52, RGB(255, 0, 255));
+	TextOut(hdc, 950, 136 + (m_Idx * 56), L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 192, L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 248, L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 304, L"PlayerID", lstrlen(L"PlayerID"));
 }
 
 void CPlayer::Update(float timeElapsed)
@@ -96,6 +110,7 @@ void CPlayer::ChangeState(PlayerState nextState)
 
 void CPlayer::Move(Direction dir)
 {
+	m_Dir = dir;
 	bool cantMove =
 		(m_State == PlayerState::die)
 		| (m_State == PlayerState::live)
@@ -117,7 +132,7 @@ void CPlayer::Move(Direction dir)
 		m_currentAnimation = PlayerImages::down;
 		break;
 	}
-	m_Dir = dir;
+	//m_Dir = dir;
 	m_State = PlayerState::move;
 }
 
@@ -163,7 +178,8 @@ void CPlayer::SetDirection(Direction dir)
 
 bool CPlayer::CanCreateBomb()
 {
-	return m_Bombs.size() < m_MaxBomb;
+	return m_CurrentBombNum < m_MaxBomb;
+	//return m_Bombs.size() < m_MaxBomb;
 }
 
 void CPlayer::LoadImages()
@@ -176,6 +192,7 @@ void CPlayer::LoadImages()
 	m_Images[5].Load(_T("assets/player/bazzi/die.png"));
 	m_Images[6].Load(_T("assets/player/bazzi/live.png"));
 
+	m_PortraitImage.Load(_T("assets/player/bazzi/portrait.png"));
 	m_AnimationIdx = 0;
 	m_currentAnimation = PlayerImages::down;
 

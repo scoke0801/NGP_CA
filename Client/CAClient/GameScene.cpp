@@ -32,6 +32,16 @@ CGameScene::CGameScene()
 
 CGameScene::~CGameScene()
 {
+	for (int i = 0; i < 4; ++i) SAFE_DELETE(m_Players[i]);
+	for (int i = 0; i < MAP_HEIGHT; ++i)
+	{
+		for (int j = 0; j < MAP_WIDTH; ++j)
+		{
+			SAFE_DELETE(m_Blocks[i][j]);
+			SAFE_DELETE(m_Bombs[i][j]);
+			SAFE_DELETE(m_Items[i][j]);
+		}
+	} 
 	m_SoundManager->Stop();
 }
 
@@ -200,6 +210,27 @@ void CGameScene::Draw(HDC hdc)
 	{
 		player->Draw(hdc);
 	}	
+	if (m_Player->IsAlive())
+	{
+		static float gap = 0;
+		static bool up = true;
+		Vector2f pos = m_Player->GetPosition();
+		m_PlayerArrow.TransparentBlt(hdc, 
+			pos.x + 14, pos.y - 28 - gap, 24, 28, 
+			0, 0, 24, 28, 
+			RGB(255, 0, 255));
+
+		if (up)
+		{
+			gap += 0.1;
+			if (gap > 7.0f)  up = false;
+		}
+		else
+		{
+			gap -= 0.1;
+			if (gap < 0.0f) up = true;
+		}
+	}
 }
 
 void CGameScene::Communicate(SOCKET& sock)
@@ -282,7 +313,6 @@ void CGameScene::Communicate(SOCKET& sock)
 			vector<int> indices;
 			vector<Vector2f> positions;
 			int num = ConvertoIntFromText(token, "<Players>:");
-			
 			
 			for (int i = 0; i < num; ++i)
 			{
@@ -390,12 +420,24 @@ void CGameScene::Communicate(SOCKET& sock)
 						if (m_Bombs[i][j]) break;
 						int power = (int)m_MapToDatas[i][j];
 						power -= (int)MapDatas::BombCreated_0;
-						m_Bombs[i][j] = new CBomb(GetPositionCoord({ j, i }), power);
+						Vector2i mapCoord = { j,i };
+						Vector2i playerCoord = m_Player->GetCoordinate();
+						mapCoord = { j, i };
+						m_Bombs[i][j] = new CBomb(GetPositionCoord(mapCoord), power);
+						if (mapCoord == playerCoord)
+						{
+							m_Bombs[i][j]->SetPlayer(m_Player);
+							m_Player->IncreaseCurrentBombNum();
+						}
 						break;
 					}
 					case MapDatas::BombDeleted:
 						if (!m_Bombs[i][j])break;
 						if (m_Bombs[i][j]->IsOnExplosion())break;
+						if (m_Bombs[i][j]->GetPlayer() == m_Player)
+						{
+							m_Player->DecreaseCurrentBombNum();
+						}
 						m_Bombs[i][j]->ChangeState(BombState::Explosion);
 						break;
 					}
@@ -577,19 +619,8 @@ void CGameScene::LoadImages()
 {
 	// 52, 52
 	m_TileStartPosition = { 26, 53 };  
-	m_UIImage.Load(_T("assets/ui_bg.png"));
-}
-
-void CGameScene::CreateBomb(Vector2D<int> coordinate)
-{
-	Vector2D<float> position = GetPositionCoord(coordinate);
-
-	m_Bombs[coordinate.y][coordinate.x] = new CBomb(position, m_Player->GetPower());
-	m_Map[coordinate.y][coordinate.x] = MAP_TILE_TYPE::BOMB;
-
-	m_Bombs[coordinate.y][coordinate.x]->SetPlayer(m_Player);
-	m_Player->ConnectBomb(m_Bombs[coordinate.y][coordinate.x]);
-	//cout << "CreateBomb : x - " << coordinate.x << " y - " << coordinate.y << "\n";
+	m_UIImage.Load(_T("assets/ui_bg_.png"));
+	m_PlayerArrow.Load(_T("assets/player/solo_player.bmp"));
 }
 
 void CGameScene::CreateBomb()

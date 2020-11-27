@@ -32,6 +32,7 @@ private:
 	MAP_TILE_TYPE		m_Map[MAP_HEIGHT][MAP_WIDTH];
 
 	CImage				m_UIImage;
+	CImage				m_PlayerArrow;
 
 	Vector2D<int>		m_TileStartPosition;
 public:
@@ -57,7 +58,6 @@ private:
 	void InitMap();
 	void LoadImages();
 
-	void CreateBomb(Vector2D<int> coordinate);	// 클라이언트에서 처리
 	void CreateBomb();	// 서버에서 처리
 
 	bool CalcNextCoordinates(Vector2D<int>& coord, Direction dir);
