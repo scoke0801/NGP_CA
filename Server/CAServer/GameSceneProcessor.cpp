@@ -5,6 +5,8 @@
 
 bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 {
+	int opt_val = TRUE;
+	setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 	//EnterCriticalSection(&m_cs);
 
 	int receivedSize;
@@ -359,6 +361,9 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 //	LeaveCriticalSection(&m_cs);
 	
 	return res;
+
+	opt_val = FALSE;
+	setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 }
 // mbstowcs unsafe###
 Vector2f GameSceneProcessor::GetPositionFromText(const char* text)
