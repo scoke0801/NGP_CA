@@ -58,18 +58,6 @@ void CPlayer::Draw(HDC hdc)
 
 void CPlayer::Update(float timeElapsed)
 {
-	//m_PrevPosition = m_Position;
-	//if (m_State == PlayerState::move)
-	//{
-	//	if (m_Dir == Direction::left)
-	//		m_Position.x = m_Position.x - (m_Vel.x * timeElapsed);
-	//	if (m_Dir == Direction::right)
-	//		m_Position.x = m_Position.x + (m_Vel.x * timeElapsed);
-	//	if (m_Dir == Direction::up)
-	//		m_Position.y = m_Position.y - (m_Vel.y * timeElapsed);
-	//	if (m_Dir == Direction::down)
-	//		m_Position.y = m_Position.y + (m_Vel.y * timeElapsed);
-	//}
 	Animate(timeElapsed);
 }
 
@@ -146,6 +134,32 @@ void CPlayer::SpeedUp()
 	m_Vel.y = min(m_Vel.y + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
 	m_Speed = min(m_Speed + 1, PLAYER_SPEED_LIMIT);
 } 
+
+void CPlayer::SetDirection(Direction dir)
+{
+	bool cantMove =
+		(m_State == PlayerState::die)
+		| (m_State == PlayerState::live)
+		| (m_State == PlayerState::trap);
+	if (cantMove) return;
+
+	switch (dir)
+	{
+	case Direction::left:
+		m_currentAnimation = PlayerImages::left;
+		break;
+	case Direction::right:
+		m_currentAnimation = PlayerImages::right;
+		break;
+	case Direction::up:
+		m_currentAnimation = PlayerImages::up;
+		break;
+	case Direction::down:
+		m_currentAnimation = PlayerImages::down;
+		break;
+	}
+	m_Dir = dir;
+}
 
 bool CPlayer::CanCreateBomb()
 {
