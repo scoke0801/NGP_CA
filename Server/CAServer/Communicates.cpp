@@ -160,7 +160,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			//ProcessGameRecordScene();
 			break;
 		}
-		 
+		
 	}
 
 	Data.Thread_Num--;
@@ -349,26 +349,39 @@ bool ProcessLobbyScene(SOCKET& sock, int Data_n)
 	int count = 0;
 	int retval = 0;
 	char buffer[BUFSIZE + 1];
-	vector <string> chat_Da;
+	string a;
+	vector <string> chat_Da(10);
+	vector <string> char_Da(10);
 
 	cout << "로비씬" << endl;
 	
 	// 3 현재 접속한 플레이어의 수를 넘겨준다.
 	SendFrameData(sock,to_string(Data_n), retval);
 
-	cout << "현재접속수" << Data_n << endl;
-
-	// 채팅 데이터를 받는다.
-	for (int i = 0; i < Data_n; ++i)
+	cout << "현재접속수 " << Data_n << endl;
+	
+	for (int i = 0; i < Data_n; i++)
 	{
 		RecvFrameData(sock, buffer, retval);
-		chat_Da.push_back(buffer);
 		
+		char_Da.push_back(buffer);
+	
+		cout << "캐릭터타입_" << Data_n <<":: "<< buffer << endl;
+
+		SendFrameData(sock, char_Da[i], retval);
 	}
+	
+	//// 채팅 데이터를 받는다.
+	//for (int i = 0; i < Data_n; ++i)
+	//{
+	//	RecvFrameData(sock, buffer, retval);
+	//	chat_Da.push_back(buffer);
+	//	
+	//}
 
-	cout << "채팅데이터" << chat_Da[0] << endl;
+	//cout << "채팅데이터" << chat_Da[0] << endl;
 
-	return 0;
+	return -1;
 }
 
 Vector2f GetPositionFromText(const char* text)

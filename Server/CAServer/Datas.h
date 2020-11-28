@@ -27,7 +27,7 @@ struct LobbySceneRecvData
 struct LobbySceneSendData
 {
 	int Thread_Num;
-
+	string Char_Type[3];
 	bool is_All_Ready;
 	vector<string> chatData;
 	bool isGameStart;

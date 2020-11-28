@@ -5,8 +5,8 @@
 
 enum class SceneType
 {
-	LobbyScene = 0,
-	TitleScene,
+	TitleScene=0,
+	LobbyScene,
 	GameScene,
 	GameRecordScene
 };
@@ -53,6 +53,9 @@ class CNullScene : public CScene
 {
 private:
 	CImage m_Image;
+	int m_Idx = 0;
+	int m_ID = 0;
+
 public:
 	CNullScene(); 
 
