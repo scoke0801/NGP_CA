@@ -5,9 +5,15 @@
 
 bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 {
+	static std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
+	static std::chrono::duration<double> timeElapsed;
+
+	timeElapsed = std::chrono::system_clock::now() - currentTime;
+	currentTime = std::chrono::system_clock::now();
+	//cout << "TimeElapsed: " << timeElapsed.count() << "\n";
 	//int opt_val = TRUE;
 	//setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
-	//EnterCriticalSection(&m_cs);
+	EnterCriticalSection(&m_cs);
 
 	int receivedSize;
 	// +1, null value
@@ -17,9 +23,10 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	GameSceneRecvData recvedData;
 	ZeroMemory(&recvedData, sizeof(recvedData));
 
+	//cout << "Recv\n";
 	if (!RecvFrameData(socket, buffer, receivedSize))
 	{
-		//LeaveCriticalSection(&m_cs);
+		LeaveCriticalSection(&m_cs);
 		return 0;
 	}
 	//cout << buffer;
@@ -64,6 +71,15 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<PlayerState>:"))
 		{
 			recvedData.state = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
+			if (m_Players[recvedData.playerIndex]->GetState() == PlayerState::die)
+			{
+				if (m_Players[recvedData.playerIndex]->GetDeadTime() > 0.3f)
+				{
+					
+				}
+				else
+					recvedData.state = PlayerState::die;
+			}
 			//cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
@@ -236,7 +252,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 					}
 
 					coords.push_back(coord);
-
+					m_Bombs[i][j]->SetLastBranchCoords(coords);
 					for (auto coord_ : coords)
 					{
 						if (!IsInMapCoord(coord_)) continue;
@@ -253,12 +269,23 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		}
 
 		// Bomb - Player 충돌체크
+		for (int i = 0; i < 4; ++i)
+		{
+			if (!m_Players[i]) continue;
+			if (i == recvedData.playerIndex) continue;
+			Vector2f pos = m_Players[i]->GetPosition();
+			PlayerState state = m_Players[i]->GetState();
+			bool result = IsCollideToBomb(pos, state);
+
+			m_Players[i]->SetState(state);
+
+			if (!result) continue;
+			cout << i << " is trapped - [x:" << pos.x << ", " << pos.y << "]\n";
+
+			m_Players[i]->SetPosition(pos);
+		}
 		if (IsCollideToBomb(recvedData.position, recvedData.state))
 		{
-			if (recvedData.state == PlayerState::die)
-			{
-				int stop = 3;
-			}
 			recvedData.position = prevPosition;
 		}
 
@@ -270,12 +297,16 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		{
 			delete m_Blocks[coord.y][coord.x];
 			m_Blocks[coord.y][coord.x] = nullptr;
+			m_MapToSend[coord.y][coord.x] = MapDatas::BlockDeleted;
+			cout << "DeletedBlock : " << coord.x << ", " << coord.y << "\n";
+
 			int itemCreate = rand() % 10;
 			int itemName = rand() % (int)ItemName::count;
-			if (itemCreate <= 2)
+			//if (itemCreate <= 2)
 			{
 				m_CreatedItem.push_back(coord);
 				m_Items[coord.y][coord.x] = new CItem((ItemName)itemName, coord);
+				cout << "ItemCreate - [X:" << coord.x << ", y: " << coord.y << "]\n";
 
 				m_MapToSend[coord.y][coord.x] = MapDatas((int)MapDatas::ItemCreated_Ballon + itemName);
 			}
@@ -345,21 +376,30 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
 		{
+			if (i == 0)
+			{
+				int stop = 3;
+			}
 			toSendData += to_string((int)m_MapToSend[i][j]);
 			toSendData += "\n";
 		}
 		//toSendData += "\n";
 	}
-	 
+	
+	for (auto block : m_DeletedBlock)
+	{
+		cout << "DeletedBlock : " << block.x << ", " << block.y << "\n";
+	}
 	m_DeletedBlock.clear();
 	m_CreatedBomb.clear();
 	m_DeletedBomb.clear();
 	m_CreatedItem.clear();
 	m_DeletedItem.clear(); 
-		  
+
+	//cout << "Send\n";
 	auto res = SendFrameData(socket, toSendData, receivedSize); 
 	
-//	LeaveCriticalSection(&m_cs);
+	LeaveCriticalSection(&m_cs);
 	
 	return res;
 
@@ -496,10 +536,12 @@ void GameSceneProcessor::InitPlayers()
 	Vector2i TileStartPosition = { 26, 53 };
 	const Vector2f Positions[5] =
 	{
-		{(float)TileStartPosition.x + OBJECT_SIZE * 13,
-		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		//{(float)TileStartPosition.x + OBJECT_SIZE * 13,
+		// (float)TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
+		 (float)TileStartPosition.y + OBJECT_SIZE * 2},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 14,
@@ -581,12 +623,13 @@ void GameSceneProcessor::CreateBomb(Vector2f pos, int power, int index)
 		m_Bombs[coord.y][coord.x] = new CBomb(pos, power, index);
 		m_CreatedBomb.push_back(coord); 
 		m_MapToSend[coord.y][coord.x] = (MapDatas)(((int)MapDatas::BombCreated_0) + power);
-		//cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
+		cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
 	}
 }
 
 bool GameSceneProcessor::IsDestroyedBlock(Vector2i coord)
 {
+	if (!m_DeletedBlock.size()) return false;
 	auto result = find(m_DeletedBlock.begin(), m_DeletedBlock.end(), coord);
 	return result != m_DeletedBlock.end();
 }
@@ -621,14 +664,6 @@ bool GameSceneProcessor::IsCollideToBomb(Vector2f playerPosition, PlayerState& s
 			if (!m_Bombs[i][j]) continue;
 			
 			Vector2i playerCoord = GetCoordinates(playerPosition, { OBJECT_SIZE, OBJECT_SIZE });
-
-			if (IsCollide(playerPosition, { j, i }))
-			{
-				if (m_Bombs[i][j]->GetIsPlayerOn()) continue;
-				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
-				return true;
-			}
-
 			if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
 			{
 				vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
@@ -637,7 +672,17 @@ bool GameSceneProcessor::IsCollideToBomb(Vector2f playerPosition, PlayerState& s
 				if (iter == branchCoords.end()) continue;
 
 				state = PlayerState::die;
+				return true;
 			}
+
+			if (IsCollide(playerPosition, { j, i }))
+			{
+				if (m_Bombs[i][j]->GetIsPlayerOn()) continue;
+				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
+				return true;
+			}
+
+			
 		}
 	}
 	return false;
@@ -673,7 +718,7 @@ bool GameSceneProcessor::IsCollideToItem(Vector2f playerPosition, int& speed, in
 					power = min(power + 1, POWER_LIMIT);
 					break;
 				}
-
+				cout << "ItemDelete - [X:" << j << ", y: " << i << "]\n";
 				m_DeletedItem.push_back({ j,i }); 
 				delete m_Items[i][j];
 				m_Items[i][j] = nullptr;

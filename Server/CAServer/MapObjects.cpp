@@ -73,6 +73,8 @@ CPlayer::CPlayer(Vector2f position, int index, PlayerState state)
 	m_Index = index;
 	m_State = state;
 
+	m_AlivedTime = std::chrono::system_clock::now();
+	m_DeadTime = std::chrono::system_clock::now();
 	m_PrevUpdateTime = std::chrono::system_clock::now();
 }
 

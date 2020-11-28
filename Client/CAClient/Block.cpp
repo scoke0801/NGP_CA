@@ -59,6 +59,7 @@ void CBlock::Draw(HDC hdc)
 {
 	if (m_Name == BlockName::EMPTY) return;
 	if (m_State == BlockState::End) return;
+	if (!m_Image) return;
 	//DrawRect(hdc); return;
 	m_Image.TransparentBlt(hdc,
 		m_Position.x, m_Position.y, 

@@ -15,7 +15,7 @@ enum class Explosion
 	left,
 	right,
 };
-#define EXPLOSION_TIME 1.0f 
+#define EXPLOSION_TIME 3.0f 
 class CBomb
 {
 private:
@@ -98,14 +98,27 @@ private:
 	int m_Speed;
 	int m_BombNum;
 
+	
 	// 시간 처리를 위한 변수입니다. 
+	std::chrono::system_clock::time_point m_AlivedTime;
+	std::chrono::system_clock::time_point m_DeadTime;
 	std::chrono::system_clock::time_point m_PrevUpdateTime;
 	std::chrono::duration<double> m_TimeElapsed; // 시간이 얼마나 지났나
 
 public:
 	CPlayer(Vector2f position, int index, PlayerState state = PlayerState::wait);
 
-	void SetState(PlayerState state) { m_State = state; }
+	void SetState(PlayerState state) { 
+		if (state == PlayerState::die)
+		{
+			if (m_State != PlayerState::die) m_DeadTime = std::chrono::system_clock::now();
+		}
+		if (state != PlayerState::die)
+		{
+			if(m_State == PlayerState::die)	m_DeadTime = std::chrono::system_clock::now();
+		}
+		m_State = state; 
+	}
 	PlayerState GetState() const { return m_State; }
 
 	void SetPosition(Vector2f position) { m_Position = position; }
@@ -127,4 +140,8 @@ public:
 
 	void UpdateElapsedTime();
 	double GetElapsedTime() { return m_TimeElapsed.count();  }
+	double GetDeadTime() {
+		std::chrono::duration<double> TimeElapsed = std::chrono::system_clock::now() - m_DeadTime;
+		return TimeElapsed.count();
+	}
 };
