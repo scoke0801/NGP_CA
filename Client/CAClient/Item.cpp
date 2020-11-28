@@ -31,6 +31,7 @@ CItem::CItem(ItemName name, Vector2D<float> position)
 
 void CItem::Draw(HDC hdc)
 {
+	if (!m_Image)return;
 	m_Image.TransparentBlt(
 		hdc, m_Position.x, m_Position.y,
 		m_Size.x, m_Size.y,

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Communicates.h"
-
+#include "GameSceneProcessor.h"
 void charToWchar(const char* msg, wchar_t* out)
 {
 	mbstowcs(out, msg, strlen(msg) + 1);//Plus null
@@ -33,7 +33,7 @@ void err_display(const char* msg)
 	LocalFree(lpMsgBuf);
 
 }
-int recvn(SOCKET s, char* buf, int len, int flags)
+int recvn(SOCKET s, char * buf, int len, int flags)
 {
 	int received;
 	char* ptr = buf;
@@ -100,6 +100,7 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 void saveFile(string filename, vector<string> fileData)
 {
 }
+
 LobbySceneSendData Data;
 
 DWORD __stdcall ClientThread(LPVOID arg)
@@ -107,23 +108,21 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	SOCKET client_sock = (SOCKET)arg;
 	SOCKADDR_IN clientAddr;
 	int addrLen;
-
-	vector<string> toSendData;
+	int idx = Data.Thread_Num;
 	int retval = 0;
+
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
 
 	Data.Thread_Num++;
+	GameSceneProcessor::GetInstance()->IncreaseClientNum();
+	cout << "Increased GameSceneProcessor::ClientNum : "
+		<< GameSceneProcessor::GetInstance()->GetClientNum() << "\n";
 
+	// 임시코드
+	GameSceneProcessor::GetInstance()->InitPlayers();
 	cout << Data.Thread_Num << "번 클라가 접속했습니다." << endl;
-
-	toSendData.emplace_back(to_string(Data.Thread_Num));
-
-	//for (int i = 0; i < toSendData.size(); ++i)
-	//{
-	//	SendFrameData(client_sock, toSendData[i], retval);
-	//}
 
 	// +1, null value
 	char buffer[BUFSIZE + 1];
@@ -143,10 +142,10 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	  in.close();
 
 	while (1) {
-		// 현재 통신하는 클라이언트의 Scene타입을 받아온다.
-		if (!RecvFrameData(client_sock, buffer, receivedSize)) return 0;
-		cout << "씬 번호" << atoi(buffer);
-
+		// 2 현재 통신하는 클라이언트의 Scene타입을 받아온다.
+		if (!RecvFrameData(client_sock, buffer, receivedSize)) break;
+		//cout << "씬 번호" << atoi(buffer);
+		//if (strcmp(buffer, "Quit")) break;
 		SceneType sceneType = SceneType(atoi(buffer));
 		switch (sceneType)
 		{
@@ -155,44 +154,36 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::LobbyScene:
-			//ProcessLobbyScene(); 
-			cout << "게임 시작 가능" << endl;
-
-			// 데이터 보내기
-			retval = recv(client_sock, buffer, retval, 0);
-			if (retval == SOCKET_ERROR)
-			{
-				err_display("recv()");
-				break;
-			}
-			if (count == 1)
-			{
-				cout << "게임 시작 가능" << endl;
-				// 데이터 받기
-				retval = recv(client_sock, buffer, retval, 0);
-				if (retval == SOCKET_ERROR)
-				{
-					err_display("send()");
-					break;
-				}
-				cout << retval << endl;
-				count++;
-				break;
-			}
+			ProcessLobbyScene(client_sock,Data.Thread_Num);
 			break;
 
 		case SceneType::GameScene:
-			ProcessGameScene(client_sock, Data.Thread_Num);
+			GameSceneProcessor::GetInstance()->ProcessGameScene(client_sock);
 			break;
 
 		case SceneType::GameRecordScene:
 			//ProcessGameRecordScene();
 			break;
+		default:
+		{ 
+			int retval = 0;  
+
+			 // 3 현재 접속한 플레이어의 수를 넘겨준다.
+			string temp = to_string(idx);
+			temp += " ";
+			temp += to_string((int)GetCurrentThreadId()); 
+			
+			int res = GetCurrentThreadId();
+			SendFrameData(client_sock, temp, retval);
 		}
-		 
+			break;
+		}
 	}
 
 	Data.Thread_Num--;
+	GameSceneProcessor::GetInstance()->DecreaseClientNum();
+	cout << "Decreased GameSceneProcessor::ClientNum : "
+		<< GameSceneProcessor::GetInstance()->GetClientNum() << "\n";
 	// closesocket()
 	closesocket(client_sock);
 
@@ -260,146 +251,30 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	SendFrameData(sock, data, retval);
 }
 
-bool ProcessGameScene(SOCKET& sock, int clientNum)
+bool ProcessLobbyScene(SOCKET& sock, int Data_n)
 {
-	int receivedSize;
-	// +1, null value
+	int count = 0;
+	int retval = 0;
 	char buffer[BUFSIZE + 1];
-	 
-	Vector2f position;
-	PlayerState playerState;
-	int speed;
-	Direction direction;
-	Vector2f prevPosition;
+	vector <string> chat_Da;
 
-	for(int i = 0; i < clientNum; ++i)
+	cout << "로비씬" << endl;
+	
+	// 3 현재 접속한 플레이어의 수를 넘겨준다.
+	string temp = to_string(Data_n);
+	SendFrameData(sock, temp, retval);
+
+	cout << "현재접속수" << Data_n << endl;
+
+	// 채팅 데이터를 받는다.
+	for (int i = 0; i < Data_n; ++i)
 	{
-		if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-		//cout << buffer;
-		char* token = strtok(buffer, "\n");
-		int playerIndex = 0;
-		while (token != NULL)
-		{
-			if (strstr(token, "<PlayerIndex>:"))
-			{
-				playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
-				cout << "<PlayerIndex>: " << playerIndex << " \n";
-			}
-			else if (strstr(token, "<Position>:"))       
-			{
-				position = GetPositionFromText(token);
-				cout << "x : " << position.x << " y : " <<
-					position.y << "\n";
-			}
-			else if (strstr(token, "<Power>:"))
-			{
-				cout << "<Power>: " << ConvertoIntFromText(token, "<Power>:") << " \n";
-			}
-			else if (strstr(token, "<Speed>:"))
-			{
-				speed = ConvertoIntFromText(token, "<Speed>:");
-				cout << "<Speed>: " << speed << " \n";
-			}
-			else if (strstr(token, "<Direction>:"))
-			{
-				direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-				cout << "<Direction>: " << (int)direction << " \n";
-			}
-			else if (strstr(token, "<PlayerState>:"))
-			{
-				playerState = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
-				cout << "<PlayerState>: " << (int)playerState << " \n";
-			}
-			token = strtok(NULL, "\n");
-		}
-
-		switch (playerState)
-		{
-		case PlayerState::move:
-			prevPosition = position;
-			if (direction == Direction::left)
-				position.x = position.x - (speed * PlAYER_SPEED * FPS);
-			if (direction == Direction::right)
-				position.x = position.x + (speed * PlAYER_SPEED * FPS);
-			if (direction == Direction::up)
-				position.y = position.y - (speed * PlAYER_SPEED * FPS);
-			if (direction == Direction::down)
-				position.y = position.y + (speed * PlAYER_SPEED * FPS);
-
-			break;
-		case PlayerState::wait:
-			break;
-		case PlayerState::die:
-			break;
-		case PlayerState::trap:
-			break;
-		case PlayerState::live:
-			break;
-		default:
-			break;
-		}
-		GameSceneSendData sendData;
-		sendData.index = playerIndex;
-		sendData.position.x = position.x;
-		sendData.position.y = position.y;
-		sendData.speed = 1;
-		sendData.state = playerState;
-		sendData.isGameEnd = false;
-		//int mapData[width][height]; 
-
-		string toSendData;
-		toSendData = "<Position>:";
-		toSendData += to_string(sendData.position.x);
-		toSendData += " ";
-		toSendData += to_string(sendData.position.y);
-		toSendData += "\n";
-
-		toSendData += "<PlayerIndex>:";
-		toSendData += to_string(sendData.index);
-
-		toSendData += "<Speed>:";
-		toSendData += to_string(sendData.speed);
-		toSendData += "\n";
-
-		toSendData += "<PlayerState>:";
-		toSendData += to_string((int)sendData.state);
-		toSendData += "\n";
-
-		toSendData += "<IsGameEnd>:";
-		toSendData += to_string(sendData.isGameEnd);
-		toSendData += "\n";
-		auto res = SendFrameData(sock, toSendData, receivedSize);
+		RecvFrameData(sock, buffer, retval);
+		chat_Da.push_back(buffer);
+		
 	}
-}
 
-Vector2f GetPositionFromText(const char* text)
-{
-	if (strstr(text, "<Position>:"))       //(token, "<position>:"))
-	{
-		Vector2f position;
-		int count = 0;
-		for (int i = 11; i < strlen(text); ++i, ++count)
-		{
-			if (text[i] == ' ')
-			{
-				char temp[20] = {};
-				strncpy(temp, text + 11, count);
-				position.x = atof(temp);
-				strncpy(temp, text + i, strlen(text) - i);
-				position.y = atof(temp);
+	cout << "채팅데이터" << chat_Da[0] << endl;
 
-				return position;
-			}
-		}
-	}
-	return { -1,-1 };
-}
-
-int ConvertoIntFromText(const char* text, const char* token)
-{
-	char buf[256];
-	ZeroMemory(buf, 256);
-	int tokenLen = strlen(token);
-	strncpy(buf, text + tokenLen, strlen(text) - tokenLen);
-	return atoi(buf);
+	return 0;
 }

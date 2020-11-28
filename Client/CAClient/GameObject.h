@@ -24,7 +24,7 @@ public:
 	virtual bool IsCollide(const CGameObject& other) = 0;
 	virtual bool IsCollide(CGameObject* other);
 	virtual bool IsInMap();
-
+	
 	void DrawRect(HDC hdc);
 public:
 	void SetPosition(Vector2f position) { m_Position = position; }

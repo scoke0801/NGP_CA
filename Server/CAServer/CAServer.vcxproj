@@ -114,9 +114,9 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,7 +141,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Communicates.cpp" />
+    <ClCompile Include="GameSceneProcessor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MapObjects.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -149,6 +151,8 @@
   <ItemGroup>
     <ClInclude Include="Communicates.h" />
     <ClInclude Include="Datas.h" />
+    <ClInclude Include="GameSceneProcessor.h" />
+    <ClInclude Include="MapObjects.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Vector2D.h" />
   </ItemGroup>

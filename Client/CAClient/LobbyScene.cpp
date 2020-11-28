@@ -3,13 +3,13 @@
 #include "GameScene.h"
 #include "GameFramework.h"
 
-#ifdef _DEBUG
-#ifdef UNICODE
-#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
-#else
-#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
-#endif
-#endif
+//#ifdef _DEBUG
+//#ifdef UNICODE
+//#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+//#else
+//#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+//#endif
+//#endif
 
 CLobbyScene::CLobbyScene()
 {
@@ -21,41 +21,45 @@ CLobbyScene::CLobbyScene()
 	m_Player3_Images[0].Load(_T("assets/lobby_scene_player3.png"));
 	m_Player3_Images[1].Load(_T("assets/lobby_scene_player3_ready.png"));
 
+	// 타입 초기화
 	m_Type = SceneType::LobbyScene;
-	 
-	m_Type = SceneType::LobbyScene; 
 
-	m_Message = "test~";
-	
 	m_Frame = CFramework::GetInstance();
+
+	// 플레이어의 접속숫자 
+	m_Player_n.Num = 0;
+
+
+	// 채팅 초기화
+	for (int i = 0; i < 3; i++)
+	{
+		m_Player_c[i].chatData = "";
+	}
+
+	is_Select = "Chatting";
+	
 }
 
 CLobbyScene::~CLobbyScene()
 {
 }
 
-
-
-
 void CLobbyScene::Update(float timeElapsed)
 {
-	if (atoi(buf) == 2)
+	if (m_Player_n.Num == 2)
 	{
 		Player2_Exist = true;
-		
 	}
-
-	if (atoi(buf) == 3)
-	{
-		Player2_Exist = true;
-		Player3_Exist = true;
-	}
-	else if (atoi(buf) > 3)
+	if (m_Player_n.Num == 3)
 	{
 		Player2_Exist = true;
 		Player3_Exist = true;
 	}
-
+	else if (m_Player_n.Num > 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+	}
 
 	if (Player2_Ready && Player3_Ready)
 	{
@@ -74,27 +78,31 @@ void CLobbyScene::Update(float timeElapsed)
 
 void CLobbyScene::Draw(HDC hdc)
 {
+	SetBkMode(hdc, TRANSPARENT);
+
 	m_Bg_Image.StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 		0, 0, m_Bg_Image.GetWidth(), m_Bg_Image.GetHeight());
 
-	if (atoi(buf) ==2)
+	TextOut(hdc, 250, 685, StringToTCHAR(m_Player_c[0].chatData), m_Player_c[0].chatData.length());
+
+	if (m_Player_n.Num ==2)
 	{
 		Player2_Exist = true;
-		Update(0.5);
+		TextOut(hdc, 250, 685, StringToTCHAR(m_Player_c[1].chatData), m_Player_c[1].chatData.length());
 	}
 
-	if (atoi(buf) == 3)
+	if (m_Player_n.Num == 3)
+	{
+		Player2_Exist = true;
+		Player3_Exist = true;
+		TextOut(hdc, 250, 685, StringToTCHAR(m_Player_c[2].chatData), m_Player_c[2].chatData.length());
+	}
+	else if(m_Player_n.Num > 3)
 	{
 		Player2_Exist = true;
 		Player3_Exist = true;
 	}
-	else if(atoi(buf) > 3)
-	{
-		Player2_Exist = true;
-		Player3_Exist = true;
-	}
-
-	TextOut(hdc, 500, 538, StringToTCHAR(m_Message), m_Message.length());
+	
 
 	if (Player2_Exist)
 	{
@@ -117,29 +125,40 @@ void CLobbyScene::Draw(HDC hdc)
 		SetBkMode(hdc, TRANSPARENT);
 		TextOut(hdc, 360, 255, TEXT("아이디2"), 4);
 	}
-	//TextOut(hdc, 500, 538, StringToTCHAR(player.id), player.id.length());
+	
 }
 
 void CLobbyScene::Communicate(SOCKET& sock)
 {
 	int retVal;
 	vector<string> toSendData;
-
-	toSendData.emplace_back(to_string((bool)is_All_Ready));
-
-	
 	int receivedSize = 0;
-
-	if (RecvFrameData(sock, buf, receivedSize))
-	{
-		cout << "dd";
-	}
-
-	if (is_All_Ready)
-	{
-		SendFrameData(sock, toSendData[0], retVal);
-	}
 	
+	// 1 씬타입 보내기
+	SendFrameData(sock, to_string((int)m_Type), retVal);
+
+	// 4 플레이어의 접속수 받기
+	RecvFrameData(sock, buf, retVal);
+
+	m_Player_n.Num = atoi(buf);
+
+	cout << endl;
+	cout << "접속자수" << m_Player_n.Num << endl;
+
+	// 채팅데이터 추가
+	for (int i = 0; i < 3; i++)
+	{
+		toSendData.emplace_back(m_Player_c[i].chatData);
+	}
+
+	// 채팅 데이터 보내기
+	/*for (int i = 1; i < toSendData.size(); ++i)
+	{*/
+		SendFrameData(sock, toSendData[0], retVal);
+	/*}*/
+
+	cout << "채팅데이터" << toSendData[2];
+
 }
 
 void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -147,8 +166,10 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	float mx = LOWORD(lParam);
 	float my = HIWORD(lParam);
 
-	if (mx > 396 && mx < 490 && my > 536 && my < 558)
+	if (mx > 230 && mx < 600 && my > 670 && my < 700)
 		is_Select = "Chatting";
+	else
+		is_Select = "Chatting_Stop";
 	
 }
 
@@ -167,9 +188,7 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 	case VK_F4:
 		if (Player2_Exist)
 		{ 
-			Player2_Ready=1; 
 			Player2_Ready = !Player2_Ready; 
-
 		}
 		break;
 
@@ -184,7 +203,26 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		{
 			isGameStart = true;
 		}
+		break;
+	case VK_RETURN:
+			cout << m_Player_c[0].chatData << endl;
+		break;
 
+	}
+}
+
+void CLobbyScene::ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (is_Select == "Chatting") {
+			if ((wParam == VK_BACK) && m_Player_c[i].chatData.empty() == FALSE) m_Player_c[i].chatData.pop_back();
+			else if ((wParam == VK_BACK) && m_Player_c[i].chatData.empty());
+			else {
+				if (m_Player_c[i].chatData.length() != 35)
+					m_Player_c[i].chatData.push_back(wParam);
+			}
+		}
 	}
 }
 

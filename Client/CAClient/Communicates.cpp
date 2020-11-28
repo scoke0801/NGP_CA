@@ -125,6 +125,107 @@ Vector2f GetPositionFromText(const char* text)
     return { -1,-1 };
 }
 
+void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2i coord;
+        int count = 0;
+        for (int i = 0; i < strlen(token); ++i, ++count)
+        {
+            if (token[i] == ' ')
+            {
+                char temp[20] = {};
+                strncpy(temp, token, count);
+                coord.x = atof(temp);
+                strncpy(temp, token + i, strlen(token) - i);
+                coord.y = atof(temp);
+               
+                coords.push_back(coord);
+                break;
+            }
+        } 
+    }
+}
+
+void GetCoordsFromText(const char* token, int num, vector<int>& names, vector<Vector2i>& coords)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2i coord;
+        int name;
+        int count = 0; 
+        for (int j = 0; j < strlen(token); ++j, ++count)
+        {
+            char temp[20] = {};
+
+            if (token[j] == ' ')
+            {
+                strncpy(temp, token, count); 
+                name = atof(temp);  
+                for (int k = j + 1, count_ = 0; k < strlen(token); ++k, ++count_)
+                {
+                    if (token[k] == ' ')
+                    {
+                        strncpy(temp, token + j + 1, 2);
+                        coord.x = atof(temp); 
+                     
+                        strncpy(temp, token + j + k, 2);
+                        coord.y = atof(temp);
+                    }
+                } 
+                coords.push_back(coord);
+                names.push_back(name);
+            } 
+        }
+    }
+}
+
+void GetPlayerInfoFromText(const char* token, int num, vector<int>& indices, vector<int>& states, vector<Vector2f>& positions)
+{
+    for (int i = 0; i < num; ++i)
+    {
+        token = strtok(NULL, "\n");
+        Vector2f position;
+        int state;
+        int index;
+        int count = 0;
+        for (int j = 0; j < strlen(token); ++j, ++count)
+        {
+            char temp[20] = {};
+
+            if (token[j] == ' ')
+            {
+                strncpy(temp, token, count);
+                index = atoi(temp);
+
+                strncpy(temp, token + j, strlen(token) - j);
+                state = atoi(temp);
+
+                token = strtok(NULL, "\n");
+                count = 0;
+                for (int k = 0; k < strlen(token); ++k, ++count)
+                {
+                    if (token[k] != ' ') continue;
+
+                    strncpy(temp, token, count);
+                    position.x = atof(temp);
+
+                    strncpy(temp, token + k, strlen(token) - k);
+                    position.y = atof(temp);
+                } 
+                
+                indices.push_back(index);
+                positions.push_back(position);
+                states.push_back(state);
+                break;
+            }
+        }
+    }
+}
+
 int ConvertoIntFromText(const char* text, const char* token)
 {
     char buf[256];

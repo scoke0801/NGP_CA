@@ -3,7 +3,7 @@
 #include "Datas.h"
 #include "Communicates.h"  
 int main(int argc, char* argv[])
-{
+{ 
 #pragma region ForDebugHide
 	int retVal;
 
@@ -34,12 +34,13 @@ int main(int argc, char* argv[])
 	SOCKADDR_IN clientAddr;
 	int addrLen;
 
-	
 	HANDLE hThread;
 	while (1) {
 		// accept()
 		addrLen = sizeof(clientAddr);
 		client_sock = accept(listen_sock, (SOCKADDR*)&clientAddr, &addrLen);
+		int opt_val = TRUE;
+		setsockopt(client_sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");
@@ -48,9 +49,7 @@ int main(int argc, char* argv[])
 		
 		cout  <<"\n[TCP 서버] 클라이언트 접속 : IP 주소 = " << inet_ntoa(clientAddr.sin_addr)
 			<< ", 포트 번호 = " << ntohs(clientAddr.sin_port) << endl;
-
-		
-
+		 
 		// 스레드 생성
 		hThread = CreateThread(NULL, 0,
 			ClientThread, (LPVOID)client_sock,
