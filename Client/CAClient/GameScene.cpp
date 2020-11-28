@@ -66,7 +66,11 @@ void CGameScene::SendDataToNextScene(void* pContext)
 
 	for (int i = 0; i < 10; ++i)
 	{
-		m_Players[i] = new CPlayer(Positions[4]);
+		if (i == m_ClientIdx) continue;
+		if (i % 2 != 0)
+			m_Players[i] = new CPlayer(Positions[4], PlayerName::Dao);
+		else
+			m_Players[i] = new CPlayer(Positions[4]);
 	}
 	if (m_Players[m_ClientIdx])
 	{

@@ -39,8 +39,8 @@ int main(int argc, char* argv[])
 		// accept()
 		addrLen = sizeof(clientAddr);
 		client_sock = accept(listen_sock, (SOCKADDR*)&clientAddr, &addrLen);
-		int opt_val = TRUE;
-		setsockopt(client_sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
+		//int opt_val = TRUE;
+		//setsockopt(client_sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");

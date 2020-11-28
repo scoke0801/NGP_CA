@@ -98,6 +98,10 @@ private:
 	int m_Speed;
 	int m_BombNum;
 
+	// 시간 처리를 위한 변수입니다. 
+	std::chrono::system_clock::time_point m_PrevUpdateTime;
+	std::chrono::duration<double> m_TimeElapsed; // 시간이 얼마나 지났나
+
 public:
 	CPlayer(Vector2f position, int index, PlayerState state = PlayerState::wait);
 
@@ -120,4 +124,7 @@ public:
 
 	void SetBombNum(int bombNum) { m_BombNum = bombNum; }
 	int GetBombNum() const { return m_BombNum; }
+
+	void UpdateElapsedTime();
+	double GetElapsedTime() { return m_TimeElapsed.count();  }
 };
