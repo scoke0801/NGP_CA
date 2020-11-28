@@ -44,6 +44,7 @@ struct TitleSceneRecvData
 };
 struct TitleSceneSendData
 {
+	string text;
 	bool result;
 };
 #pragma endregion 

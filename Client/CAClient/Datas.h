@@ -24,6 +24,7 @@ struct LobbySceneSendData
 #pragma region TitleSceneDatas;
 struct TitleSceneRecvData
 {
+	string text;
 	bool result;
 };
 struct TitleSceneSendData

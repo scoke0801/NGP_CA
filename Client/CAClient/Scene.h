@@ -5,8 +5,8 @@
 
 enum class SceneType
 {
-	LobbyScene = 0,
-	TitleScene,
+	TitleScene = 0,
+	LobbyScene,
 	GameScene,
 	GameRecordScene,
 	NullScene

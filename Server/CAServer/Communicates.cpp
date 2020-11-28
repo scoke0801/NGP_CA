@@ -201,21 +201,19 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	char buffer[BUFSIZE + 1];
 
 	TitleSceneRecvData player;
-	TitleSceneSendData check;
+	TitleSceneSendData sendData;
 
 	map<string, string> accounts = filedata;
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << "플레이어 ID : " << buffer;
-	player.id = buffer;
+	RecvFrameData(sock, buffer, retval);
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", 플레이어 PW : " << buffer;
-	player.pw = buffer;
+	string data = buffer;
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", IsNew : " << buffer << "\n";
-	player.isNew = (bool)buffer;
+	player.id = data.substr(data.find("<ID>")+4, data.find("<PW>") - (data.find("<ID>")+4));
+	player.pw = data.substr(data.find("<PW>") + 4, data.find("<isNew>") - (data.find("<PW>") + 4));
+	player.isNew = (bool)data[data.find("<isNew>") + 7];
+
+	cout << "[ID]:" << player.id << " [PW]:" << player.pw << " [isNew]:" << player.isNew << endl;
 
 	if (player.isNew == TRUE) {
 		ofstream out;
@@ -224,12 +222,12 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 		auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
 		if (isAdded.second == TRUE) {
 			out << player.id << " " << player.pw << endl;
-			cout << "Account registration completed!\n";
-			check.result = TRUE;
+			sendData.text = "Account registration completed!";
+			sendData.result = TRUE;
 		}
 		else {
-			cout << "This ID already exists.\n";
-			check.result = FALSE;
+			sendData.text = "This ID already exists.";
+			sendData.result = FALSE;
 		}
 
 		out.close();
@@ -237,18 +235,34 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	else {
 		map<string, string>::iterator data;
 		data = accounts.find(player.id);
-		if (data == accounts.end())
-			check.result = FALSE;
+		if (data == accounts.end()) {
+			sendData.result = FALSE;
+			sendData.text = "Wrong Account.";
+		}
 		else {
-			if (data->second == player.pw)
-				check.result = TRUE;
-			else
-				check.result = FALSE;
+			if (data->second == player.pw) {
+				sendData.text = "Login Accept!";
+				sendData.result = TRUE;
+			}
+			else {
+				sendData.text = "Login Fail...";
+				sendData.result = FALSE;
+			}
 		}
 	}
 
-	string data = to_string(check.result);
+	cout << "[result]:" << sendData.result << " [TEXT]:" << sendData.text << endl;
+
+	data.clear();
+	
+	data = "<TEXT>";
+	data += sendData.text;
+	data += "<result>";
+	data += sendData.result;
+
 	SendFrameData(sock, data, retval);
+
+	return 0;
 }
 
 bool ProcessLobbyScene(SOCKET& sock, int Data_n)

@@ -16,6 +16,7 @@ TCHAR* StringToTCHAR(string& s)
 
 CTitleScene::CTitleScene()
 {
+	communicate = FALSE;
 	background.Load(_T("assets/login_scene_bg.bmp"));
 	boxLogin.Load(_T("assets/login_scene_login.png"));
 	popup.Load(_T("assets/login_scene_alert.png"));
@@ -23,7 +24,7 @@ CTitleScene::CTitleScene()
 	m_SoundManager = new CSoundManager();
 	m_SoundManager->AddStream("assets/sound/login_scene.mp3", Sound_Name::BGM_MAIN_GAME);
 	m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
-
+	
 	player.id = "";
 	player.pw = "";
 	player.isNew = FALSE;
@@ -47,7 +48,7 @@ CTitleScene::~CTitleScene()
 
 void CTitleScene::Update(float timeElapsed)
 {
-
+	textmessage = check.text;
 }
 
 void CTitleScene::Draw(HDC hdc)
@@ -81,24 +82,34 @@ void CTitleScene::Draw(HDC hdc)
 
 void CTitleScene::Communicate(SOCKET& sock)
 {
+	if (communicate == FALSE) return;
+
 	int retval;
-	vector<string> toSendData;
-	char buf[BUFSIZE + 1];
-	toSendData.push_back(to_string((int)m_Type));
-	SendFrameData(sock, toSendData[0], retval);
+	char buffer[BUFSIZE + 1];
+	string data;
 
-	toSendData.clear();
-	toSendData.push_back(player.id);
-	toSendData.push_back(player.pw);
-	toSendData.push_back(to_string(player.isNew));
+	SendFrameData(sock, to_string((int)m_Type), retval);
 
-	for (int i = 0; i < toSendData.size(); ++i)
-	{
-		SendFrameData(sock, toSendData[i], retval);
-	}
+	data = "<ID>";
+	data += player.id;
+	data += "<PW>";
+	data += player.pw;
+	data += "<isNew>";
+	data += player.isNew;
 
-	if (RecvFrameData(sock, buf, retval))
-		check.result = (bool)buf;
+	SendFrameData(sock, data, retval);
+
+	communicate = FALSE;
+
+	RecvFrameData(sock, buffer, retval);
+
+	data.clear();
+	data = buffer;
+
+	check.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
+	check.result = (bool)data[data.find("<result>") + 8];
+
+	communicate = FALSE;
 }
 
 void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -115,17 +126,18 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	{
 		if (btNewid.IsClicked({ mx, my })) {
 			player.isNew = TRUE;
-			if (check.result)
-				textmessage = "Account registration completed!";
-			else
-				textmessage = "This ID already exists.";
+			communicate = TRUE;
+
+			textmessage = check.text;
 		}
 		if (btLogin.IsClicked({ mx, my })) {
 			player.isNew = FALSE;
+			communicate = TRUE;
+
+			textmessage = check.text;
+
 			if (check.result)
 				ChangeScene<CLobbyScene>();
-			else
-				textmessage = "Wrong Password.";
 		}
 		if (btExit.IsClicked({ mx, my })) {
 			DestroyWindow(hWnd);
