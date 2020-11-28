@@ -5,7 +5,9 @@
 #pragma comment(lib, "ws2_32")
 #include <WinSock2.h> 
 
-#define SERVERIP   "127.0.0.1"
+//#define SERVERIP   "127.0.0.1"
+//#define SERVERIP   "192.168.35.118"
+#define SERVERIP   "211.207.24.227"
 #define SERVERPORT 9000
 #define MAX_FILE_NAME_LAN 256
 
@@ -22,4 +24,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval);
 bool RecvFrameData(SOCKET& sock, char* buf, int& retval);
 
 Vector2f GetPositionFromText(const char* text);
+void GetCoordsFromText(const char* token, int num, vector<Vector2i>& coords);
+void GetCoordsFromText(const char* token, int num, vector<int>& names, vector<Vector2i>& coords);
+void GetPlayerInfoFromText(const char* token, int num, vector<int>& indices, vector<int>& states, vector<Vector2f>& positions);
 int ConvertoIntFromText(const char* text, const char* token);

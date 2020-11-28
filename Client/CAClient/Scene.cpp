@@ -71,7 +71,13 @@ void CNullScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		ChangeScene<CLobbyScene>();
 		break;
 	case VK_F3:	// 2
-		ChangeScene<CGameScene>();
+	{
+		LobbyToGameSceneData data;
+		data.id = m_ID;
+		data.idx = m_Idx;
+	
+		ChangeScene<CGameScene>((void*)&data);
+	}
 		break;
 	case VK_F4:	// 3
 		ChangeScene<CGameRecordScene>();

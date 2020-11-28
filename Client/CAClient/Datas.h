@@ -46,6 +46,38 @@ struct GameRecordSceneSendData
 
 
 #pragma region GameSceneDatas
+struct LobbyToGameSceneData
+{
+	int idx;
+	int id;
+};
+
+enum class MapDatas
+{
+	Empty = 0,
+	BombCreated_0,
+	BombCreated_1,
+	BombCreated_2,
+	BombCreated_3,
+	BombCreated_4,
+	BombCreated_5,
+	BombCreated_6,
+	BombCreated_7,
+	BombCreated_8,
+	BombCreated_9,
+	BombDeleted,
+	ItemUnChanged = 21,
+	ItemDeleted,
+	ItemCreated_Ballon,
+	ItemCreated_Potion,
+	ItemCreated_Nuclear,
+	ItemCreated_Skate,
+	BlockUnChanged = 31,
+	BlockDeleted,
+	BlockMoved,
+	BlockCreated
+};
+
 struct GameSceneRecvData
 {
 	Vector2f position;
@@ -61,6 +93,7 @@ struct GameSceneSendData
 	Vector2f position;
 	int waterRange;
 	int speed;
+	int bombNum;
 	Direction direction;
 	int state;
 	int mapData[MAP_WIDTH][MAP_HEIGHT];

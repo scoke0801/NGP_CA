@@ -35,8 +35,7 @@ CBomb::CBomb(Vector2D<float> position, int power)
 	m_State = BombState::Wait;
 
 	m_LastBranchCoords.reserve(m_Power * 4);
-	m_PlayerIsOn = false;
-
+	m_PlayerIsOn = false; 
 }
 
 void CBomb::Draw(HDC hdc)
@@ -46,9 +45,9 @@ void CBomb::Draw(HDC hdc)
 
 void CBomb::Update(float timeElapsed)
 {
-	CheckPlayerOut();
+	//CheckPlayerOut();
 	Animate(timeElapsed);
-	m_ExplosionTime += timeElapsed;
+	//m_ExplosionTime += timeElapsed;
 }
 
 void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])
@@ -171,8 +170,7 @@ void CBomb::Animate(float timeElapsed)
 {
 	float timeLimit = (m_State == BombState::Wait) ? 0.3f : 0.1f;
 	int animationLen = 4; 
-	if (m_State == BombState::Explosion)
-		animationLen = 4;
+	if (m_State == BombState::Explosion) animationLen = 4;
 
 	m_AnimateTimeSum += timeElapsed;
 	if (m_AnimateTimeSum < timeLimit) return;

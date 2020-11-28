@@ -62,6 +62,10 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 
 #define PlAYER_SPEED 52.0f
+#define OBJECT_SIZE 52
+#define MAX_BOMB_NUM 8
+#define POWER_LIMIT 6
+#define PLAYER_SPEED_LIMIT 7
 enum class PlayerState
 {
 	wait = 0,
@@ -77,14 +81,67 @@ enum class Direction
 	left,
 	right
 };
+enum class BlockName
+{
+	EMPTY = 0,
+	BLOCK_YELLOW = 1,
+	BLOCK_RED,
+	HOUSE_YELLOW,
+	HOUSE_RED,
+	HOUSE_BLUE,
+	BOX,
+	TREE,
+};
+
+enum class ItemName
+{
+	ballon = 0,
+	potion,
+	nuclear,
+	skate,
+	count
+};
+enum class MapTileType
+{
+	EMPTY = 0,
+	BLOCK,
+	BOMB,
+	ITEM
+};
+enum class MapDatas
+{
+	Empty = 0,
+	BombCreated_0,
+	BombCreated_1,
+	BombCreated_2,
+	BombCreated_3,
+	BombCreated_4,
+	BombCreated_5,
+	BombCreated_6,
+	BombCreated_7,
+	BombCreated_8,
+	BombCreated_9,
+	BombDeleted,
+	ItemUnChanged = 21,
+	ItemDeleted, 
+	ItemCreated_Ballon,
+	ItemCreated_Potion,
+	ItemCreated_Nuclear,
+	ItemCreated_Skate,
+	BlockUnChanged = 31,
+	BlockDeleted,
+	BlockMoved,
+	BlockCreated
+};
 struct GameSceneRecvData
 {
 	int playerIndex;
 	Vector2f position;
-	int waterRange;
-	int speed;
+	int power;
+	int speed; 
+	int bombNum;
 	Direction direction;
-	int state;
+	PlayerState state;
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
 struct GameSceneSendData
@@ -94,6 +151,7 @@ struct GameSceneSendData
 	int speed;
 	PlayerState state;
 	int mapData[MAP_HEIGHT][MAP_WIDTH];
-	bool isGameEnd;
+	bool isGameEnd; 
+	bool bombCreateFlag;
 };
 #pragma endregion

@@ -24,6 +24,3 @@ DWORD WINAPI ClientThread(LPVOID arg);
 
 bool ProcessTitleScene(SOCKET& socket, map<string, string> filedata);
 bool ProcessLobbyScene(SOCKET& socket, int Data_n);
-bool ProcessGameScene(SOCKET& socket, int clientNum);
-Vector2f GetPositionFromText(const char* text);
-int ConvertoIntFromText(const char* text, const char* token);

@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Bomb.h"
-CPlayer::CPlayer(Vector2D<float> position)
+CPlayer::CPlayer(Vector2D<float> position, PlayerName name )
 {
 	m_Position = position;
 
+	m_CurrentBombNum = 0;
 	m_Power = 3;
 	m_MaxBomb = 2;
 	m_Speed = 2;
@@ -17,7 +18,7 @@ CPlayer::CPlayer(Vector2D<float> position)
 
 	m_ID = "Player0";
 	m_Idx = 0;
-	LoadImages();
+	LoadImages(name);
 	LoadSounds();
 
 	m_State = PlayerState::wait;
@@ -30,6 +31,7 @@ CPlayer::~CPlayer()
 
 void CPlayer::Draw(HDC hdc)
 {
+	DrawPlayerInfo(hdc);
 	if (m_State != PlayerState::die)
 	{
 		m_Images[(int)m_currentAnimation].TransparentBlt(
@@ -56,20 +58,22 @@ void CPlayer::Draw(HDC hdc)
 	}
 }
 
+void CPlayer::DrawPlayerInfo(HDC hdc)
+{
+	SetBkMode(hdc, TRANSPARENT);
+	m_PortraitImage.TransparentBlt(hdc,
+		860, 136 + (m_Idx * 56), 55, 38,
+		0, 0, 
+		m_PortraitImage.GetWidth(), m_PortraitImage.GetHeight(),
+		RGB(255, 0, 255));
+	TextOut(hdc, 950, 136 + (m_Idx * 56), L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 192, L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 248, L"PlayerID", lstrlen(L"PlayerID"));
+	//TextOut(hdc, 950, 304, L"PlayerID", lstrlen(L"PlayerID"));
+}
+
 void CPlayer::Update(float timeElapsed)
 {
-	//m_PrevPosition = m_Position;
-	//if (m_State == PlayerState::move)
-	//{
-	//	if (m_Dir == Direction::left)
-	//		m_Position.x = m_Position.x - (m_Vel.x * timeElapsed);
-	//	if (m_Dir == Direction::right)
-	//		m_Position.x = m_Position.x + (m_Vel.x * timeElapsed);
-	//	if (m_Dir == Direction::up)
-	//		m_Position.y = m_Position.y - (m_Vel.y * timeElapsed);
-	//	if (m_Dir == Direction::down)
-	//		m_Position.y = m_Position.y + (m_Vel.y * timeElapsed);
-	//}
 	Animate(timeElapsed);
 }
 
@@ -108,6 +112,48 @@ void CPlayer::ChangeState(PlayerState nextState)
 
 void CPlayer::Move(Direction dir)
 {
+	m_Dir = dir;
+	bool cantMove =
+		(m_State == PlayerState::die)
+		| (m_State == PlayerState::live)
+		| (m_State == PlayerState::trap);
+	if (cantMove) return;
+
+	switch (dir)
+	{
+	case Direction::left:
+		m_currentAnimation = PlayerImages::left;
+		break;
+	case Direction::right:
+		m_currentAnimation = PlayerImages::right;
+		break;
+	case Direction::up:
+		m_currentAnimation = PlayerImages::up;
+		break;
+	case Direction::down:
+		m_currentAnimation = PlayerImages::down;
+		break;
+	}
+	//m_Dir = dir;
+	m_State = PlayerState::move;
+}
+
+void CPlayer::Stop()
+{
+	if (m_State == PlayerState::die) return;
+	m_State = PlayerState::wait;
+	m_AnimationIdx = 0;
+}
+
+void CPlayer::SpeedUp()
+{
+	m_Vel.x = min(m_Vel.x + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Vel.y = min(m_Vel.y + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
+	m_Speed = min(m_Speed + 1, PLAYER_SPEED_LIMIT);
+} 
+
+void CPlayer::SetDirection(Direction dir)
+{
 	bool cantMove =
 		(m_State == PlayerState::die)
 		| (m_State == PlayerState::live)
@@ -130,57 +176,79 @@ void CPlayer::Move(Direction dir)
 		break;
 	}
 	m_Dir = dir;
-	m_State = PlayerState::move;
 }
-
-void CPlayer::Stop()
-{
-	if (m_State == PlayerState::die) return;
-	m_State = PlayerState::wait;
-	m_AnimationIdx = 0;
-}
-
-void CPlayer::SpeedUp()
-{
-	m_Vel.x = min(m_Vel.x + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
-	m_Vel.y = min(m_Vel.y + PlAYER_SPEED, PlAYER_SPEED * PLAYER_SPEED_LIMIT);
-	m_Speed = min(m_Speed + 1, PLAYER_SPEED_LIMIT);
-} 
 
 bool CPlayer::CanCreateBomb()
 {
-	return m_Bombs.size() < m_MaxBomb;
+	return m_CurrentBombNum < m_MaxBomb;
+	//return m_Bombs.size() < m_MaxBomb;
 }
 
-void CPlayer::LoadImages()
+void CPlayer::LoadImages(PlayerName name)
 {
-	m_Images[0].Load(_T("assets/player/bazzi/down.png"));
-	m_Images[1].Load(_T("assets/player/bazzi/up.png"));
-	m_Images[2].Load(_T("assets/player/bazzi/left.png"));
-	m_Images[3].Load(_T("assets/player/bazzi/right.png"));
-	m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
-	m_Images[5].Load(_T("assets/player/bazzi/die.png"));
-	m_Images[6].Load(_T("assets/player/bazzi/live.png"));
-
 	m_AnimationIdx = 0;
 	m_currentAnimation = PlayerImages::down;
+	switch (name)
+	{
+	case PlayerName::Bazzi:
+		m_Images[0].Load(_T("assets/player/bazzi/down.png"));
+		m_Images[1].Load(_T("assets/player/bazzi/up.png"));
+		m_Images[2].Load(_T("assets/player/bazzi/left.png"));
+		m_Images[3].Load(_T("assets/player/bazzi/right.png"));
+		//m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
+		m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
+		m_Images[5].Load(_T("assets/player/bazzi/die.png"));
+		m_Images[6].Load(_T("assets/player/bazzi/live.png"));
 
-	m_AnimationSizes[0] = { 64, 76 };
-	m_AnimationSizes[1] = { 64, 76 };
-	m_AnimationSizes[2] = { 64, 76 };
-	m_AnimationSizes[3] = { 64, 76 };
-	m_AnimationSizes[4] = { 88, 144 };
-	m_AnimationSizes[5] = { 88, 144 };
-	m_AnimationSizes[6] = { 88, 144 };
+		m_PortraitImage.Load(_T("assets/player/bazzi/portrait.png"));
+		
+		m_AnimationSizes[0] = { 64, 76 };
+		m_AnimationSizes[1] = { 64, 76 };
+		m_AnimationSizes[2] = { 64, 76 };
+		m_AnimationSizes[3] = { 64, 76 };
+		//m_AnimationSizes[4] = { 88, 144 };
+		m_AnimationSizes[4] = { 60, 65 };
+		m_AnimationSizes[5] = { 88, 144 };
+		m_AnimationSizes[6] = { 88, 144 };
 
-	m_AnimationLen[0] = 8;
-	m_AnimationLen[1] = 8;
-	m_AnimationLen[2] = 6;
-	m_AnimationLen[3] = 6;
+		m_AnimationLen[0] = 8;
+		m_AnimationLen[1] = 8;
+		m_AnimationLen[2] = 6;
+		m_AnimationLen[3] = 6;
+		//m_AnimationLen[4] = 13;
+		m_AnimationLen[4] = 16;
+		m_AnimationLen[5] = 13;
+		m_AnimationLen[6] = 5;
+		break;
 
-	m_AnimationLen[4] = 13;
-	m_AnimationLen[5] = 13;
-	m_AnimationLen[6] = 5;
+	case PlayerName::Dao:
+		m_Images[0].Load(_T("assets/player/dao/down.bmp"));
+		m_Images[1].Load(_T("assets/player/dao/up.bmp"));
+		m_Images[2].Load(_T("assets/player/dao/left.bmp"));
+		m_Images[3].Load(_T("assets/player/dao/right.bmp"));
+		m_Images[4].Load(_T("assets/player/dao/trap.bmp"));
+		m_Images[5].Load(_T("assets/player/dao/die.png")); 
+
+		m_PortraitImage.Load(_T("assets/player/dao/portrait.png"));
+
+		m_AnimationSizes[0] = { 44, 60 };
+		m_AnimationSizes[1] = { 44, 60 };
+		m_AnimationSizes[2] = { 44, 60 };
+		m_AnimationSizes[3] = { 44, 60 };
+		m_AnimationSizes[4] = { 60, 65 };
+		m_AnimationSizes[5] = { 88, 110 };
+
+		m_AnimationLen[0] = 7;
+		m_AnimationLen[1] = 7;
+		m_AnimationLen[2] = 7;
+		m_AnimationLen[3] = 7;
+		m_AnimationLen[4] = 16;
+		m_AnimationLen[5] = 13;
+		break;
+	default:
+		break;
+	}
+	
 }
 
 void CPlayer::LoadSounds()
