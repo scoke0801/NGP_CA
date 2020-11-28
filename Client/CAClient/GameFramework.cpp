@@ -313,3 +313,18 @@ DWORD __stdcall ClientMain(LPVOID arg)
 
 	return 0;
 }
+
+//DWORD __stdcall ClientMain(LPVOID arg)
+//{
+//	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0; 
+//	while (1)
+//	{
+//		 
+//		CFramework::GetInstance()->ProcessInput();
+//
+//		CFramework::GetInstance()->Communicate();
+//			 
+//	}
+//
+//	return 0;
+//}

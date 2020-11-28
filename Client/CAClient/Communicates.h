@@ -8,6 +8,8 @@
 //#define SERVERIP   "127.0.0.1"
 //#define SERVERIP   "192.168.35.118"
 #define SERVERIP   "211.207.24.227"
+// #define SERVERIP "192.168.35.229"
+
 #define SERVERPORT 9000
 #define MAX_FILE_NAME_LAN 256
 

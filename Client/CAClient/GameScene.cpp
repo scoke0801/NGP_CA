@@ -241,6 +241,13 @@ void CGameScene::Draw(HDC hdc)
 
 void CGameScene::Communicate(SOCKET& sock)
 {
+	static std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
+	static std::chrono::duration<double> timeElapsed;
+
+	timeElapsed = std::chrono::system_clock::now() - currentTime;
+	currentTime = std::chrono::system_clock::now();
+
+	cout << "TimeElapsed: " << timeElapsed.count() << "\n";
 	int retVal;
 	string toSendData = to_string((int)m_Type);
 	SendFrameData(sock, toSendData, retVal);
@@ -299,6 +306,7 @@ void CGameScene::Communicate(SOCKET& sock)
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 
+	cout << "Recv \n";
 	RecvFrameData(sock, buffer, retVal);
 	//cout << "¹ÞÀº °ª" << buffer << "\n";
 	char* token = strtok(buffer, "\n");
