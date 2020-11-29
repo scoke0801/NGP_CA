@@ -105,8 +105,6 @@ bool CFramework::PrepareCommunicate()
 		return false;
 	}
 	
-	Thread_Num++;
-	cout << Thread_Num;
 
 	return true;
 }
@@ -259,9 +257,12 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	return 0;
 }
 
+
 DWORD __stdcall ClientMain(LPVOID arg)
 { 
+	
 	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
+	
 	std::chrono::system_clock::time_point currentTime;
 	std::chrono::duration<double> timeElapsed; // 시간이 얼마나 지났나
 	double dLag = 0.0f;
