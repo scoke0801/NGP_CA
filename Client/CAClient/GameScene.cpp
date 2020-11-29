@@ -381,6 +381,10 @@ void CGameScene::Communicate(SOCKET& sock)
 							<< " to " << (int)state << ")\n";
 						m_Players[index]->ChangeState((PlayerState)state);
 					}
+					if (m_Players[index]->GetDirection() != (Direction)direction)
+					{
+						m_Players[index]->SetDirection((Direction)direction);
+					}
 				}
 				else if (m_Players[index]->GetState() != (PlayerState)state)
 				{
