@@ -22,7 +22,6 @@ private:
 	float m_TimeSum;
 public:
 	CItem(ItemName name, Vector2D<float> position);
-	~CItem() {}
 
 public:
 	virtual void Draw(HDC hdc);

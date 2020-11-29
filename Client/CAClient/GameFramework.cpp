@@ -95,6 +95,8 @@ bool CFramework::PrepareCommunicate()
 		return false;
 	}
 
+	int optval = 0;
+	setsockopt(m_Sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
 	// connect()
 	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR)
@@ -166,6 +168,7 @@ void CFramework::preUpdate()
 		m_dLag += m_timeElapsed.count();
 		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
 		{
+			//Communicate();
 			update(FPS);
 			m_dLag -= FPS;
 		}
@@ -197,7 +200,8 @@ void CFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
-	if (GetKeyboardState(pKeysBuffer) && m_pCurScene)
+	if (m_pCurScene == nullptr) return;
+	if (GetKeyboardState(pKeysBuffer))//&& m_pCurScene)
 		bProcessedByScene = m_pCurScene->ProcessInput(pKeysBuffer);
 
 	if (!bProcessedByScene)
@@ -288,6 +292,7 @@ DWORD __stdcall ClientMain(LPVOID arg)
 			dLag += timeElapsed.count();
 			for (int i = 0; dLag > FPS && i < MAX_LOOP_TIME; ++i)
 			{
+				//CFramework::GetInstance()->preUpdate();
 				CFramework::GetInstance()->Communicate();
 				dLag -= FPS;
 			}
@@ -314,3 +319,18 @@ DWORD __stdcall ClientMain(LPVOID arg)
 
 	return 0;
 }
+
+//DWORD __stdcall ClientMain(LPVOID arg)
+//{
+//	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0; 
+//	while (1)
+//	{
+//		 
+//		CFramework::GetInstance()->ProcessInput();
+//
+//		CFramework::GetInstance()->Communicate();
+//			 
+//	}
+//
+//	return 0;
+//}

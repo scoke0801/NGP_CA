@@ -5,9 +5,15 @@
 
 bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 {
+	static std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
+	static std::chrono::duration<double> timeElapsed;
+
+	timeElapsed = std::chrono::system_clock::now() - currentTime;
+	currentTime = std::chrono::system_clock::now();
+	//cout << "TimeElapsed: " << timeElapsed.count() << " ";
 	//int opt_val = TRUE;
 	//setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
-	//EnterCriticalSection(&m_cs);
+	EnterCriticalSection(&m_cs);
 
 	int receivedSize;
 	// +1, null value
@@ -17,9 +23,10 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	GameSceneRecvData recvedData;
 	ZeroMemory(&recvedData, sizeof(recvedData));
 
+	
 	if (!RecvFrameData(socket, buffer, receivedSize))
 	{
-		//LeaveCriticalSection(&m_cs);
+		LeaveCriticalSection(&m_cs);
 		return 0;
 	}
 	//cout << buffer;
@@ -54,7 +61,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<BombNum>:"))
 		{
 			recvedData.bombNum = ConvertoIntFromText(token, "<BombNum>:");
-			//cout << "<Speed>: " << recvedData.speed << " \n";
+			//cout << "<BombNum>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<Direction>:"))
 		{
@@ -64,6 +71,11 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<PlayerState>:"))
 		{
 			recvedData.state = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
+			if (m_Players[recvedData.playerIndex]->GetState() == PlayerState::die)
+			{
+				if (m_Players[recvedData.playerIndex]->GetDeadTime() < 0.3f)
+					recvedData.state = PlayerState::die;
+			}
 			//cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
@@ -73,240 +85,262 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		}
 		token = strtok(NULL, "\n");
 	}
+	//cout << "----------------------------------------\n";
 
-	switch (recvedData.state)
+	m_Players[recvedData.playerIndex]->UpdateElapsedTime();
+	double time = m_Players[recvedData.playerIndex]->GetElapsedTime(); 
+	int loop = 0;
+	while (time > FPS)
 	{
-	case PlayerState::move:
-		if (recvedData.playerIndex == 1)
+		++loop;
+		time -= 0.016f;
+		switch (recvedData.state)
 		{
-			int stop = 3;
+		case PlayerState::move:
+			//cout << "index - " << recvedData.playerIndex << " pos - " << recvedData.position.x
+			//	<< ", " << recvedData.position.y << "\n";
+			prevPosition = recvedData.position;
+			if (recvedData.direction == Direction::left)
+				recvedData.position.x = recvedData.position.x - (recvedData.speed * PlAYER_SPEED * FPS);
+			if (recvedData.direction == Direction::right)
+				recvedData.position.x = recvedData.position.x + (recvedData.speed * PlAYER_SPEED * FPS);
+			if (recvedData.direction == Direction::up)
+				recvedData.position.y = recvedData.position.y - (recvedData.speed * PlAYER_SPEED * FPS);
+			if (recvedData.direction == Direction::down)
+				recvedData.position.y = recvedData.position.y + (recvedData.speed * PlAYER_SPEED * FPS);
+			break;
+		case PlayerState::wait:
+			break;
+		case PlayerState::die:
+			break;
+		case PlayerState::trap:
+			break;
+		case PlayerState::live:
+			break;
+		default:
+			break;
 		}
-		prevPosition = recvedData.position;
-		if (recvedData.direction == Direction::left)
-			recvedData.position.x = recvedData.position.x - (recvedData.speed * PlAYER_SPEED * FPS);
-		if (recvedData.direction == Direction::right)
-			recvedData.position.x = recvedData.position.x + (recvedData.speed * PlAYER_SPEED * FPS);
-		if (recvedData.direction == Direction::up)
-			recvedData.position.y = recvedData.position.y - (recvedData.speed * PlAYER_SPEED * FPS);
-		if (recvedData.direction == Direction::down)
-			recvedData.position.y = recvedData.position.y + (recvedData.speed * PlAYER_SPEED * FPS);
-		break;
-	case PlayerState::wait:
-		break;
-	case PlayerState::die:
-		break;
-	case PlayerState::trap:
-		break;
-	case PlayerState::live:
-		break;
-	default:
-		break;
-	}
-	// 플레이어가 맵 밖으로 나가지않도록
-	if (!IsInMap(recvedData.position)) recvedData.position = prevPosition;
-	// Block - Player 충돌체크
-	if (IsCollideToBlock(recvedData.position)) recvedData.position = prevPosition;
+		// 플레이어가 맵 밖으로 나가지않도록
+		if (!IsInMap(recvedData.position)) recvedData.position = prevPosition;
+		// Block - Player 충돌체크
+		if (IsCollideToBlock(recvedData.position)) recvedData.position = prevPosition;
 
-	// Bomb - Block,Item 충돌체크
-	for (int i = 0; i < MAP_HEIGHT; ++i)
-	{
-		for (int j = 0; j < MAP_WIDTH; ++j)
+		// Bomb - Block,Item 충돌체크
+		for (int i = 0; i < MAP_HEIGHT; ++i)
 		{
-			if (m_Bombs[i][j] == nullptr) continue;
-			m_Bombs[i][j]->CheckPlayerOut(recvedData.position, recvedData.playerIndex);
-			m_Bombs[i][j]->TimeUpdate();
-			if (m_Bombs[i][j]->IsTimeToExplose()) m_Bombs[i][j]->ChangeState(BombState::Explosion);
-			if (m_Bombs[i][j]->IsOnExplosion())
+			for (int j = 0; j < MAP_WIDTH; ++j)
 			{
-				int power = m_Bombs[i][j]->GetPower();
-
-				vector<Vector2i> coords;
-				Vector2i coord = { j, i }; 
-
-				for (int i = 1; i <= power; ++i)	// down
+				if (m_Bombs[i][j] == nullptr) continue;
+				m_Bombs[i][j]->CheckPlayerOut(recvedData.position, recvedData.playerIndex);
+				m_Bombs[i][j]->TimeUpdate();
+				if (m_Bombs[i][j]->IsTimeToExplose()) m_Bombs[i][j]->ChangeState(BombState::Explosion);
+				if (m_Bombs[i][j]->IsOnExplosion())
 				{
-					Vector2i temp = { coord.x, coord.y + i };
-					if (IsDestroyedBlock(temp)) break;
+					int power = m_Bombs[i][j]->GetPower();
 
-					coords.push_back(temp);
-					if (!IsInMapCoord(temp)) continue;
-					// 아이템 처리
-					if (m_Items[temp.y][temp.x])
+					vector<Vector2i> coords;
+					Vector2i coord = { j, i };
+
+					for (int i = 1; i <= power; ++i)	// down
 					{
-						m_DeletedItem.push_back(temp);
-						m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
-						delete m_Items[temp.y][temp.x];
-						m_Items[temp.y][temp.x] = nullptr;
+						Vector2i temp = { coord.x, coord.y + i };
+						if (IsDestroyedBlock(temp)) break;
+
+						coords.push_back(temp);
+						if (!IsInMapCoord(temp)) continue;
+						// 아이템 처리
+						if (m_Items[temp.y][temp.x])
+						{
+							m_DeletedItem.push_back(temp);
+							m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
+							delete m_Items[temp.y][temp.x];
+							m_Items[temp.y][temp.x] = nullptr;
+						}
+						if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+
+						if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+						m_DeletedBlock.push_back(temp);
+						m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
+
+						m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+						break;
 					}
-					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
-					
-					auto iter = find(coords.begin(), coords.end(), coord);
-					if (iter != coords.end()) coords.erase(iter);
-
-					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
-
-					m_DeletedBlock.push_back(temp);
-					m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
-
-					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
-					break;
-				}
-				for (int i = 1; i <= power; ++i)	// up
-				{
-					Vector2i temp = { coord.x, coord.y - i };
-					if (IsDestroyedBlock(temp)) break;
-
-					coords.push_back(temp);
-					if (!IsInMapCoord(temp)) continue;
-					if (m_Items[temp.y][temp.x])
+					for (int i = 1; i <= power; ++i)	// up
 					{
-						m_DeletedItem.push_back(temp);
-						m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
-						delete m_Items[temp.y][temp.x];
-						m_Items[temp.y][temp.x] = nullptr;
+						Vector2i temp = { coord.x, coord.y - i };
+						if (IsDestroyedBlock(temp)) break;
+
+						coords.push_back(temp);
+						if (!IsInMapCoord(temp)) continue;
+						if (m_Items[temp.y][temp.x])
+						{
+							m_DeletedItem.push_back(temp);
+							m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
+							delete m_Items[temp.y][temp.x];
+							m_Items[temp.y][temp.x] = nullptr;
+						}
+						if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+
+						if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+						m_DeletedBlock.push_back(temp);
+						m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
+
+						m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+						break;
 					}
-					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
-
-					auto iter = find(coords.begin(), coords.end(), coord);
-					if (iter != coords.end()) coords.erase(iter);
-
-					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
-
-					m_DeletedBlock.push_back(temp);
-					m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
-
-					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
-					break;
-				}
-				for (int i = 1; i <= power; ++i)	// left
-				{
-					Vector2i temp = { coord.x - i, coord.y };
-					if (IsDestroyedBlock(temp)) break;
-
-					coords.push_back(temp);
-					if (!IsInMapCoord(temp)) continue;
-					if (m_Items[temp.y][temp.x])
+					for (int i = 1; i <= power; ++i)	// left
 					{
-						m_DeletedItem.push_back(temp);
-						m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
-						delete m_Items[temp.y][temp.x];
-						m_Items[temp.y][temp.x] = nullptr;
+						Vector2i temp = { coord.x - i, coord.y };
+						if (IsDestroyedBlock(temp)) break;
+
+						coords.push_back(temp);
+						if (!IsInMapCoord(temp)) continue;
+						if (m_Items[temp.y][temp.x])
+						{
+							m_DeletedItem.push_back(temp);
+							m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
+							delete m_Items[temp.y][temp.x];
+							m_Items[temp.y][temp.x] = nullptr;
+						}
+						if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+
+						if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+						m_DeletedBlock.push_back(temp);
+						m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
+
+						m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+						break;
 					}
-					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
-
-					auto iter = find(coords.begin(), coords.end(), coord);
-					if (iter != coords.end()) coords.erase(iter);
-
-					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
-
-					m_DeletedBlock.push_back(temp);
-					m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
-
-					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
-					break;
-				}
-				for (int i = 1; i <= power; ++i)	// right
-				{
-					Vector2i temp = { coord.x + i, coord.y }; 
-					if (IsDestroyedBlock(temp)) break;
-
-					coords.push_back(temp);
-					if (!IsInMapCoord(temp)) continue; 
-					if (m_Items[temp.y][temp.x])
+					for (int i = 1; i <= power; ++i)	// right
 					{
-						m_DeletedItem.push_back(temp);
-						m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
-						delete m_Items[temp.y][temp.x];
-						m_Items[temp.y][temp.x] = nullptr;
+						Vector2i temp = { coord.x + i, coord.y };
+						if (IsDestroyedBlock(temp)) break;
+
+						coords.push_back(temp);
+						if (!IsInMapCoord(temp)) continue;
+						if (m_Items[temp.y][temp.x])
+						{
+							m_DeletedItem.push_back(temp);
+							m_MapToSend[temp.y][temp.x] = MapDatas::ItemDeleted;
+							delete m_Items[temp.y][temp.x];
+							m_Items[temp.y][temp.x] = nullptr;
+						}
+						if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
+
+						auto iter = find(coords.begin(), coords.end(), coord);
+						if (iter != coords.end()) coords.erase(iter);
+
+						if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
+
+						m_DeletedBlock.push_back(temp);
+						m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
+
+						m_Map[temp.y][temp.x] = MapTileType::EMPTY;
+
+						break;
 					}
-					if (m_Map[temp.y][temp.x] == MapTileType::EMPTY) continue;
 
-					auto iter = find(coords.begin(), coords.end(), coord);
-					if (iter != coords.end()) coords.erase(iter);
+					coords.push_back(coord);
+					m_Bombs[i][j]->SetLastBranchCoords(coords);
+					for (auto coord_ : coords)
+					{
+						if (!IsInMapCoord(coord_)) continue;
+						if (!m_Bombs[coord_.y][coord_.x]) continue;
+						if (m_Bombs[coord_.y][coord_.x]->IsOnExplosion()) continue;
+						m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
 
-					if (!m_Blocks[temp.y][temp.x]->GetIsCanDestroy()) break;
-
-					m_DeletedBlock.push_back(temp);
-					m_MapToSend[temp.y][temp.x] = MapDatas::BlockDeleted;
-
-					m_Map[temp.y][temp.x] = MapTileType::EMPTY;
-
-					break;
+						m_Bombs[coord_.y][coord_.x]->ChangeState(BombState::Explosion);
+						i = 0;
+						j = 0;
+					}
 				}
-
-				coords.push_back(coord); 
-
-				for (auto coord_ : coords)
-				{
-					if (!IsInMapCoord(coord_)) continue;
-					if (!m_Bombs[coord_.y][coord_.x]) continue;
-					if (m_Bombs[coord_.y][coord_.x]->IsOnExplosion()) continue;
-					m_Bombs[coord.y][coord.x]->SetLastBranchCoords(coords);
-					
-					m_Bombs[coord_.y][coord_.x]->ChangeState(BombState::Explosion);
-					i = 0;
-					j = 0;
-				}
-			} 
-		}
-	}
-
-	// Bomb - Player 충돌체크
-	if (IsCollideToBomb(recvedData.position, recvedData.state))
-	{
-		if (recvedData.state == PlayerState::die)
-		{
-			int stop = 3;
-		}
-		recvedData.position = prevPosition;
-	}
-	
-	// Item - Player 충돌체크 
-	IsCollideToItem(recvedData.position, recvedData.speed, recvedData.power, recvedData.bombNum);
-
-	// 제거된 블록에서 아이템 생성
-	for (auto coord : m_DeletedBlock)
-	{
-		delete m_Blocks[coord.y][coord.x];
-		m_Blocks[coord.y][coord.x] = nullptr;
-		int itemCreate = rand() % 10;
-		int itemName = rand() % (int)ItemName::count;
-		if (itemCreate <= 2)
-		{
-			m_CreatedItem.push_back(coord);
-			m_Items[coord.y][coord.x] = new CItem((ItemName)itemName, coord);
-	
-			m_MapToSend[coord.y][coord.x] = MapDatas((int)MapDatas::ItemCreated_Ballon + itemName);
-		}
-	}
-	// 터진 물풍선 제거
-	for (int i = 0; i < MAP_HEIGHT; ++i)
-	{
-		for (int j = 0; j < MAP_WIDTH; ++j)
-		{
-			if (m_Bombs[i][j] == nullptr) continue;
-			if (m_Bombs[i][j]->IsOnExplosion())
-			{
-				Vector2i coord = m_Bombs[i][j]->GetCoordinate();
-				m_DeletedBomb.push_back(coord);
-				delete m_Bombs[coord.y][coord.x];
-				m_Bombs[coord.y][coord.x] = nullptr;
-				m_MapToSend[coord.y][coord.x] = MapDatas::BombDeleted;
 			}
 		}
+		// Bomb - Player 충돌체크
+		for (int i = 0; i < 4; ++i)
+		{
+			if (!m_Players[i]) continue;
+			if (i == recvedData.playerIndex) continue;
+			Vector2f pos = m_Players[i]->GetPosition();
+			PlayerState state = m_Players[i]->GetState();
+			bool result = IsCollideToBomb(pos, state);
+
+			m_Players[i]->SetState(state);
+
+			if (!result) continue;
+			cout << i << " is trapped - [x:" << pos.x << ", " << pos.y << "]\n";
+
+			m_Players[i]->SetPosition(pos);
+		}
+		if (IsCollideToBomb(recvedData.position, recvedData.state))
+		{
+			recvedData.position = prevPosition;
+		}
+		// Item - Player 충돌체크 
+		IsCollideToItem(recvedData.position, recvedData.speed, recvedData.power, recvedData.bombNum);
+
+		// 제거된 블록에서 아이템 생성
+		for (auto coord : m_DeletedBlock)
+		{
+			delete m_Blocks[coord.y][coord.x];
+			m_Blocks[coord.y][coord.x] = nullptr;
+			m_MapToSend[coord.y][coord.x] = MapDatas::BlockDeleted;
+			cout << "DeletedBlock : " << coord.x << ", " << coord.y << "\n";
+
+			int itemCreate = rand() % 10;
+			int itemName = rand() % (int)ItemName::count;
+			//if (itemCreate <= 2)
+			{
+				m_CreatedItem.push_back(coord);
+				m_Items[coord.y][coord.x] = new CItem((ItemName)itemName, coord);
+				cout << "ItemCreate - [X:" << coord.x << ", y: " << coord.y << "]\n";
+
+				m_MapToSend[coord.y][coord.x] = MapDatas((int)MapDatas::ItemCreated_Ballon + itemName);
+			}
+		}
+		// 터진 물풍선 제거
+		for (int i = 0; i < MAP_HEIGHT; ++i)
+		{
+			for (int j = 0; j < MAP_WIDTH; ++j)
+			{
+				if (m_Bombs[i][j] == nullptr) continue;
+				if (m_Bombs[i][j]->IsOnExplosion())
+				{
+					Vector2i coord = m_Bombs[i][j]->GetCoordinate();
+					m_DeletedBomb.push_back(coord);
+					delete m_Bombs[coord.y][coord.x];
+					m_Bombs[coord.y][coord.x] = nullptr;
+					m_MapToSend[coord.y][coord.x] = MapDatas::BombDeleted;
+				}
+			}
+		}
+
+		// 갱신된 정보 반영
+		if (m_Players[recvedData.playerIndex])
+		{
+			m_Players[recvedData.playerIndex]->SetPosition(recvedData.position);
+			m_Players[recvedData.playerIndex]->SetState(recvedData.state);
+			m_Players[recvedData.playerIndex]->SetDirection(recvedData.direction);
+			m_Players[recvedData.playerIndex]->SetSpeed(recvedData.speed);
+			m_Players[recvedData.playerIndex]->SetPower(recvedData.power);
+			m_Players[recvedData.playerIndex]->SetBombNum(recvedData.bombNum);
+		}
+
+		//if (recvedData.state != PlayerState::move) break;
 	}
-	  
-	// 갱신된 정보 반영
-	if (m_Players[recvedData.playerIndex])
-	{
-		m_Players[recvedData.playerIndex]->SetPosition(recvedData.position);
-		m_Players[recvedData.playerIndex]->SetState(recvedData.state);
-		m_Players[recvedData.playerIndex]->SetDirection(recvedData.direction);
-		m_Players[recvedData.playerIndex]->SetSpeed(recvedData.speed);
-		m_Players[recvedData.playerIndex]->SetPower(recvedData.power);
-		m_Players[recvedData.playerIndex]->SetBombNum(recvedData.bombNum); 
-	}
-	 
+	
 	string toSendData;
 	  
 	toSendData = "<IsGameEnd>:";
@@ -327,6 +361,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			toSendData += to_string(m_Players[i]->GetPosition().x);
 			toSendData += "\n";
 			toSendData += to_string(m_Players[i]->GetPosition().y);
+			
 			toSendData += "\n";
 			toSendData += to_string(m_Players[i]->GetSpeed());
 			toSendData += "\n";
@@ -344,21 +379,30 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	{
 		for (int j = 0; j < MAP_WIDTH; ++j)
 		{
+			if (i == 0)
+			{
+				int stop = 3;
+			}
 			toSendData += to_string((int)m_MapToSend[i][j]);
 			toSendData += "\n";
 		}
 		//toSendData += "\n";
 	}
-	 
+	
+	for (auto block : m_DeletedBlock)
+	{
+		cout << "DeletedBlock : " << block.x << ", " << block.y << "\n";
+	}
 	m_DeletedBlock.clear();
 	m_CreatedBomb.clear();
 	m_DeletedBomb.clear();
 	m_CreatedItem.clear();
 	m_DeletedItem.clear(); 
-		  
+
+	//cout << "Send\n";
 	auto res = SendFrameData(socket, toSendData, receivedSize); 
 	
-//	LeaveCriticalSection(&m_cs);
+	LeaveCriticalSection(&m_cs);
 	
 	return res;
 
@@ -499,6 +543,8 @@ void GameSceneProcessor::InitPlayers()
 		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		//{(float)TileStartPosition.x + OBJECT_SIZE * 0,
+		// (float)TileStartPosition.y + OBJECT_SIZE * 2},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 14,
@@ -580,12 +626,13 @@ void GameSceneProcessor::CreateBomb(Vector2f pos, int power, int index)
 		m_Bombs[coord.y][coord.x] = new CBomb(pos, power, index);
 		m_CreatedBomb.push_back(coord); 
 		m_MapToSend[coord.y][coord.x] = (MapDatas)(((int)MapDatas::BombCreated_0) + power);
-		//cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
+		cout << "CreateBomb : x - " << coord.x << " y - " << coord.y << "\n";
 	}
 }
 
 bool GameSceneProcessor::IsDestroyedBlock(Vector2i coord)
 {
+	if (!m_DeletedBlock.size()) return false;
 	auto result = find(m_DeletedBlock.begin(), m_DeletedBlock.end(), coord);
 	return result != m_DeletedBlock.end();
 }
@@ -620,14 +667,6 @@ bool GameSceneProcessor::IsCollideToBomb(Vector2f playerPosition, PlayerState& s
 			if (!m_Bombs[i][j]) continue;
 			
 			Vector2i playerCoord = GetCoordinates(playerPosition, { OBJECT_SIZE, OBJECT_SIZE });
-
-			if (IsCollide(playerPosition, { j, i }))
-			{
-				if (m_Bombs[i][j]->GetIsPlayerOn()) continue;
-				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
-				return true;
-			}
-
 			if (m_Bombs[i][j]->IsOnExplosion())	// 물줄기와 플레이어 충돌처리
 			{
 				vector<Vector2i> branchCoords = m_Bombs[i][j]->GetLastBranchCoords();
@@ -636,7 +675,17 @@ bool GameSceneProcessor::IsCollideToBomb(Vector2f playerPosition, PlayerState& s
 				if (iter == branchCoords.end()) continue;
 
 				state = PlayerState::die;
+				return true;
 			}
+
+			if (IsCollide(playerPosition, { j, i }))
+			{
+				if (m_Bombs[i][j]->GetIsPlayerOn()) continue;
+				//cout << "충돌확인 i : " << i << " j : " << j << "\n";
+				return true;
+			}
+
+			
 		}
 	}
 	return false;
@@ -672,7 +721,7 @@ bool GameSceneProcessor::IsCollideToItem(Vector2f playerPosition, int& speed, in
 					power = min(power + 1, POWER_LIMIT);
 					break;
 				}
-
+				cout << "ItemDelete - [X:" << j << ", y: " << i << "]\n";
 				m_DeletedItem.push_back({ j,i }); 
 				delete m_Items[i][j];
 				m_Items[i][j] = nullptr;

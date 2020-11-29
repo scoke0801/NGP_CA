@@ -54,6 +54,7 @@ void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])
 {
 	if (m_State == BombState::Wait)
 	{ 
+		if (!m_Images[(int)m_State]) return;
 		m_Images[(int)m_State].TransparentBlt(
 			hdc,
 			m_Position.x, m_Position.y,
@@ -65,6 +66,7 @@ void CBomb::Draw(HDC hdc, CBlock* blocks[][MAP_WIDTH])
 	}
 	else if (m_State == BombState::Explosion)
 	{
+		if (!m_Images[(int)Explosion::inPlace]) return;
 		m_Images[(int)Explosion::inPlace].TransparentBlt(
 			hdc,
 			m_Position.x, m_Position.y,
