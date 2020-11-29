@@ -25,6 +25,9 @@ int main(int argc, char* argv[])
 	retVal = bind(listen_sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
 	if (retVal == SOCKET_ERROR) { err_quit("bind()"); }
 
+	///int optval = 0;
+	//setsockopt(listen_sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
+	
 	// listen() 
 	retVal = listen(listen_sock, SOMAXCONN);
 	if (retVal == SOCKET_ERROR) { err_quit("listen()"); }
@@ -39,8 +42,8 @@ int main(int argc, char* argv[])
 		// accept()
 		addrLen = sizeof(clientAddr);
 		client_sock = accept(listen_sock, (SOCKADDR*)&clientAddr, &addrLen);
-		//int opt_val = TRUE;
-		//setsockopt(client_sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
+		int opt_val = TRUE;
+		setsockopt(client_sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");

@@ -168,6 +168,7 @@ void CFramework::preUpdate()
 		m_dLag += m_timeElapsed.count();
 		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
 		{
+			//Communicate();
 			update(FPS);
 			m_dLag -= FPS;
 		}
@@ -287,6 +288,7 @@ DWORD __stdcall ClientMain(LPVOID arg)
 			dLag += timeElapsed.count();
 			for (int i = 0; dLag > FPS && i < MAX_LOOP_TIME; ++i)
 			{
+				//CFramework::GetInstance()->preUpdate();
 				CFramework::GetInstance()->Communicate();
 				dLag -= FPS;
 			}

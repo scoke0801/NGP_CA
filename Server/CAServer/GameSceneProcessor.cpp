@@ -10,7 +10,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 
 	timeElapsed = std::chrono::system_clock::now() - currentTime;
 	currentTime = std::chrono::system_clock::now();
-	//cout << "TimeElapsed: " << timeElapsed.count() << "\n";
+	//cout << "TimeElapsed: " << timeElapsed.count() << " ";
 	//int opt_val = TRUE;
 	//setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
 	EnterCriticalSection(&m_cs);
@@ -23,7 +23,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	GameSceneRecvData recvedData;
 	ZeroMemory(&recvedData, sizeof(recvedData));
 
-	//cout << "Recv\n";
+	
 	if (!RecvFrameData(socket, buffer, receivedSize))
 	{
 		LeaveCriticalSection(&m_cs);
@@ -39,48 +39,44 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		{
 			recvedData.playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
 			  
-			//cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
+			cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
 		}
 		else if (strstr(token, "<Position>:"))
 		{
 			recvedData.position = GetPositionFromText(token);
 			prevPosition = recvedData.position;
 
-			//cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
+			cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
 		}						
 		else if (strstr(token, "<Power>:"))
 		{
 			recvedData.power = ConvertoIntFromText(token, "<Power>:");
-			//cout << "<Power>: " << recvedData.power << " \n";
+			cout << "<Power>: " << recvedData.power << " \n";
 		}
 		else if (strstr(token, "<Speed>:"))
 		{
 			recvedData.speed = ConvertoIntFromText(token, "<Speed>:");
-			//cout << "<Speed>: " << recvedData.speed << " \n";
+			cout << "<Speed>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<BombNum>:"))
 		{
 			recvedData.bombNum = ConvertoIntFromText(token, "<BombNum>:");
-			//cout << "<Speed>: " << recvedData.speed << " \n";
+			cout << "<Speed>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<Direction>:"))
 		{
 			recvedData.direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-			//cout << "<Direction>: " << (int)recvedData.direction << " \n";
+			cout << "<Direction>: " << (int)recvedData.direction << " \n";
 		}
 		else if (strstr(token, "<PlayerState>:"))
 		{
 			recvedData.state = (PlayerState)ConvertoIntFromText(token, "<PlayerState>:");
 			if (m_Players[recvedData.playerIndex]->GetState() == PlayerState::die)
 			{
-				if (m_Players[recvedData.playerIndex]->GetDeadTime() > 0.3f)
-				{
-					
-				}
-				else
+				if (m_Players[recvedData.playerIndex]->GetDeadTime() < 0.3f)
 					recvedData.state = PlayerState::die;
 			}
-			//cout << "<PlayerState>: " << (int)recvedData.state << " \n";
+			cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
@@ -89,15 +85,20 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		}
 		token = strtok(NULL, "\n");
 	}
+	cout << "----------------------------------------\n";
 
 	m_Players[recvedData.playerIndex]->UpdateElapsedTime();
 	double time = m_Players[recvedData.playerIndex]->GetElapsedTime(); 
+	int loop = 0;
 	while (time > FPS)
 	{
+		++loop;
 		time -= 0.016f;
 		switch (recvedData.state)
 		{
 		case PlayerState::move:
+			//cout << "index - " << recvedData.playerIndex << " pos - " << recvedData.position.x
+			//	<< ", " << recvedData.position.y << "\n";
 			prevPosition = recvedData.position;
 			if (recvedData.direction == Direction::left)
 				recvedData.position.x = recvedData.position.x - (recvedData.speed * PlAYER_SPEED * FPS);
@@ -267,7 +268,6 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 				}
 			}
 		}
-
 		// Bomb - Player 面倒眉农
 		for (int i = 0; i < 4; ++i)
 		{
@@ -288,7 +288,6 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		{
 			recvedData.position = prevPosition;
 		}
-
 		// Item - Player 面倒眉农 
 		IsCollideToItem(recvedData.position, recvedData.speed, recvedData.power, recvedData.bombNum);
 
@@ -338,7 +337,10 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			m_Players[recvedData.playerIndex]->SetPower(recvedData.power);
 			m_Players[recvedData.playerIndex]->SetBombNum(recvedData.bombNum);
 		}
+
+		//if (recvedData.state != PlayerState::move) break;
 	}
+	
 	string toSendData;
 	  
 	toSendData = "<IsGameEnd>:";
@@ -359,6 +361,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			toSendData += to_string(m_Players[i]->GetPosition().x);
 			toSendData += "\n";
 			toSendData += to_string(m_Players[i]->GetPosition().y);
+			
 			toSendData += "\n";
 			toSendData += to_string(m_Players[i]->GetSpeed());
 			toSendData += "\n";
