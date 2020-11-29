@@ -39,34 +39,34 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		{
 			recvedData.playerIndex = ConvertoIntFromText(token, "<PlayerIndex>:");
 			  
-			cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
+			//cout << "<PlayerIndex>: " << recvedData.playerIndex << " \n";
 		}
 		else if (strstr(token, "<Position>:"))
 		{
 			recvedData.position = GetPositionFromText(token);
 			prevPosition = recvedData.position;
 
-			cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
+			//cout << "x : " << recvedData.position.x << " y : " << recvedData.position.y << "\n";
 		}						
 		else if (strstr(token, "<Power>:"))
 		{
 			recvedData.power = ConvertoIntFromText(token, "<Power>:");
-			cout << "<Power>: " << recvedData.power << " \n";
+			//cout << "<Power>: " << recvedData.power << " \n";
 		}
 		else if (strstr(token, "<Speed>:"))
 		{
 			recvedData.speed = ConvertoIntFromText(token, "<Speed>:");
-			cout << "<Speed>: " << recvedData.speed << " \n";
+			//cout << "<Speed>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<BombNum>:"))
 		{
 			recvedData.bombNum = ConvertoIntFromText(token, "<BombNum>:");
-			cout << "<Speed>: " << recvedData.speed << " \n";
+			//cout << "<BombNum>: " << recvedData.speed << " \n";
 		}
 		else if (strstr(token, "<Direction>:"))
 		{
 			recvedData.direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-			cout << "<Direction>: " << (int)recvedData.direction << " \n";
+			//cout << "<Direction>: " << (int)recvedData.direction << " \n";
 		}
 		else if (strstr(token, "<PlayerState>:"))
 		{
@@ -76,7 +76,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 				if (m_Players[recvedData.playerIndex]->GetDeadTime() < 0.3f)
 					recvedData.state = PlayerState::die;
 			}
-			cout << "<PlayerState>: " << (int)recvedData.state << " \n";
+			//cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
@@ -85,7 +85,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		}
 		token = strtok(NULL, "\n");
 	}
-	cout << "----------------------------------------\n";
+	//cout << "----------------------------------------\n";
 
 	m_Players[recvedData.playerIndex]->UpdateElapsedTime();
 	double time = m_Players[recvedData.playerIndex]->GetElapsedTime(); 
@@ -539,12 +539,12 @@ void GameSceneProcessor::InitPlayers()
 	Vector2i TileStartPosition = { 26, 53 };
 	const Vector2f Positions[5] =
 	{
-		//{(float)TileStartPosition.x + OBJECT_SIZE * 13,
-		// (float)TileStartPosition.y + OBJECT_SIZE * 1},
-		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
+		{(float)TileStartPosition.x + OBJECT_SIZE * 13,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 0,
-		 (float)TileStartPosition.y + OBJECT_SIZE * 2},
+		 (float)TileStartPosition.y + OBJECT_SIZE * 1},
+		//{(float)TileStartPosition.x + OBJECT_SIZE * 0,
+		// (float)TileStartPosition.y + OBJECT_SIZE * 2},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)TileStartPosition.x + OBJECT_SIZE * 14,

@@ -54,12 +54,12 @@ void CGameScene::SendDataToNextScene(void* pContext)
 
 	const Vector2f Positions[5] =
 	{
-		//{(float)m_TileStartPosition.x + OBJECT_SIZE * 13,
-		// (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
-		{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
+		{(float)m_TileStartPosition.x + OBJECT_SIZE * 13,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
-		 (float)m_TileStartPosition.y + OBJECT_SIZE * 2},
+		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
+		//{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
+		// (float)m_TileStartPosition.y + OBJECT_SIZE * 2},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 14,
@@ -256,12 +256,12 @@ void CGameScene::Communicate(SOCKET& sock)
 	 
 	GameSceneSendData data;
 	data.playerIndex = m_Player->GetIndex();
-	data.position = m_Player->GetPosition();
-	data.waterRange = m_Player->GetPower();
-	data.speed = m_Player->GetSpeed();
-	data.direction = m_Player->GetDirection();
-	data.state = (int)m_Player->GetState();
-	data.bombNum = m_Player->GetMaxBomb();
+	data.position	 = m_Player->GetPosition();
+	data.waterRange  = m_Player->GetPower();
+	data.speed		 = m_Player->GetSpeed();
+	data.direction   = m_Player->GetDirection();
+	data.state		 = (int)m_Player->GetState();
+	data.bombNum	 = m_Player->GetMaxBomb();
 	//data.mapData = m_Map;
 
 	toSendData.clear();
@@ -366,28 +366,30 @@ void CGameScene::Communicate(SOCKET& sock)
 				token = strtok(NULL, "\n");
 				strcpy(temp, token);
 				int direction = atoi(temp);
-
-				if (state == int(PlayerState::die))
+				 
+				if (m_ClientIdx == index)
 				{
-					int stop = 3;
-					if (index != m_Player->GetIndex())
-						int stop_ = 3;
+					if (state == (int)PlayerState::move && 
+						m_Players[index]->GetState() == PlayerState::wait)
+					{
+						m_Players[index]->ChangeState(PlayerState::wait);
+					}
+					else if (m_Players[index]->GetState() != (PlayerState)state)
+					{
+						cout << "[index]" << index << " - StageChange ( "
+							<< (int)m_Players[index]->GetState()
+							<< " to " << (int)state << ")\n";
+						m_Players[index]->ChangeState((PlayerState)state);
+					}
 				}
-				if (m_Players[index]->GetState() != (PlayerState)state)
+				else if (m_Players[index]->GetState() != (PlayerState)state)
 				{
 					cout << "[index]" << index << " - StageChange ( "
 						<< (int)m_Players[index]->GetState()
 						<< " to " << (int)state << ")\n";
 					m_Players[index]->ChangeState((PlayerState)state);
 				}
-				cout << "position - " << posX << ", " << posY << endl;
-					//{
-				//	if (index == 1)
-				//		int stop = 3;
-				//	//if((PlayerState)state != PlayerState::die)
-				//	//	m_Players[index]->ChangeState((PlayerState)state);
-				//	m_Players[index]->ChangeState((PlayerState)state);
-				//}
+				cout << "position - " << posX << ", " << posY << endl; 
 				m_Players[index]->SetPosition({ posX, posY });
 				m_Players[index]->SetPower(power);
 				m_Players[index]->SetSpeed(speed);
