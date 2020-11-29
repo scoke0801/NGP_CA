@@ -308,7 +308,7 @@ void CGameScene::Communicate(SOCKET& sock)
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 
-	//cout << "Recv \n";
+	cout << "Recv------------------------------------------ \n";
 	RecvFrameData(sock, buffer, retVal);
 	//cout << "¹ÞÀº °ª" << buffer << "\n";
 	char* token = strtok(buffer, "\n");
@@ -323,7 +323,7 @@ void CGameScene::Communicate(SOCKET& sock)
 		{
 			bool result = ConvertoIntFromText(token, "<IsGameEnd>:");
 			if (result) ChangeScene<CGameRecordScene>();
-			//cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
+			cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
 		} 
 		else if (strstr(token, "<Players>:"))
 		{
@@ -380,7 +380,7 @@ void CGameScene::Communicate(SOCKET& sock)
 						<< " to " << (int)state << ")\n";
 					m_Players[index]->ChangeState((PlayerState)state);
 				}
-
+				cout << "position - " << posX << ", " << posY << endl;
 					//{
 				//	if (index == 1)
 				//		int stop = 3;
@@ -437,7 +437,7 @@ void CGameScene::Communicate(SOCKET& sock)
 						break;
 					}
 					case MapDatas::ItemDeleted:
-						if (!m_Items[i][j])break;
+						//if (!m_Items[i][j])break;
 						SAFE_DELETE(m_Items[i][j]); 
 						if (m_Blocks[i][j]) 
 							m_Blocks[i][j]->ChangeState(BlockState::Destroyed);
@@ -486,6 +486,8 @@ void CGameScene::Communicate(SOCKET& sock)
 		}
 		token = strtok(NULL, "\n");
 	}
+
+	cout << "---------------------------------------------- \n";
 }
 
 bool CGameScene::ProcessInput(UCHAR* pKeysBuffer)

@@ -193,16 +193,16 @@ void CPlayer::LoadImages(PlayerName name)
 	switch (name)
 	{
 	case PlayerName::Bazzi:
-		//m_Images[0].Load(_T("assets/player/bazzi/down.png"));
-		//m_Images[1].Load(_T("assets/player/bazzi/up.png"));
-		//m_Images[2].Load(_T("assets/player/bazzi/left.png"));
-		//m_Images[3].Load(_T("assets/player/bazzi/right.png"));
-		////m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
-		//m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
-		//m_Images[5].Load(_T("assets/player/bazzi/die.png"));
-		//m_Images[6].Load(_T("assets/player/bazzi/live.png"));
-		//
-		//m_PortraitImage.Load(_T("assets/player/bazzi/portrait.png"));
+		m_Images[0].Load(_T("assets/player/bazzi/down.png"));
+		m_Images[1].Load(_T("assets/player/bazzi/up.png"));
+		m_Images[2].Load(_T("assets/player/bazzi/left.png"));
+		m_Images[3].Load(_T("assets/player/bazzi/right.png"));
+		//m_Images[4].Load(_T("assets/player/bazzi/trap.png"));
+		m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
+		m_Images[5].Load(_T("assets/player/bazzi/die.png"));
+		m_Images[6].Load(_T("assets/player/bazzi/live.png"));
+		
+		m_PortraitImage.Load(_T("assets/player/bazzi/portrait.png"));
 		
 		m_AnimationSizes[0] = { 64, 76 };
 		m_AnimationSizes[1] = { 64, 76 };
@@ -221,7 +221,7 @@ void CPlayer::LoadImages(PlayerName name)
 		m_AnimationLen[4] = 16;
 		m_AnimationLen[5] = 13;
 		m_AnimationLen[6] = 5;
-		//break;
+		break;
 
 	case PlayerName::Dao:
 		m_Images[0].Load(_T("assets/player/dao/down.bmp"));

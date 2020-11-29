@@ -95,6 +95,8 @@ bool CFramework::PrepareCommunicate()
 		return false;
 	}
 
+	int optval = 0;
+	setsockopt(m_Sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
 	// connect()
 	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR)
@@ -200,7 +202,8 @@ void CFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
-	if (GetKeyboardState(pKeysBuffer) && m_pCurScene)
+	if (m_pCurScene == nullptr) return;
+	if (GetKeyboardState(pKeysBuffer))//&& m_pCurScene)
 		bProcessedByScene = m_pCurScene->ProcessInput(pKeysBuffer);
 
 	if (!bProcessedByScene)
