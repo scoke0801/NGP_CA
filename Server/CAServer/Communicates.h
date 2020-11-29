@@ -12,7 +12,8 @@ void err_quit(const char* msg);
 void err_display(const char* msg);
 
 // 파일 저장 함수
-void saveFile(string filename, vector<string> fileData);
+void loadFile(string filename, map<string, string> fileData);
+void saveFile(string filename, map<string, string> fileData);
 
 // recv를 이용한 사용자 정의함수
 int recvn(SOCKET s, char * buf, int len, int flags);
@@ -22,5 +23,5 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval);
 
 DWORD WINAPI ClientThread(LPVOID arg);
 
-bool ProcessTitleScene(SOCKET& socket, map<string, string> filedata);
+bool ProcessTitleScene(SOCKET& socket, map<string, string> filedata, int idx);
 bool ProcessLobbyScene(SOCKET& socket, int Data_n);

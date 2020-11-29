@@ -49,6 +49,10 @@ CTitleScene::~CTitleScene()
 void CTitleScene::Update(float timeElapsed)
 {
 	textmessage = check.text;
+
+	if (selected == "Login" && check.result == TRUE) {
+		ChangeScene<CLobbyScene>();
+	}
 }
 
 void CTitleScene::Draw(HDC hdc)
@@ -106,8 +110,11 @@ void CTitleScene::Communicate(SOCKET& sock)
 	data.clear();
 	data = buffer;
 
+	check.playerIndex = data[data.find("<INDEX>") + 7] - '0';
 	check.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
 	check.result = (bool)data[data.find("<result>") + 8];
+
+	cout << "[IDX]: " << check.playerIndex << " [TEXT]: " << check.text << " [result]:" << check.result << endl;
 
 	communicate = FALSE;
 }
@@ -125,21 +132,17 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	if (message == WM_LBUTTONDOWN)
 	{
 		if (btNewid.IsClicked({ mx, my })) {
+			selected = "NewID";
 			player.isNew = TRUE;
 			communicate = TRUE;
-
-			textmessage = check.text;
 		}
 		if (btLogin.IsClicked({ mx, my })) {
+			selected = "Login";
 			player.isNew = FALSE;
 			communicate = TRUE;
-
-			textmessage = check.text;
-
-			if (check.result)
-				ChangeScene<CLobbyScene>();
 		}
 		if (btExit.IsClicked({ mx, my })) {
+			selected = "Exit";
 			DestroyWindow(hWnd);
 		}
 	}

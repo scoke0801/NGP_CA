@@ -44,6 +44,7 @@ struct TitleSceneRecvData
 };
 struct TitleSceneSendData
 {
+	int playerIndex;
 	string text;
 	bool result;
 };

@@ -97,8 +97,9 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	return true;
 }
 
-void saveFile(string filename, vector<string> fileData)
+void saveFile(string filename, map<string, string> fileData)
 {
+
 }
 
 LobbySceneSendData Data;
@@ -150,7 +151,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
-			ProcessTitleScene(client_sock, accounts); 
+			ProcessTitleScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 
 		case SceneType::LobbyScene:
@@ -193,7 +194,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	return 0;
 }
 
-bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
+bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 {
 	int retval;
 	int receivedSize;
@@ -215,17 +216,21 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 
 	cout << "[ID]:" << player.id << " [PW]:" << player.pw << " [isNew]:" << player.isNew << endl;
 
+	sendData.playerIndex = 0;
+
 	if (player.isNew == TRUE) {
 		ofstream out;
 		out.open("data/Account.txt"s, ios::app);
 
 		auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
 		if (isAdded.second == TRUE) {
+			cout << ">> " << isAdded.second << endl;
 			out << player.id << " " << player.pw << endl;
 			sendData.text = "Account registration completed!";
 			sendData.result = TRUE;
 		}
 		else {
+			cout << ">> " << isAdded.second << endl;
 			sendData.text = "This ID already exists.";
 			sendData.result = FALSE;
 		}
@@ -242,6 +247,7 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 		else {
 			if (data->second == player.pw) {
 				sendData.text = "Login Accept!";
+				sendData.playerIndex = idx;
 				sendData.result = TRUE;
 			}
 			else {
@@ -255,7 +261,9 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 
 	data.clear();
 	
-	data = "<TEXT>";
+	data = "<INDEX>";
+	data += to_string(sendData.playerIndex);
+	data += "<TEXT>";
 	data += sendData.text;
 	data += "<result>";
 	data += sendData.result;

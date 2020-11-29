@@ -24,6 +24,7 @@ struct LobbySceneSendData
 #pragma region TitleSceneDatas;
 struct TitleSceneRecvData
 {
+	int playerIndex;
 	string text;
 	bool result;
 };

@@ -47,6 +47,7 @@ private:
 	TitleSceneRecvData check;
 	string selected;
 	string textmessage;
+
 	bool communicate;
 };
 
