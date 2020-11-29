@@ -37,3 +37,13 @@ bool IsInMapCoord(Vector2D<int> coord)
 	if (coord.y >= MAP_HEIGHT) return false;
 	return true;
 }
+
+TCHAR* StringToTCHAR(string& s)
+{
+	size_t strlength = 0;
+	size_t tcharlength = 0;
+	strlength = strlen(s.c_str()) + 1;
+	wchar_t* t = new wchar_t[strlength];
+	mbstowcs_s(&tcharlength, t, strlength, s.c_str(), _TRUNCATE);
+	return (TCHAR*)t;
+}

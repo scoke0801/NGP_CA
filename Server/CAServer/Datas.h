@@ -54,9 +54,15 @@ struct TitleSceneSendData
 #pragma region GameRecordSceneDatas;
 struct GameRecordSceneRecvData
 {
+	string id;
+	int itemScore;
+	int survivedScore;
 };
 struct GameRecordSceneSendData
 {
+	string id;
+	int itemScore;
+	int survivedScore;
 };
 #pragma endregion
 
