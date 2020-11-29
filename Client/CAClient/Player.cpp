@@ -121,21 +121,21 @@ void CPlayer::Move(Direction dir)
 		| (m_State == PlayerState::trap);
 	if (cantMove) return;
 
-	switch (dir)
-	{
-	case Direction::left:
-		m_currentAnimation = PlayerImages::left;
-		break;
-	case Direction::right:
-		m_currentAnimation = PlayerImages::right;
-		break;
-	case Direction::up:
-		m_currentAnimation = PlayerImages::up;
-		break;
-	case Direction::down:
-		m_currentAnimation = PlayerImages::down;
-		break;
-	}
+	//switch (dir)
+	//{
+	//case Direction::left:
+	//	m_currentAnimation = PlayerImages::left;
+	//	break;
+	//case Direction::right:
+	//	m_currentAnimation = PlayerImages::right;
+	//	break;
+	//case Direction::up:
+	//	m_currentAnimation = PlayerImages::up;
+	//	break;
+	//case Direction::down:
+	//	m_currentAnimation = PlayerImages::down;
+	//	break;
+	//}
 	//m_Dir = dir;
 	m_State = PlayerState::move;
 }
