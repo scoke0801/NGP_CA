@@ -12,7 +12,7 @@ struct LobbySceneRecvData
 };
 struct LobbySceneSendData
 { 
-
+	string Char_Type;
 	int Num;
 	bool isReady;
 	string chatData;

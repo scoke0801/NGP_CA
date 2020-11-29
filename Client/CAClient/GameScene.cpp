@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "Bomb.h"
 #include "Datas.h"
+#include "GameRecordScene.h"
 
 #define BUFSIZE 4096
 
@@ -57,6 +58,8 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
+		//{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
+		// (float)m_TileStartPosition.y + OBJECT_SIZE * 2},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 14,
@@ -66,14 +69,17 @@ void CGameScene::SendDataToNextScene(void* pContext)
 
 	for (int i = 0; i < 10; ++i)
 	{
-		m_Players[i] = new CPlayer(Positions[4]);
-	}
-	if (m_Players[m_ClientIdx])
-	{
-		SAFE_DELETE(m_Players[m_ClientIdx]);	
+		if (i == m_ClientIdx) continue;
+		if (i % 2 != 0)
+			m_Players[i] = new CPlayer(Positions[4], PlayerName::Dao, i);
+		else
+			m_Players[i] = new CPlayer(Positions[4], PlayerName::Bazzi, i);
 	}
 	//m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], PlayerName::Dao);
-	m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
+	if (m_ClientIdx % 2 != 0)
+		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], PlayerName::Dao);
+	else
+		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
 
 	m_Players[m_ClientIdx]->SetIndex(m_ClientIdx);
 	m_Player = m_Players[m_ClientIdx];
@@ -237,18 +243,25 @@ void CGameScene::Draw(HDC hdc)
 
 void CGameScene::Communicate(SOCKET& sock)
 {
+	static std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
+	static std::chrono::duration<double> timeElapsed;
+
+	timeElapsed = std::chrono::system_clock::now() - currentTime;
+	currentTime = std::chrono::system_clock::now();
+
+	//cout << "TimeElapsed: " << timeElapsed.count() << "\n";
 	int retVal;
 	string toSendData = to_string((int)m_Type);
 	SendFrameData(sock, toSendData, retVal);
 	 
 	GameSceneSendData data;
 	data.playerIndex = m_Player->GetIndex();
-	data.position = m_Player->GetPosition();
-	data.waterRange = m_Player->GetPower();
-	data.speed = m_Player->GetSpeed();
-	data.direction = m_Player->GetDirection();
-	data.state = (int)m_Player->GetState();
-	data.bombNum = m_Player->GetMaxBomb();
+	data.position	 = m_Player->GetPosition();
+	data.waterRange  = m_Player->GetPower();
+	data.speed		 = m_Player->GetSpeed();
+	data.direction   = m_Player->GetDirection();
+	data.state		 = (int)m_Player->GetState();
+	data.bombNum	 = m_Player->GetMaxBomb();
 	//data.mapData = m_Map;
 
 	toSendData.clear();
@@ -295,6 +308,7 @@ void CGameScene::Communicate(SOCKET& sock)
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
 
+	cout << "Recv------------------------------------------ \n";
 	RecvFrameData(sock, buffer, retVal);
 	//cout << "¹ÞÀº °ª" << buffer << "\n";
 	char* token = strtok(buffer, "\n");
@@ -307,7 +321,9 @@ void CGameScene::Communicate(SOCKET& sock)
 	{
 		if (strstr(token, "<IsGameEnd>:"))
 		{
-			//cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
+			bool result = ConvertoIntFromText(token, "<IsGameEnd>:");
+			if (result) ChangeScene<CGameRecordScene>();
+			cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
 		} 
 		else if (strstr(token, "<Players>:"))
 		{
@@ -350,12 +366,34 @@ void CGameScene::Communicate(SOCKET& sock)
 				token = strtok(NULL, "\n");
 				strcpy(temp, token);
 				int direction = atoi(temp);
-				if (m_Players[index]->GetState() != (PlayerState)state)
+				 
+				if (m_ClientIdx == index)
 				{
-					if((PlayerState)state != PlayerState::die)
+					if (state == (int)PlayerState::move && 
+						m_Players[index]->GetState() == PlayerState::wait)
+					{
+						m_Players[index]->ChangeState(PlayerState::wait);
+					}
+					else if (m_Players[index]->GetState() != (PlayerState)state)
+					{
+						cout << "[index]" << index << " - StageChange ( "
+							<< (int)m_Players[index]->GetState()
+							<< " to " << (int)state << ")\n";
 						m_Players[index]->ChangeState((PlayerState)state);
+					}
+					if (m_Players[index]->GetDirection() != (Direction)direction)
+					{
+						m_Players[index]->SetDirection((Direction)direction);
+					}
 				}
-					
+				else if (m_Players[index]->GetState() != (PlayerState)state)
+				{
+					cout << "[index]" << index << " - StageChange ( "
+						<< (int)m_Players[index]->GetState()
+						<< " to " << (int)state << ")\n";
+					m_Players[index]->ChangeState((PlayerState)state);
+				}
+				cout << "position - " << posX << ", " << posY << endl; 
 				m_Players[index]->SetPosition({ posX, posY });
 				m_Players[index]->SetPower(power);
 				m_Players[index]->SetSpeed(speed);
@@ -396,17 +434,19 @@ void CGameScene::Communicate(SOCKET& sock)
 					case MapDatas::ItemCreated_Potion:
 					case MapDatas::ItemCreated_Skate:
 					{
-						if (m_Items[i][j])break;
 						if (m_Blocks[i][j]) 
-							m_Blocks[i][j]->ChangeState(BlockState::Destroyed);
+							m_Blocks[i][j]->ChangeState(BlockState::Destroyed); 
+						if (m_Items[i][j])break;
 						int itemName = (int)m_MapToDatas[i][j];
 						itemName -= (int)MapDatas::ItemCreated_Ballon;
 						m_Items[i][j] = new CItem((ItemName)itemName, GetPositionCoord({ j, i }));
 						break;
 					}
 					case MapDatas::ItemDeleted:
-						if (!m_Items[i][j])break;
-						SAFE_DELETE(m_Items[i][j]);
+						//if (!m_Items[i][j])break;
+						SAFE_DELETE(m_Items[i][j]); 
+						if (m_Blocks[i][j]) 
+							m_Blocks[i][j]->ChangeState(BlockState::Destroyed);
 						break;
 					case MapDatas::BombCreated_0:
 					case MapDatas::BombCreated_1:
@@ -420,12 +460,14 @@ void CGameScene::Communicate(SOCKET& sock)
 					case MapDatas::BombCreated_9:
 					{
 						if (m_Bombs[i][j]) break;
+						if (m_Blocks[i][j]) SAFE_DELETE(m_Blocks[i][j]);
 						int power = (int)m_MapToDatas[i][j];
 						power -= (int)MapDatas::BombCreated_0;
 						Vector2i mapCoord = { j,i };
 						Vector2i playerCoord = m_Player->GetCoordinate();
 						mapCoord = { j, i };
 						m_Bombs[i][j] = new CBomb(GetPositionCoord(mapCoord), power);
+						cout << "BombCreate - [X:" << j << ", y: " << i << "]\n";
 						if (mapCoord == playerCoord)
 						{
 							m_Bombs[i][j]->SetPlayer(m_Player);
@@ -441,6 +483,8 @@ void CGameScene::Communicate(SOCKET& sock)
 							m_Player->DecreaseCurrentBombNum();
 						}
 						m_Bombs[i][j]->ChangeState(BombState::Explosion);
+						cout << "BombDelete - [X:" << j << ", y: " << i << "]\n";
+
 						break;
 					}
 				}
@@ -448,6 +492,8 @@ void CGameScene::Communicate(SOCKET& sock)
 		}
 		token = strtok(NULL, "\n");
 	}
+
+	cout << "---------------------------------------------- \n";
 }
 
 bool CGameScene::ProcessInput(UCHAR* pKeysBuffer)
@@ -495,6 +541,7 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 	case VK_SPACE:
 	{
 		if (!m_Player) break;
+		if (!m_Player->IsAlive()) break;
 		Vector2D<int> coord = GetCoordinates(m_Player->GetPosition(), m_Player->GetSize());
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
@@ -504,8 +551,24 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 				m_Player->SetCreateBombFlag(true);
 			}
 		}
-		break;
+		break; 
 	}
+	//case VK_LEFT:
+	//	if (!m_Player)break;
+	//	m_Player->Move(Direction::left);
+	//	break;
+	//case VK_RIGHT:
+	//	if (!m_Player)break;
+	//	m_Player->Move(Direction::right);
+	//	break;
+	//case VK_UP:
+	//	if (!m_Player)break;
+	//	m_Player->Move(Direction::up);
+	//	break;
+	//case VK_DOWN:
+	//	if (!m_Player)break;
+	//	m_Player->Move(Direction::down);
+	//	break;
 	case VK_F1:	// 0
 		m_Player->ChangeState(PlayerState::wait);
 		break;

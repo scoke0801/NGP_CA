@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Bomb.h"
-CPlayer::CPlayer(Vector2D<float> position, PlayerName name )
+CPlayer::CPlayer(Vector2D<float> position, PlayerName name, int index)
 {
 	m_Position = position;
 
@@ -17,7 +17,7 @@ CPlayer::CPlayer(Vector2D<float> position, PlayerName name )
 	m_Dir = Direction::down;
 
 	m_ID = "Player0";
-	m_Idx = 0;
+	m_Idx = index;
 	LoadImages(name);
 	LoadSounds();
 
@@ -32,6 +32,7 @@ CPlayer::~CPlayer()
 void CPlayer::Draw(HDC hdc)
 {
 	DrawPlayerInfo(hdc);
+	if (!m_Images[(int)m_currentAnimation]) return;
 	if (m_State != PlayerState::die)
 	{
 		m_Images[(int)m_currentAnimation].TransparentBlt(
@@ -60,6 +61,7 @@ void CPlayer::Draw(HDC hdc)
 
 void CPlayer::DrawPlayerInfo(HDC hdc)
 {
+	if (m_Position.x == -1000.0f) return;
 	SetBkMode(hdc, TRANSPARENT);
 	m_PortraitImage.TransparentBlt(hdc,
 		860, 136 + (m_Idx * 56), 55, 38,
@@ -119,21 +121,21 @@ void CPlayer::Move(Direction dir)
 		| (m_State == PlayerState::trap);
 	if (cantMove) return;
 
-	switch (dir)
-	{
-	case Direction::left:
-		m_currentAnimation = PlayerImages::left;
-		break;
-	case Direction::right:
-		m_currentAnimation = PlayerImages::right;
-		break;
-	case Direction::up:
-		m_currentAnimation = PlayerImages::up;
-		break;
-	case Direction::down:
-		m_currentAnimation = PlayerImages::down;
-		break;
-	}
+	//switch (dir)
+	//{
+	//case Direction::left:
+	//	m_currentAnimation = PlayerImages::left;
+	//	break;
+	//case Direction::right:
+	//	m_currentAnimation = PlayerImages::right;
+	//	break;
+	//case Direction::up:
+	//	m_currentAnimation = PlayerImages::up;
+	//	break;
+	//case Direction::down:
+	//	m_currentAnimation = PlayerImages::down;
+	//	break;
+	//}
 	//m_Dir = dir;
 	m_State = PlayerState::move;
 }
@@ -199,7 +201,7 @@ void CPlayer::LoadImages(PlayerName name)
 		m_Images[4].Load(_T("assets/player/bazzi/trap.bmp"));
 		m_Images[5].Load(_T("assets/player/bazzi/die.png"));
 		m_Images[6].Load(_T("assets/player/bazzi/live.png"));
-
+		
 		m_PortraitImage.Load(_T("assets/player/bazzi/portrait.png"));
 		
 		m_AnimationSizes[0] = { 64, 76 };

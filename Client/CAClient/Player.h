@@ -58,7 +58,7 @@ private:
 	float m_TimeSum;
 	bool m_BoomCreateFlag; // 서버에서 물풍선 생성 여부
 public:
-	CPlayer(Vector2D<float> position, PlayerName name = PlayerName::Bazzi);
+	CPlayer(Vector2D<float> position, PlayerName name = PlayerName::Bazzi, int index = 0);
 	~CPlayer();
 
 public:

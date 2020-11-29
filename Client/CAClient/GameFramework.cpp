@@ -94,7 +94,10 @@ bool CFramework::PrepareCommunicate()
 		// error_quit("socket()");
 		return false;
 	}
-
+	int opt_val = TRUE;
+	setsockopt(m_Sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
+	//int optval = 0;
+	//setsockopt(m_Sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
 	// connect()
 	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR)
@@ -105,8 +108,6 @@ bool CFramework::PrepareCommunicate()
 		return false;
 	}
 	
-	Thread_Num++;
-	cout << Thread_Num;
 
 	return true;
 }
@@ -168,6 +169,7 @@ void CFramework::preUpdate()
 		m_dLag += m_timeElapsed.count();
 		for (int i = 0; m_dLag > FPS && i < MAX_LOOP_TIME; ++i)
 		{
+			//Communicate();
 			update(FPS);
 			m_dLag -= FPS;
 		}
@@ -199,7 +201,8 @@ void CFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
-	if (GetKeyboardState(pKeysBuffer) && m_pCurScene)
+	if (m_pCurScene == nullptr) return;
+	if (GetKeyboardState(pKeysBuffer))//&& m_pCurScene)
 		bProcessedByScene = m_pCurScene->ProcessInput(pKeysBuffer);
 
 	if (!bProcessedByScene)
@@ -259,9 +262,12 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 	return 0;
 }
 
+
 DWORD __stdcall ClientMain(LPVOID arg)
 { 
+	
 	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
+	
 	std::chrono::system_clock::time_point currentTime;
 	std::chrono::duration<double> timeElapsed; // 시간이 얼마나 지났나
 	double dLag = 0.0f;
@@ -287,6 +293,7 @@ DWORD __stdcall ClientMain(LPVOID arg)
 			dLag += timeElapsed.count();
 			for (int i = 0; dLag > FPS && i < MAX_LOOP_TIME; ++i)
 			{
+				//CFramework::GetInstance()->preUpdate();
 				CFramework::GetInstance()->Communicate();
 				dLag -= FPS;
 			}
@@ -313,3 +320,18 @@ DWORD __stdcall ClientMain(LPVOID arg)
 
 	return 0;
 }
+
+//DWORD __stdcall ClientMain(LPVOID arg)
+//{
+//	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0; 
+//	while (1)
+//	{
+//		 
+//		CFramework::GetInstance()->ProcessInput();
+//
+//		CFramework::GetInstance()->Communicate();
+//			 
+//	}
+//
+//	return 0;
+//}

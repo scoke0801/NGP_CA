@@ -27,7 +27,7 @@ struct LobbySceneRecvData
 struct LobbySceneSendData
 {
 	int Thread_Num;
-
+	string Char_Type[3];
 	bool is_All_Ready;
 	vector<string> chatData;
 	bool isGameStart;
@@ -69,7 +69,7 @@ struct GameRecordSceneSendData
 
 #pragma region GameSceneDatas
 
-#define PlAYER_SPEED 52.0f
+#define PlAYER_SPEED 26.0f
 #define OBJECT_SIZE 52
 #define MAX_BOMB_NUM 8
 #define POWER_LIMIT 6

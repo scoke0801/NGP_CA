@@ -4,8 +4,8 @@
 
 CBomb::CBomb(Vector2D<float> position, int power, int index)
 {
-	m_CreatedTime = std::chrono::system_clock::now();
-
+	m_CreatedTime = std::chrono::system_clock::now();	
+	
 	m_PlayerIsOn = true;
 	m_PlayerPosition = m_Position = position;
 	m_Power = power;
@@ -72,4 +72,14 @@ CPlayer::CPlayer(Vector2f position, int index, PlayerState state)
 	m_Position = position;
 	m_Index = index;
 	m_State = state;
+
+	m_AlivedTime = std::chrono::system_clock::now();
+	m_DeadTime = std::chrono::system_clock::now();
+	m_PrevUpdateTime = std::chrono::system_clock::now();
+}
+
+void CPlayer::UpdateElapsedTime()
+{
+	m_TimeElapsed = std::chrono::system_clock::now() - m_PrevUpdateTime;//현재시간과 이전시간을 비교해서
+	m_PrevUpdateTime = std::chrono::system_clock::now();
 }
