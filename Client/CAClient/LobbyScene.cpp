@@ -41,6 +41,18 @@ CLobbyScene::~CLobbyScene()
 {
 }
 
+void CLobbyScene::SendDataToNextScene(void* pContext)
+{
+	TitleToLobbySceneData* data = (TitleToLobbySceneData*)pContext;
+
+	m_ClientIdx = data->playerindx;
+	m_ClientID = data->id;
+
+	cout << "####################################################" << endl
+		<< "[IDX]: " << m_ClientIdx << " [ID]: " << m_ClientID << endl
+		<< "####################################################" << endl;
+}
+
 void CLobbyScene::Update(float timeElapsed)
 {
 	if (is_Character_Select[0] == "Bazzi")

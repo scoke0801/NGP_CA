@@ -167,7 +167,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
-			ProcessTitleScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
+			ProcessTitleScene(client_sock, accounts, idx);
 			break;
 
 		case SceneType::LobbyScene:
@@ -179,7 +179,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::GameRecordScene:
-			ProcessGameRecordScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
+			ProcessGameRecordScene(client_sock, accounts, idx);
 			break;
 		default:
 		{ 

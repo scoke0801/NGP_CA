@@ -48,6 +48,8 @@ private:
 	string selected;
 	string textmessage;
 
+	TitleToLobbySceneData nextscenedata;
+
 	bool communicate;
 };
 

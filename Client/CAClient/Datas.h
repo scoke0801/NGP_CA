@@ -34,6 +34,12 @@ struct TitleSceneSendData
 	string pw;
 	bool isNew;
 };
+
+struct TitleToLobbySceneData
+{
+	int playerindx;
+	string id;
+};
 #pragma endregion 
 
 // 여기를 채워 주세요
