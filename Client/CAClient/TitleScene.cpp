@@ -4,16 +4,6 @@
 #include "LobbyScene.h"
 #include "Sound.h"
 
-TCHAR* StringToTCHAR(string& s)
-{
-	size_t strlength = 0;
-	size_t tcharlength = 0;
-	strlength = strlen(s.c_str()) + 1;
-	wchar_t* t = new wchar_t[strlength];
-	mbstowcs_s(&tcharlength, t, strlength, s.c_str(), _TRUNCATE);
-	return (TCHAR*)t;
-}
-
 CTitleScene::CTitleScene()
 {
 	communicate = FALSE;
@@ -103,7 +93,7 @@ void CTitleScene::Communicate(SOCKET& sock)
 
 	SendFrameData(sock, data, retval);
 
-	communicate = FALSE;
+	/////////////////////////////////////////////////
 
 	RecvFrameData(sock, buffer, retval);
 

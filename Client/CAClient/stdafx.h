@@ -25,7 +25,8 @@
 #include <vector>
 #include <map> 
 #include <set> 
-#include<string> 
+#include <string> 
+#include <algorithm>
 
 using namespace std;
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
@@ -50,6 +51,8 @@ Vector2D<float> GetPositionCoord(Vector2D<int> coord);
 
 bool IsInMapCoord(Vector2D<int> coord);
 #define SAFE_DELETE(p) { if(p) {delete p;} (p) = nullptr ;}
+
+TCHAR* StringToTCHAR(string& s);
 
 enum class Direction
 {

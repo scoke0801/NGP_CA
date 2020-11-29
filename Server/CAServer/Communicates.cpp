@@ -99,7 +99,16 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 
 void saveFile(string filename, map<string, string> fileData)
 {
+	ofstream out;
+	map<string, string> data = fileData;
 
+	out.open(filename, ios::app);
+
+	for (auto player : data) {
+		out << player.first << " " << player.second << endl;
+	}
+
+	out.close();
 }
 
 LobbySceneSendData Data;
@@ -170,7 +179,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::GameRecordScene:
-			//ProcessGameRecordScene();
+			ProcessGameRecordScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 		default:
 		{ 
@@ -279,6 +288,65 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 
 	return 0;
 }
+
+bool ProcessGameRecordScene(SOCKET& socket, map<string, string> filedata, int idx)
+{
+	int retval;
+	int receivedSize;
+
+	char buffer[BUFSIZE + 1];
+
+	GameRecordSceneRecvData recvData;
+	GameRecordSceneSendData sendData;
+
+	vector<GameRecordSceneRecvData> ranking;
+
+	ifstream in("data/Score.txt"s);
+	if (in) {
+		string id;
+		int itscore, svscore;
+		while (!in.eof()) {
+			in >> id >> itscore >> svscore;
+			ranking.push_back({id, itscore, svscore});
+		}
+	}
+	in.close();
+
+	RecvFrameData(socket, buffer, retval);
+
+	string data = buffer;
+
+	recvData.id = data.substr(data.find("<ID>") + 4, data.find("<ITS>") - (data.find("<ID>") + 4));
+	recvData.itemScore = atoi(data.substr(data.find("<ITS>") + 5).c_str());
+	recvData.survivedScore = atoi(data.substr(data.find("<SVS>") + 5).c_str());
+
+	cout << "[ID]: " << recvData.id << " [ITS]: " << recvData.itemScore << " [SVS]: " << recvData.survivedScore << endl;
+
+	ofstream out;
+	out.open("data/Score.txt"s, ios::app);
+	out << recvData.id << " " << recvData.itemScore << " " << recvData.survivedScore << endl;
+	out.close();
+
+	ranking.push_back(recvData);
+	sort(ranking.begin(), ranking.end(),
+		[](const GameRecordSceneRecvData& a, const GameRecordSceneRecvData& b) {
+			return (a.itemScore + a.survivedScore) > (b.itemScore + b.survivedScore); });
+
+	data.clear();
+
+	for (int i = 0; i < 10; i++) {
+		data = "<ID>";
+		data += ranking[i].id;
+		data += "<ITS>";
+		data += to_string(ranking[i].itemScore);
+		data += "<SVS>";
+		data += to_string(ranking[i].survivedScore);
+		SendFrameData(socket, data, retval);
+		data.clear();
+	}
+	return 0;
+}
+
 
 bool ProcessLobbyScene(SOCKET& sock, int Data_n)
 {
