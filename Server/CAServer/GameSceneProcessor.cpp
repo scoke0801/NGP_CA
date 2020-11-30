@@ -13,8 +13,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	//cout << "TimeElapsed: " << timeElapsed.count() << " ";
 	//int opt_val = TRUE;
 	//setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
-	EnterCriticalSection(&m_cs);
-
+	
 	int receivedSize;
 	// +1, null value
 	char buffer[BUFSIZE + 1];
@@ -26,7 +25,6 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	
 	if (!RecvFrameData(socket, buffer, receivedSize))
 	{
-		LeaveCriticalSection(&m_cs);
 		return 0;
 	}
 	//cout << buffer;
@@ -89,7 +87,8 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 
 	m_Players[recvedData.playerIndex]->UpdateElapsedTime();
 	double time = m_Players[recvedData.playerIndex]->GetElapsedTime(); 
-	int loop = 0;
+	int loop = 0; 
+	EnterCriticalSection(&m_cs);
 	while (time > FPS)
 	{
 		++loop;
@@ -341,6 +340,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		//if (recvedData.state != PlayerState::move) break;
 	}
 	
+
 	string toSendData;
 	  
 	toSendData = "<IsGameEnd>:";
@@ -391,18 +391,18 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 	
 	for (auto block : m_DeletedBlock)
 	{
-		cout << "DeletedBlock : " << block.x << ", " << block.y << "\n";
+		//cout << "DeletedBlock : " << block.x << ", " << block.y << "\n";
 	}
 	m_DeletedBlock.clear();
 	m_CreatedBomb.clear();
 	m_DeletedBomb.clear();
 	m_CreatedItem.clear();
 	m_DeletedItem.clear(); 
-
+	LeaveCriticalSection(&m_cs);
 	//cout << "Send\n";
 	auto res = SendFrameData(socket, toSendData, receivedSize); 
 	
-	LeaveCriticalSection(&m_cs);
+	//LeaveCriticalSection(&m_cs);
 	
 	return res;
 

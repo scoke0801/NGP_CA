@@ -147,7 +147,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		timeElapsed = std::chrono::system_clock::now() - currentTime;
 		currentTime = std::chrono::system_clock::now();
-		//cout << "TimeElapsed: " << timeElapsed.count() << " \n";
+		cout << "TimeElapsed: " << timeElapsed.count() << " \n";
 
 		// 2 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) break;
@@ -180,7 +180,6 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			temp += " ";
 			temp += to_string((int)GetCurrentThreadId()); 
 			
-			int res = GetCurrentThreadId();
 			SendFrameData(client_sock, temp, retval);
 		}
 			break;
