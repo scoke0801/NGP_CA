@@ -23,6 +23,7 @@ struct LobbySceneSendData
 	int isReady;
 	string chatData;
 	bool isGameStart; 
+	int gamestart;
 };
 
 #pragma endregion

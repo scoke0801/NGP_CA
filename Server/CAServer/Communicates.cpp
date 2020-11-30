@@ -370,6 +370,8 @@ public:
 	string id[3];
 	int index[3];
 	int Ready[3];
+	string chatting[3];
+	int gamestart;
 };
 
 LobbyScene lobbyScene;
@@ -431,6 +433,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	SendFrameData(sock, toSendData, retval);
 
 	
+	// 아이디 받기
 	RecvFrameData(sock, buffer, retval);
 
 	string ID_Change;
@@ -449,22 +452,11 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	}
 
 
-	//cout << Character_Change << endl;
-
-	//if (lobbyScene.id[1].empty())
-	//{
-	//	lobbyScene.id[1] = " ";
-	//}
-	//if (lobbyScene.id[2].empty() )
-	//{
-	//	lobbyScene.id[2] = " ";
-	//}
-	
 	toSendData.clear();
 	toSendData += "ID";
 	toSendData += to_string(Data);
 	toSendData += "\n";
-	for (int i = 0; i < Data; ++i)
+	for (int i = 0; i <= Data; ++i)
 	{
 		toSendData += lobbyScene.id[i];
 		toSendData += "\n";
@@ -497,9 +489,10 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 
 	toSendData.clear();
 
-	toSendData += to_string(lobbyScene.index[0]);
-	toSendData += to_string(lobbyScene.index[1]);
-	toSendData += to_string(lobbyScene.index[2]);
+	for (int i = 0; i < 3; i++)
+	{
+		toSendData += to_string(lobbyScene.index[i]);
+	}
 
 	SendFrameData(sock, toSendData, retval);
 
@@ -507,46 +500,83 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	RecvFrameData(sock, buffer, retval);
 
 	int Character_Ready = 0;
-
+	
 	Character_Ready = atoi(buffer);
 
-	if (Character_Change == 1 && Client_Idx == 1)
+
+	if (Character_Ready == 0 && Client_Idx == 0)
 	{
-		lobbyScene.Ready[Client_Idx] = 1;
+		if (lobbyScene.Ready[1] == 1 && lobbyScene.Ready[2] == 1)
+		{
+			lobbyScene.gamestart = 1;
+		}
 	}
-	if (Character_Change == 0 && Client_Idx == 1)
-	{
-		lobbyScene.Ready[Client_Idx] = 0;
-	}
-	if (Character_Change == 1 && Client_Idx == 2)
-	{
-		lobbyScene.Ready[Client_Idx] = 1;
-	}
-	if (Character_Change == 0 && Client_Idx == 2)
+	if (Character_Ready == 0 && Client_Idx == 0)
 	{
 		lobbyScene.Ready[Client_Idx] = 0;
 	}
+
+	if (Character_Ready == 1 && Client_Idx == 1)
+	{
+		lobbyScene.Ready[Client_Idx] = 1;
+	}
+	if (Character_Ready == 0 && Client_Idx == 1)
+	{
+		lobbyScene.Ready[Client_Idx] = 0;
+	}
+	if (Character_Ready == 1 && Client_Idx == 2)
+	{
+		lobbyScene.Ready[Client_Idx] = 1;
+	}
+	if (Character_Ready == 0 && Client_Idx == 2)
+	{
+		lobbyScene.Ready[Client_Idx] = 0;
+	}
+
+
 
 	toSendData.clear();
 
 	toSendData += to_string(lobbyScene.Ready[0]);
 	toSendData += to_string(lobbyScene.Ready[1]);
 	toSendData += to_string(lobbyScene.Ready[2]);
+	toSendData += to_string(lobbyScene.gamestart);
 
 	SendFrameData(sock, toSendData, retval);
 
+	// 채팅 부분
 
+	//RecvFrameData(sock, buffer, retval);
 
-	//for (int i = 0; i < 3; i++)
+	//if (Client_Idx == 0)
 	//{
-	//	temp3 = buffer;
-
-	//	// 0번 캐릭터타입을 보냄
-	//	SendFrameData(sock, temp3, retval);
-	//	
+	//	lobbyScene.chatting[Client_Idx] = buffer;
 	//}
+	//if (Client_Idx == 1)
+	//{
+	//	lobbyScene.chatting[Client_Idx] = buffer;
+	//}
+	//if (Client_Idx == 2)
+	//{
+	//	lobbyScene.chatting[Client_Idx] = buffer;
+	//}
+
+	//toSendData.clear();
+	//toSendData += "Chat";
+	//toSendData += to_string(Data);
+	//toSendData += "\n";
+	//for (int i = 0; i < Data; ++i)
+	//{
+	//	toSendData += lobbyScene.chatting[i];
+	//	toSendData += "\n";
+	//}
+
+	//cout << toSendData << endl;
+
+	//SendFrameData(sock, toSendData, retval);
+
+
 	
-	//cout << "채팅데이터" << chat_Da[0] << endl;
 
 	return 0;
 }

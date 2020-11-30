@@ -53,7 +53,10 @@ void CLobbyScene::Update(float timeElapsed)
 		Player2_Exist = true;
 		Player3_Exist = true;
 	}
-
+	if (m_Play.gamestart == 1)
+	{
+		isGameStart = true;
+	}
 	if (isGameStart)
 	{
 		LobbyToGameSceneData Data;
@@ -64,9 +67,11 @@ void CLobbyScene::Update(float timeElapsed)
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
-			Data.id_[i] = m_Player[i].id;
+			Data.id_[i] = R_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
 			Data.idx_[i] = R_Player[i].index;
+
+
 		}
 		ChangeScene<CGameScene>((void*)&Data);
 	}
@@ -77,13 +82,18 @@ void CLobbyScene::Draw(HDC hdc)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	
-	cout << Player2_Ready;
-
+	for (int i = 0; i < 4; i++)
+	{
+		cout << R_Player[i].id;
+	}
 	m_Bg_Image[R_Player[0].chartype].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 			0, 0, m_Bg_Image[R_Player[0].chartype].GetWidth(), m_Bg_Image[R_Player[0].chartype].GetHeight());
 	
-	TextOut(hdc, 250, 685, StringToTCHAR(m_Player[0].chatData), m_Player[0].chatData.length());
-
+	SetTextColor(hdc, RGB(255, 255, 255));
+	SetBkMode(hdc, TRANSPARENT);
+	TextOut(hdc, 50 ,255, StringToTCHAR(R_Player[0].id) , R_Player[0].id.length());
+	//m_Player[i].id
+	// m_Play.id
 	/*if (m_Player->Num ==2)
 	{
 		TextOut(hdc, 250, 685, StringToTCHAR(m_Player[1].chatData), m_Player[1].chatData.length());
@@ -95,7 +105,7 @@ void CLobbyScene::Draw(HDC hdc)
 	}*/
 
 
-	if (Player2_Exist && Player2_Ready==false)
+	if (Player2_Exist && R_Player[1].ready ==0)
 	{
 		m_Player2_Images[R_Player[1].chartype].TransparentBlt(
 			hdc, 172, 125, 130, 185,
@@ -103,9 +113,9 @@ void CLobbyScene::Draw(HDC hdc)
 		);
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
-		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
+		TextOut(hdc, 180, 255, StringToTCHAR(R_Player[1].id), R_Player[1].id.length());
 	}
-	else if (Player2_Exist && Player2_Ready)
+	else if (Player2_Exist && R_Player[1].ready==1)
 	{
 		m_Player2_Images[R_Player[1].chartype+2].TransparentBlt(
 			hdc, 172, 125, 130, 185,
@@ -113,10 +123,10 @@ void CLobbyScene::Draw(HDC hdc)
 		);
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
-		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
+		TextOut(hdc, 180, 255, StringToTCHAR(R_Player[1].id), R_Player[1].id.length());
 	}
 
-	if (Player3_Exist)
+	if (Player3_Exist && R_Player[2].ready == 0)
 	{
 		m_Player3_Images[R_Player[2].chartype].TransparentBlt(
 			hdc, 300, 115, 130, 185,
@@ -124,18 +134,18 @@ void CLobbyScene::Draw(HDC hdc)
 		);
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
-		TextOut(hdc, 360, 255, TEXT("아이디2"), 4);
+		TextOut(hdc, 360, 255, StringToTCHAR(R_Player[2].id), (R_Player[2].id).length());
 	}
 
-	else if (Player3_Exist && Player3_Ready)
+	else if (Player3_Exist && R_Player[2].ready == 1)
 	{
-		m_Player2_Images[R_Player[2].chartype + 2].TransparentBlt(
-			hdc, 172, 125, 130, 185,
-			5, 0, 100, 140, RGB(0, 0, 0)
+		m_Player3_Images[R_Player[2].chartype+2].TransparentBlt(
+			hdc, 300, 115, 130, 185,
+			0, 0, 100, 140, RGB(0, 0, 0)
 		);
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
-		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
+		TextOut(hdc, 360, 255, StringToTCHAR(R_Player[2].id), (R_Player[2].id).length());
 	}
 }
 
@@ -195,6 +205,8 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	R_Player[1].chartype = buf[1] - 48;
 	R_Player[2].chartype = buf[2] - 48;
 
+
+	// 아이디 받기
 	toSendData.clear();
 
 	toSendData = "\n";
@@ -203,6 +215,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	SendFrameData(sock, toSendData, retVal);
 
 	RecvFrameData(sock, buf, retVal);
+
 
 	char* token = strtok(buf, "\n");
 	strstr(token, "ID");
@@ -220,7 +233,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 
 		string b = temp;
 
-		m_Player[i].id = b;
+		R_Player[i].id = b;
 	}
 
 	// 인덱스 보내고 받기
@@ -239,7 +252,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	// 준비완료 보내기
 	toSendData.clear();
 	toSendData += to_string(m_Play.isReady);
-
+	
 	SendFrameData(sock, toSendData, retVal);
 
 	RecvFrameData(sock, buf, retVal);
@@ -247,27 +260,39 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	R_Player[0].ready = buf[0] - 48;
 	R_Player[1].ready = buf[1] - 48;
 	R_Player[2].ready = buf[2] - 48;
+	m_Play.gamestart = buf[3] - 48;
 
+	// 채팅데이터 보내기
 
+	//toSendData.clear();
 
-	//R_Player[0]
+	//toSendData = "\n";
+	//toSendData += m_Play.chatData;
 
+	//SendFrameData(sock, toSendData, retVal);
+
+	//RecvFrameData(sock, buf, retVal);
+
+	//char temp2[256] = {};
+	//char* token2 = strtok(buf, "\n");
+	//strstr(token2, "Chat");
+	//int tokenLen2 = strlen(token2);
+
+	//strncpy(temp2, token2 + tokenLen, strlen(token2) - tokenLen);
+
+	//int g = atoi(temp2);
+
+	//for (int i = 0; i <= d; i++)
+	//{
+	//	token2 = strtok(NULL, "\n");
+
+	//	strcpy(temp2, token2);
+
+	//	string b = temp2;
+
+	//	m_Player[i].chatData = b;
+	//}
 	
-	//R_Player[0].id = buf;
-
-	//cout << R_Player[0].id;
-
-	// 채팅데이터 추가
-	/*for (int i = 0; i < 3; i++)
-	{
-		toSendData.emplace_back(m_Player_c[i].chatData);
-	}*/
-
-	// 채팅 데이터 보내기
-	/*for (int i = 1; i < toSendData.size(); ++i)
-	{*/
-		//SendFrameData(sock, toSendData[0], retVal);
-	/*}*/
 }
 
 void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -311,17 +336,14 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		}
 	}
 
-	else if (mx > 671 && mx < 909 && my > 648 && my < 710)
+	if (mx > 671 && mx < 909 && my > 648 && my < 710)
 	{
 		if (R_Player[0].index == 0)
 		{
-			if (is_All_Ready)
+			m_Play.isReady = 1;
+			if (m_Play.gamestart == 1)
 			{
 				isGameStart = true;
-			}
-			else
-			{
-				isGameStart = false;
 			}
 		}
 		if (R_Player[1].index == 1)
@@ -331,9 +353,26 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		if (R_Player[2].index == 2)
 		{
 			m_Play.isReady = 1;
+
 		}
 	}
 
+	if (mx > 671 && mx < 909 && my > 710 && my < 750)
+	{
+		if (R_Player[0].index == 0)
+		{
+			m_Play.isReady = 0;
+		}
+		if (R_Player[1].index == 1)
+		{
+			m_Play.isReady = 0;
+		}
+		if (R_Player[2].index == 2)
+		{
+			m_Play.isReady = 0;
+
+		}
+	}
 	
 }
 
@@ -355,6 +394,8 @@ void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		{
 			is_Select[i] = "Chatting_Stop";
 		}
+
+	
 
 	
 }
