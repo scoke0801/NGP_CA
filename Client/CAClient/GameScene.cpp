@@ -19,7 +19,11 @@ CGameScene::CGameScene()
 	m_SoundManager->AddSound("assets/sound/bomb_set.mp3", Sound_Name::EFFECT_BOMB_SET);
 	m_SoundManager->AddSound("assets/sound/bomb_pop.mp3", Sound_Name::EFFECT_BOMB_POP);
 	m_SoundManager->AddSound("assets/sound/wave.mp3", Sound_Name::EFFECT_BOMB_WAVE);
-	//m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME); 
+	m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME); 
+	
+	// m_SoundManager->AddStream("assets/sound/Lobby.mp3", Sound_Name::BGM_LOBBY);
+	// m_SoundManager->PlayBgm(Sound_Name::BGM_LOBBY);
+	
 	//m_SoundManager->SetVolume(0.0f);
 
 	ZeroMemory(m_Blocks, sizeof(m_Blocks));
@@ -27,7 +31,7 @@ CGameScene::CGameScene()
 	LoadImages();
 	InitMap();
 	
-	m_InitFlag = false;
+	m_InitFlag = true;
 
 	m_Type = SceneType::GameScene;
 }
@@ -52,7 +56,7 @@ void CGameScene::SendDataToNextScene(void* pContext)
 	LobbyToGameSceneData* data = (LobbyToGameSceneData*)pContext;
 	m_ClientIdx = data->idx;
 	m_ClientID = data->id;
-
+	 
 	const Vector2f Positions[5] =
 	{
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 13,
@@ -66,14 +70,23 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		{ -1000.0f, -1000.0f }
 	};
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; data->playerNum; ++i)
 	{
-		if (i == m_ClientIdx) continue;
-		if (i % 2 != 0)
-			m_Players[i] = new CPlayer(Positions[4], CharacterName::Dao, i);
-		else
-			m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
-	} 
+		int idx = data->idx_[i];
+		CharacterName chName = (CharacterName)data->chName[i];
+		string id = data->id_[i];
+		m_Players[idx] = new CPlayer(Positions[idx], chName, idx);
+		m_Players[idx]->SetID(id);
+	}
+
+	//for (int i = 0; i < 10; ++i)
+	//{
+	//	if (i == m_ClientIdx) continue;
+	//	if (i % 2 != 0)
+	//		m_Players[i] = new CPlayer(Positions[4], CharacterName::Dao, i);
+	//	else
+	//		m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
+	//} 
 	if (m_ClientIdx % 2 != 0)
 		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], CharacterName::Dao);
 	else
@@ -182,8 +195,7 @@ void CGameScene::Draw(HDC hdc)
 	
 	for (auto player : m_Players)
 	{
-		if(player != nullptr)
-		player->Draw(hdc);
+		if(player != nullptr) player->Draw(hdc);
 	}	
 	if (m_Player->IsAlive())
 	{
@@ -222,13 +234,13 @@ void CGameScene::Communicate(SOCKET& sock)
 	 
 	if (m_InitFlag)
 	{
-		//toSendData = "<InitPlayer>:\n";
-		//toSendData += to_string(m_Player->GetIndex());
-		//toSendData += "\n";
-		//toSendData += m_Player->GetID();
-		//toSendData += "\n";
-		//toSendData += to_string((int)m_Player->GetCharacterName());
-		//toSendData += "\n";
+		toSendData = "<InitPlayer>:\n";
+		toSendData += to_string(m_Player->GetIndex());
+		toSendData += "\n";
+		toSendData += m_Player->GetID();
+		toSendData += "\n";
+		toSendData += to_string((int)m_Player->GetCharacterName());
+		toSendData += "\n";
 		m_InitFlag = false;
 	}
 	else
@@ -469,7 +481,7 @@ void CGameScene::Communicate(SOCKET& sock)
 						Vector2i playerCoord = m_Player->GetCoordinate();
 						mapCoord = { j, i };
 						m_Bombs[i][j] = new CBomb(GetPositionCoord(mapCoord), power);
-						//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+						m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
 						cout << "BombCreate - [X:" << j << ", y: " << i << "]\n";
 						if (mapCoord == playerCoord)
 						{
@@ -486,7 +498,7 @@ void CGameScene::Communicate(SOCKET& sock)
 							m_Player->DecreaseCurrentBombNum();
 						}
 						m_Bombs[i][j]->ChangeState(BombState::Explosion);
-						//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_POP);
+						m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_POP);
 						cout << "BombDelete - [X:" << j << ", y: " << i << "]\n";
 
 						break;
