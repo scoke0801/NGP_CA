@@ -46,21 +46,7 @@ void CLobbyScene::Update(float timeElapsed)
 		Player3_Exist = true;
 	}
 
-	/*if (Player2_Exist && )
-	{
-		Player2_Exist = true;
-	}*/
-	
-	/*if (Player2_Ready && Player3_Ready)
-	{
-		is_All_Ready = true;
-	}
-	else
-	{
-		is_All_Ready = false;
-	}*/
-
-	if (m_Play.Num == 1)
+	if (isGameStart)
 	{
 		LobbyToGameSceneData Data;
 
@@ -74,8 +60,7 @@ void CLobbyScene::Update(float timeElapsed)
 			Data.idx_[i] = atoi(m_Play.playerIndex.c_str());
 		}
 
-
-		//ChangeScene<CGameScene>((void*)&Data);
+		ChangeScene<CGameScene>((void*)&Data);
 	}
 }
 
@@ -231,6 +216,7 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	float mx = LOWORD(lParam);
 	float my = HIWORD(lParam);
 
+	cout << mx << " , " << my << endl;
 	if (mx > 631 && mx < 820 && my > 187 && my < 371)
 	{
 		if (m_Play.playerIndex == "0")
@@ -306,7 +292,7 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		}
 		break;
 	case VK_F6:
-		if (is_All_Ready)
+		//if (is_All_Ready)
 		{
 			isGameStart = true;
 		}

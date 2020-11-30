@@ -54,8 +54,8 @@ CGameScene::~CGameScene()
 void CGameScene::SendDataToNextScene(void* pContext)
 {
 	LobbyToGameSceneData* data = (LobbyToGameSceneData*)pContext;
-	m_ClientIdx = data->idx;
-	m_ClientID = data->id;
+	m_ClientIdx = data->ClientIdx;
+	m_ClientID = data->id_[m_ClientIdx];
 	 
 	const Vector2f Positions[5] =
 	{
@@ -70,7 +70,7 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		{ -1000.0f, -1000.0f }
 	};
 
-	for (int i = 0; data->playerNum; ++i)
+	for (int i = 0; i < data->playerNum; ++i)
 	{
 		int idx = data->idx_[i];
 		CharacterName chName = (CharacterName)data->chName[i];
@@ -87,16 +87,16 @@ void CGameScene::SendDataToNextScene(void* pContext)
 	//	else
 	//		m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
 	//} 
-	if (m_ClientIdx % 2 != 0)
-		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], CharacterName::Dao);
-	else
-		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
+	//if (m_ClientIdx % 2 != 0)
+	//	m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], CharacterName::Dao);
+	//else
+	//	m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
 
 	m_Players[m_ClientIdx]->SetIndex(m_ClientIdx);
 	m_Player = m_Players[m_ClientIdx];
 
-	string id = "Player";
-	m_Player->SetID(id + to_string(m_ClientID)); 
+	//string id = "Player";
+	//m_Player->SetID(id + to_string(m_ClientID)); 
 }
 
 void CGameScene::Update(float timeElapsed)
