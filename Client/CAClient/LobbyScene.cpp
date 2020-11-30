@@ -38,7 +38,7 @@ CLobbyScene::CLobbyScene()
 }
 
 CLobbyScene::~CLobbyScene()
-{
+{ 
 }
 
 void CLobbyScene::SendDataToNextScene(void* pContext)

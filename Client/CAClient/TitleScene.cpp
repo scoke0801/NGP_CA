@@ -33,7 +33,7 @@ CTitleScene::CTitleScene()
 
 CTitleScene::~CTitleScene()
 {
-
+	m_SoundManager->Stop();
 }
 
 void CTitleScene::Update(float timeElapsed)
@@ -43,6 +43,7 @@ void CTitleScene::Update(float timeElapsed)
 	if (selected == "Login" && check.result == TRUE) {
 		nextscenedata.playerindx = check.playerIndex;
 		nextscenedata.id = player.id;
+		m_SoundManager->Stop();
 		ChangeScene<CLobbyScene>((void*)&nextscenedata);
 	}
 }

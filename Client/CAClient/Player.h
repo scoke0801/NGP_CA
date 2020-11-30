@@ -24,7 +24,7 @@ enum class PlayerState
 #define POWER_LIMIT 6
 #define PLAYER_SPEED_LIMIT 7
 
-enum class PlayerName
+enum class CharacterName
 {
 	Bazzi,
 	Dao
@@ -57,8 +57,12 @@ private:
 
 	float m_TimeSum;
 	bool m_BoomCreateFlag; // 서버에서 물풍선 생성 여부
+	CharacterName m_CharacterName = CharacterName::Bazzi;
+
+	// 시간 처리를 위한 변수입니다. 
+	std::chrono::system_clock::time_point m_BommCreatTime;
 public:
-	CPlayer(Vector2D<float> position, PlayerName name = PlayerName::Bazzi, int index = 0);
+	CPlayer(Vector2D<float> position, CharacterName name = CharacterName::Bazzi, int index = 0);
 	~CPlayer();
 
 public:
@@ -111,11 +115,13 @@ public:
 	bool IsAlive() const { return m_State != PlayerState::die; }
 
 	bool CanCreateBomb();
-	void SetCreateBombFlag(bool flag) { m_BoomCreateFlag = flag; }
+	void SetCreateBombFlag(bool flag); 
 	bool GetCreateBombFlag() { return m_BoomCreateFlag; }
 
+	void SetCharacterName(CharacterName name) { m_CharacterName = name; }
+	CharacterName GetCharacterName() { return m_CharacterName; }
 private:
-	void LoadImages(PlayerName name);
+	void LoadImages(CharacterName name);
 	void LoadSounds();
 	void Animate(float timeElapsed);
 };

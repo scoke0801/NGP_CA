@@ -51,8 +51,10 @@ public:
 	Vector2f GetPositionFromText(const char* text);
 	int ConvertoIntFromText(const char* text, const char* token);
 	
+	void Init();
 	void InitMap();
 	void InitPlayers();
+	void InitPlayers(int index, string id, CharacterName name);
 
 	// 충돌 처리 계산을 위한 함수들
 	bool IsCollideToBlock(Vector2f playerPosition);

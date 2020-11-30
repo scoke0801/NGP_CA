@@ -109,6 +109,11 @@ enum class ItemName
 	skate,
 	count
 };
+enum class CharacterName
+{
+	Bazzi = 0,
+	Dao
+};
 enum class MapTileType
 {
 	EMPTY = 0,
@@ -150,7 +155,6 @@ struct GameSceneRecvData
 	int bombNum;
 	Direction direction;
 	PlayerState state;
-	int mapData[MAP_HEIGHT][MAP_WIDTH];
 };
 struct GameSceneSendData
 { 
