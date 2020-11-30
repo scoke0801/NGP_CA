@@ -36,6 +36,8 @@ void CGameRecordScene::Draw(HDC hdc)
 	background.StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 		0, 0, background.GetWidth(), background.GetHeight());
 
+	if (communicate == TRUE) return;
+
 	int count = 0;
 	TCHAR str[20];
 	for (auto s : scores) {
