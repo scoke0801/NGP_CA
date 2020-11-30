@@ -78,7 +78,7 @@ CPlayer::CPlayer(Vector2f position, int index, string ID, PlayerState state)
 	m_Direction = Direction::down;
 	m_Power = 2;
 	m_CharacterName = CharacterName::Bazzi;
-	//m_BombNum = 0;
+	m_BombNum = 2;
 
 	m_CreatedTime = std::chrono::system_clock::now();
 	m_DeadTime = std::chrono::system_clock::now();

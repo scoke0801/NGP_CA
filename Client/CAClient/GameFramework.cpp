@@ -8,7 +8,7 @@
 #include "Communicates.h"
 
 #define MAX_GAME_LOOP 30  
-#define FPS 1 / 60.0f
+#define FPS 1 / 30.0f
 //프레임을 따라잡기까지 최대 몇번 루프를 돌 것인지를 지정합니다.
 #define MAX_LOOP_TIME 50
 

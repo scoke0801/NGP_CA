@@ -34,6 +34,7 @@ enum class Sound_Name : int
 {
 	BGM_TITLE = 0
 	, BGM_MAIN_GAME
+	, BGM_LOBBY
 	, BGM_GAME_LOSE
 	, BGM_GAME_WIN
 	, EFFECT_BOMB_SET

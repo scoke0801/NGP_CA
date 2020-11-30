@@ -74,6 +74,11 @@ struct LobbyToGameSceneData
 
 	int Client_idx;
 
+	//int ClientIdx;
+	//int playerNum;
+	//int idx_[4];
+	//string id_[4];
+	//int chName[4]; 
 	int idx;
 	int id;
 };
