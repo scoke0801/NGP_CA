@@ -120,6 +120,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	int addrLen;
 	int idx = Data.Thread_Num;
 	int retval = 0;
+	int pIndex = 0;
 
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
@@ -167,7 +168,10 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
-			ProcessTitleScene(client_sock, accounts, idx);
+			if (ProcessTitleScene(client_sock, accounts, pIndex)) {
+				cout << "접속한 플레이어 인덱스: " << pIndex << endl;
+				pIndex++;
+			}
 			break;
 
 		case SceneType::LobbyScene:
@@ -226,6 +230,8 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 
 	string data = buffer;
 
+	bool isLogin = FALSE;
+
 	player.id = data.substr(data.find("<ID>")+4, data.find("<PW>") - (data.find("<ID>")+4));
 	player.pw = data.substr(data.find("<PW>") + 4, data.find("<isNew>") - (data.find("<PW>") + 4));
 	player.isNew = (bool)data[data.find("<isNew>") + 7];
@@ -265,6 +271,7 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 				sendData.text = "Login Accept!";
 				sendData.playerIndex = idx;
 				sendData.result = TRUE;
+				isLogin = TRUE;
 			}
 			else {
 				sendData.text = "Login Fail...";
@@ -286,7 +293,7 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 
 	SendFrameData(sock, data, retval);
 
-	return 0;
+	return isLogin;
 }
 
 bool ProcessGameRecordScene(SOCKET& socket, map<string, string> filedata, int idx)
