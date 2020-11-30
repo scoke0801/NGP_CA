@@ -338,13 +338,19 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		}
 
 		//if (recvedData.state != PlayerState::move) break;
+	} 
+	m_AlivedPlayerNum = 0;
+	for (int i = 0; i < 4; ++i)
+	{
+		if (!m_Players[i]) continue;
+		PlayerState state = m_Players[i]->GetState();
+		if (state != PlayerState::die) m_AlivedPlayerNum++;
 	}
-	
-
+	bool isGameEnd = (m_AlivedPlayerNum >= 1); 
 	string toSendData;
 	  
 	toSendData = "<IsGameEnd>:";
-	toSendData += to_string(0);
+	toSendData += to_string(isGameEnd);
 	toSendData += "\n";
 
 	toSendData += "<Players>:";

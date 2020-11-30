@@ -24,6 +24,7 @@ private:
 
 	int					m_ClientNum = 0;
 	int					m_SendCount = 0;
+	int					m_AlivedPlayerNum = 0;
 
 	CRITICAL_SECTION	m_cs;
 	GameSceneProcessor()

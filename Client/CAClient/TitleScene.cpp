@@ -41,7 +41,9 @@ void CTitleScene::Update(float timeElapsed)
 	textmessage = check.text;
 
 	if (selected == "Login" && check.result == TRUE) {
-		ChangeScene<CLobbyScene>();
+		nextscenedata.playerindx = check.playerIndex;
+		nextscenedata.id = player.id;
+		ChangeScene<CLobbyScene>((void*)&nextscenedata);
 	}
 }
 
