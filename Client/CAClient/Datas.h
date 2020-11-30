@@ -12,6 +12,7 @@ struct LobbySceneRecvData
 	int index;
 	int chartype;
 	string id;
+	int ready;
 };
 struct LobbySceneSendData
 { 
@@ -19,7 +20,7 @@ struct LobbySceneSendData
 	int Num;
 	int char_type;
 	int playerIndex;
-	bool isReady;
+	int isReady;
 	string chatData;
 	bool isGameStart; 
 };

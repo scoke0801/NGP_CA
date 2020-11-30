@@ -3,6 +3,14 @@
 #include "GameScene.h"
 #include "GameFramework.h"
 
+#ifdef _DEBUG
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+#endif
+#endif
+
 CLobbyScene::CLobbyScene()
 {
 	m_Bg_Image[0].Load(_T("assets/lobby_scene_bg.png"));
@@ -46,20 +54,14 @@ void CLobbyScene::Update(float timeElapsed)
 		Player3_Exist = true;
 	}
 
-	/*if (Player2_Exist && )
+	if (Player2_Ready && Player3_Ready)
 	{
-		Player2_Exist = true;
-	}*/
-
-	
-	//if (Player2_Ready && Player3_Ready)
-	//{
-	//	is_All_Ready = true;
-	//}
-	//else
-	//{
-	//	is_All_Ready = false;
-	//}
+		is_All_Ready = true;
+	}
+	else
+	{
+		is_All_Ready = false;
+	}
 
 	if (m_Play.Num == 1)
 	{
@@ -67,29 +69,24 @@ void CLobbyScene::Update(float timeElapsed)
 
 		Data.playerNum = m_Play.Num;
 
-		Data.Client_idx = m_Player->playerIndex;
+		Data.ClientIdx = R_Player[m_Play.Num].index;
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
 			Data.id_[i] = m_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
-			Data.idx_t[i] = R_Player[i].index;
-
-		}
-
-
-			cout << Data.idx_t[i];
-		}
-
-		
-		//ChangeScene<CGameScene>((void*)&Data);
+			Data.idx_[i] = R_Player[i].index;
+		}	
 	}
+		//ChangeScene<CGameScene>((void*)&Data);
 }
+
 
 void CLobbyScene::Draw(HDC hdc)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	
+	cout << Player2_Ready;
 
 	m_Bg_Image[R_Player[0].chartype].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 			0, 0, m_Bg_Image[R_Player[0].chartype].GetWidth(), m_Bg_Image[R_Player[0].chartype].GetHeight());
@@ -106,9 +103,20 @@ void CLobbyScene::Draw(HDC hdc)
 		TextOut(hdc, 250, 685, StringToTCHAR(m_Player[2].chatData), m_Player[2].chatData.length());
 	}*/
 
-	if (Player2_Exist)
+
+	if (Player2_Exist && Player2_Ready==false)
 	{
 		m_Player2_Images[R_Player[1].chartype].TransparentBlt(
+			hdc, 172, 125, 130, 185,
+			5, 0, 100, 140, RGB(0, 0, 0)
+		);
+		SetTextColor(hdc, RGB(255, 255, 255));
+		SetBkMode(hdc, TRANSPARENT);
+		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
+	}
+	else if (Player2_Exist && Player2_Ready)
+	{
+		m_Player2_Images[R_Player[1].chartype+2].TransparentBlt(
 			hdc, 172, 125, 130, 185,
 			5, 0, 100, 140, RGB(0, 0, 0)
 		);
@@ -126,6 +134,17 @@ void CLobbyScene::Draw(HDC hdc)
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
 		TextOut(hdc, 360, 255, TEXT("아이디2"), 4);
+	}
+
+	else if (Player3_Exist && Player3_Ready)
+	{
+		m_Player2_Images[R_Player[2].chartype + 2].TransparentBlt(
+			hdc, 172, 125, 130, 185,
+			5, 0, 100, 140, RGB(0, 0, 0)
+		);
+		SetTextColor(hdc, RGB(255, 255, 255));
+		SetBkMode(hdc, TRANSPARENT);
+		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
 	}
 }
 
@@ -213,9 +232,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 		m_Player[i].id = b;
 	}
 
-
-
-
+	// 인덱스 보내고 받기
 	toSendData.clear();
 	toSendData += to_string(m_Play.playerIndex);
 
@@ -227,7 +244,21 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	R_Player[1].index = buf[1] - 48;
 	R_Player[2].index = buf[2] - 48;
 
+
+	// 준비완료 보내기
+	toSendData.clear();
+	toSendData += to_string(m_Play.isReady);
+
+	SendFrameData(sock, toSendData, retVal);
+
+	RecvFrameData(sock, buf, retVal);
 	
+	R_Player[0].ready = buf[0] - 48;
+	R_Player[1].ready = buf[1] - 48;
+	R_Player[2].ready = buf[2] - 48;
+
+
+
 	//R_Player[0]
 
 	
@@ -253,9 +284,45 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	float mx = LOWORD(lParam);
 	float my = HIWORD(lParam);
 
-	if (mx > 671 && mx < 909 && my > 648 && my < 710)
+	if (mx > 631 && mx < 820 && my > 187 && my < 371)
 	{
-		if (m_Play.playerIndex == 0)
+		if (R_Player[0].index == 0)
+		{
+			m_Play.char_type = 0;
+		}
+		if (R_Player[1].index == 1)
+		{
+			m_Play.char_type = 0;
+
+		}
+		if (R_Player[2].index == 2)
+		{
+			m_Play.char_type = 0;
+
+		}
+	}
+	if (mx > 821 && mx < 1000 && my > 187 && my < 371)
+	{
+		if (R_Player[0].index == 0)
+		{
+			m_Play.char_type = 1;
+
+		}
+		if (R_Player[1].index == 1)
+		{
+			m_Play.char_type = 1;
+
+		}
+		if (R_Player[2].index == 2)
+		{
+			m_Play.char_type = 1;
+
+		}
+	}
+
+	else if (mx > 671 && mx < 909 && my > 648 && my < 710)
+	{
+		if (R_Player[0].index == 0)
 		{
 			if (is_All_Ready)
 			{
@@ -266,61 +333,17 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 				isGameStart = false;
 			}
 		}
-		if (m_Play.playerIndex == 1)
+		if (R_Player[1].index == 1)
 		{
-			Player2_Ready = true;
+			m_Play.isReady = 1;
 		}
-		else
+		if (R_Player[2].index == 2)
 		{
-			Player2_Ready = false;
+			m_Play.isReady = 1;
 		}
-		if (m_Play.playerIndex == 2)
-		{
-			Player3_Ready = true;
-		}
-		else
-		{
-			Player3_Ready = false;
-		}
-
 	}
 
-	if (mx > 631 && mx < 820 && my > 187 && my < 371)
-	{
-		if (m_Play.playerIndex == 0)
-		{
-			m_Play.char_type = 0;
-			
-		}
-		if (m_Play.playerIndex == 1)
-		{
-			m_Play.char_type = 0;
-			
-		}
-		if (m_Play.playerIndex == 2)
-		{
-			m_Play.char_type = 0;
-			
-		}
-	}
-	if (mx > 821 && mx < 1000 && my > 187 && my < 371)
-	{
-		if (m_Play.playerIndex == 0)
-		{
-			m_Play.char_type = 1;
-			
-		}
-		if (m_Play.playerIndex == 1)
-		{
-			m_Play.char_type = 1;
-			
-		}
-		if (m_Play.playerIndex == 2)
-		{
-			m_Play.char_type = 1;
-			
-		}
-	}
+	
 }
 
 void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
