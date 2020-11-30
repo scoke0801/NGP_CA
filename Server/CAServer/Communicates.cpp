@@ -369,6 +369,7 @@ public:
 	int playerTypes[3]; // size 3으로 고정
 	string id[3];
 	int index[3];
+	int Ready[3];
 };
 
 LobbyScene lobbyScene;
@@ -475,7 +476,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	SendFrameData(sock, toSendData, retval);
 
 	
-
+	////////// 클라인덱스
 	RecvFrameData(sock, buffer, retval);
 
 	if (Client_Idx == 0)
@@ -501,6 +502,39 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	toSendData += to_string(lobbyScene.index[2]);
 
 	SendFrameData(sock, toSendData, retval);
+
+	// 클라 준비
+	RecvFrameData(sock, buffer, retval);
+
+	int Character_Ready = 0;
+
+	Character_Ready = atoi(buffer);
+
+	if (Character_Change == 1 && Client_Idx == 1)
+	{
+		lobbyScene.Ready[Client_Idx] = 1;
+	}
+	if (Character_Change == 0 && Client_Idx == 1)
+	{
+		lobbyScene.Ready[Client_Idx] = 0;
+	}
+	if (Character_Change == 1 && Client_Idx == 2)
+	{
+		lobbyScene.Ready[Client_Idx] = 1;
+	}
+	if (Character_Change == 0 && Client_Idx == 2)
+	{
+		lobbyScene.Ready[Client_Idx] = 0;
+	}
+
+	toSendData.clear();
+
+	toSendData += to_string(lobbyScene.Ready[0]);
+	toSendData += to_string(lobbyScene.Ready[1]);
+	toSendData += to_string(lobbyScene.Ready[2]);
+
+	SendFrameData(sock, toSendData, retval);
+
 
 
 	//for (int i = 0; i < 3; i++)
