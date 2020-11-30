@@ -9,6 +9,7 @@
 #pragma region LobbySceneDatas
 struct LobbySceneRecvData
 {
+	int index;
 	int chartype;
 	string id;
 };
@@ -17,7 +18,7 @@ struct LobbySceneSendData
 	string id;
 	int Num;
 	int char_type;
-	string playerIndex;
+	int playerIndex;
 	bool isReady;
 	string chatData;
 	bool isGameStart; 

@@ -50,31 +50,34 @@ void CLobbyScene::Update(float timeElapsed)
 	{
 		Player2_Exist = true;
 	}*/
+
 	
-	/*if (Player2_Ready && Player3_Ready)
-	{
-		is_All_Ready = true;
-	}
-	else
-	{
-		is_All_Ready = false;
-	}*/
+	//if (Player2_Ready && Player3_Ready)
+	//{
+	//	is_All_Ready = true;
+	//}
+	//else
+	//{
+	//	is_All_Ready = false;
+	//}
 
 	if (m_Play.Num == 1)
 	{
 		LobbyToGameSceneData Data;
 
 		Data.playerNum = m_Play.Num;
-		Data.Client_idx= atoi(m_Play.playerIndex.c_str());
+		Data.Client_idx = m_Player->playerIndex;
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
 			Data.id_t[i] = m_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
-			Data.idx_t[i] = atoi(m_Play.playerIndex.c_str());
+			Data.idx_t[i] = R_Player[i].index;
+
+			cout << Data.idx_t[i];
 		}
 
-
+		
 		//ChangeScene<CGameScene>((void*)&Data);
 	}
 }
@@ -83,7 +86,7 @@ void CLobbyScene::Draw(HDC hdc)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	
-	
+
 	m_Bg_Image[R_Player[0].chartype].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 			0, 0, m_Bg_Image[R_Player[0].chartype].GetWidth(), m_Bg_Image[R_Player[0].chartype].GetHeight());
 	
@@ -126,6 +129,7 @@ void CLobbyScene::SendDataToNextScene(void* pContext)
 {
 	TitleToLobbySceneData* data = (TitleToLobbySceneData*)pContext;
 	m_Play.id = data->id;
+	m_Play.playerIndex = data->playerindx;
 }
 
 void CLobbyScene::Communicate(SOCKET& sock)
@@ -146,7 +150,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	for (int i = 0; i< 3; i++)
 	{
 		strncpy(temp, buf, i);
-		m_Play.playerIndex = buf[1];
+		//m_Play.playerIndex = buf[1];
 		strncpy(temp, buf + i + 1, strlen(buf) - i);
 		//cout << "Index : " << m_Play.playerIndex <<endl;
 	}
@@ -194,7 +198,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	
 	int d = atoi(temp);
 
-	for(int i=0; i<=d; i++)
+	for (int i = 0; i <= d; i++)
 	{
 		token = strtok(NULL, "\n");
 
@@ -204,6 +208,20 @@ void CLobbyScene::Communicate(SOCKET& sock)
 
 		m_Player[i].id = b;
 	}
+
+
+
+
+	toSendData.clear();
+	toSendData += to_string(m_Play.playerIndex);
+
+	SendFrameData(sock, toSendData, retVal);
+
+	RecvFrameData(sock, buf, retVal);
+
+	R_Player[0].index= buf[0] - 48;
+	R_Player[1].index = buf[1] - 48;
+	R_Player[2].index = buf[2] - 48;
 
 	
 	//R_Player[0]
@@ -231,34 +249,72 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	float mx = LOWORD(lParam);
 	float my = HIWORD(lParam);
 
+	if (mx > 671 && mx < 909 && my > 648 && my < 710)
+	{
+		if (m_Play.playerIndex == 0)
+		{
+			if (is_All_Ready)
+			{
+				isGameStart = true;
+			}
+			else
+			{
+				isGameStart = false;
+			}
+		}
+		if (m_Play.playerIndex == 1)
+		{
+			Player2_Ready = true;
+		}
+		else
+		{
+			Player2_Ready = false;
+		}
+		if (m_Play.playerIndex == 2)
+		{
+			Player3_Ready = true;
+		}
+		else
+		{
+			Player3_Ready = false;
+		}
+
+	}
+
 	if (mx > 631 && mx < 820 && my > 187 && my < 371)
 	{
-		if (m_Play.playerIndex == "0")
+		if (m_Play.playerIndex == 0)
 		{
 			m_Play.char_type = 0;
+			
 		}
-		if (m_Play.playerIndex == "1")
+		if (m_Play.playerIndex == 1)
 		{
 			m_Play.char_type = 0;
+			
 		}
-		if (m_Play.playerIndex == "2")
+		if (m_Play.playerIndex == 2)
 		{
 			m_Play.char_type = 0;
+			
 		}
 	}
 	if (mx > 821 && mx < 1000 && my > 187 && my < 371)
 	{
-		if (m_Play.playerIndex == "0")
+		if (m_Play.playerIndex == 0)
 		{
 			m_Play.char_type = 1;
+			
 		}
-		if (m_Play.playerIndex == "1")
+		if (m_Play.playerIndex == 1)
 		{
 			m_Play.char_type = 1;
+			
 		}
-		if (m_Play.playerIndex == "2")
+		if (m_Play.playerIndex == 2)
 		{
 			m_Play.char_type = 1;
+			
 		}
 	}
 }
@@ -267,6 +323,9 @@ void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 {
 	float mx = LOWORD(lParam);
 	float my = HIWORD(lParam);
+
+	/*cout << mx << endl;
+	cout << my << endl;*/
 
 	if (mx > 230 && mx < 600 && my > 670 && my < 700)
 		for (int i = 0; i < m_Player->Num; i++)
@@ -278,6 +337,8 @@ void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		{
 			is_Select[i] = "Chatting_Stop";
 		}
+
+	
 }
 
 void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -306,10 +367,8 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		}
 		break;
 	case VK_F6:
-		if (is_All_Ready)
-		{
 			isGameStart = true;
-		}
+		
 		break;
 	case VK_RETURN:
 			cout << m_Player[0].chatData << endl;

@@ -368,6 +368,7 @@ class LobbyScene
 public:
 	int playerTypes[3]; // size 3으로 고정
 	string id[3];
+	int index[3];
 };
 
 LobbyScene lobbyScene;
@@ -474,6 +475,34 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	SendFrameData(sock, toSendData, retval);
 
 	
+
+	RecvFrameData(sock, buffer, retval);
+
+	if (Client_Idx == 0)
+	{
+		lobbyScene.index[Client_Idx] = 0;
+	}
+	
+	if (Client_Idx == 1)
+	{
+		lobbyScene.index[Client_Idx] = 1;
+	}
+	
+	if (Client_Idx == 2)
+	{
+		lobbyScene.index[Client_Idx] = 2;
+	}
+	
+
+	toSendData.clear();
+
+	toSendData += to_string(lobbyScene.index[0]);
+	toSendData += to_string(lobbyScene.index[1]);
+	toSendData += to_string(lobbyScene.index[2]);
+
+	SendFrameData(sock, toSendData, retval);
+
+
 	//for (int i = 0; i < 3; i++)
 	//{
 	//	temp3 = buffer;
