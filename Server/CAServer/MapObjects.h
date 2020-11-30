@@ -97,18 +97,22 @@ private:
 	int m_Power;
 	int m_Speed;
 	int m_BombNum;
+	string m_ID;
+	int m_ItemObtainScore = 0;
+	CharacterName m_CharacterName = CharacterName::Bazzi;
 
-	
 	// 시간 처리를 위한 변수입니다. 
-	std::chrono::system_clock::time_point m_AlivedTime;
+	std::chrono::system_clock::time_point m_CreatedTime;
 	std::chrono::system_clock::time_point m_DeadTime;
 	std::chrono::system_clock::time_point m_PrevUpdateTime;
 	std::chrono::duration<double> m_TimeElapsed; // 시간이 얼마나 지났나
 
-public:
-	CPlayer(Vector2f position, int index, PlayerState state = PlayerState::wait);
 
-	void SetState(PlayerState state) { 
+public:
+	CPlayer(Vector2f position, int index, string ID, PlayerState state = PlayerState::wait);
+
+	void SetState(PlayerState state)
+	{ 
 		if (state == PlayerState::die)
 		{
 			if (m_State != PlayerState::die) m_DeadTime = std::chrono::system_clock::now();
@@ -140,8 +144,13 @@ public:
 
 	void UpdateElapsedTime();
 	double GetElapsedTime() { return m_TimeElapsed.count();  }
-	double GetDeadTime() {
-		std::chrono::duration<double> TimeElapsed = std::chrono::system_clock::now() - m_DeadTime;
-		return TimeElapsed.count();
-	}
+	double GetDeadTime();
+	
+	double GetAlivedTime();
+
+	int GetItemScore() { return m_ItemObtainScore; }
+	void IncreaseItemScore() { m_ItemObtainScore += 100; }
+
+	void SetCharacterName(CharacterName name) { m_CharacterName = name; }
+	CharacterName GetCharacterName() { return m_CharacterName; }
 };

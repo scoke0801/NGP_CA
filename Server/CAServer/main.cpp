@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 	retVal = bind(listen_sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
 	if (retVal == SOCKET_ERROR) { err_quit("bind()"); }
 
-	///int optval = 0;
+	//int optval = 0;
 	//setsockopt(listen_sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
 	
 	int opt_val = TRUE;
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	int addrLen;
 
 	HANDLE hThread;
-	while (1) {
+	while (1) { 
 		// accept()
 		addrLen = sizeof(clientAddr);
 		client_sock = accept(listen_sock, (SOCKADDR*)&clientAddr, &addrLen);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 			err_display("accept()");
 			break;
 		}
-		
+		 
 		cout  <<"\n[TCP 서버] 클라이언트 접속 : IP 주소 = " << inet_ntoa(clientAddr.sin_addr)
 			<< ", 포트 번호 = " << ntohs(clientAddr.sin_port) << endl;
 		 
