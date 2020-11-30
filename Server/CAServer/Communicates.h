@@ -23,6 +23,7 @@ bool SendFrameData(SOCKET& sock, string& str, int& retval);
 
 DWORD WINAPI ClientThread(LPVOID arg);
 
-bool ProcessTitleScene(SOCKET& socket, int idx);
+bool ProcessTitleScene(SOCKET& socket ,int idx);
 bool ProcessGameRecordScene(SOCKET& socket, int idx);
-bool ProcessLobbyScene(SOCKET& socket, int Data_n);
+bool ProcessLobbyScene(SOCKET& socket, int Data_n,int Data);
+

@@ -54,9 +54,12 @@ class CNullScene : public CScene
 {
 private:
 	CImage m_Image;
-	int m_Idx = 0;
+	
 	int m_ID = 0;
+	int m_Idx = 0;
 public:
+	
+
 	CNullScene(); 
 
 	virtual void Update(float timeElapsed) {}
@@ -65,6 +68,8 @@ public:
 	virtual void Communicate(SOCKET& sock);
 
 	virtual bool ProcessInput(UCHAR* pKeysBuffer) { return false; }
+
+	UINT GetIndex() const { return m_Idx; }
 
 	virtual LRESULT ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) { return 0; }
 	virtual void ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}

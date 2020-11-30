@@ -30,6 +30,7 @@ struct LobbySceneSendData
 	string Char_Type[3];
 	bool is_All_Ready;
 	vector<string> chatData;
+	string cr_data;
 	bool isGameStart;
 };
 #pragma endregion

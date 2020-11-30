@@ -37,23 +37,20 @@ void CNullScene::Communicate(SOCKET& sock)
 	int retVal;
 	string toSendData = to_string((int)m_Type);
 	SendFrameData(sock, toSendData, retVal);
-
+	
 	int receivedSize = 0;
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	RecvFrameData(sock, buffer, receivedSize);
 
 	char temp[30] = {};
-	int threadID = 0;
 	for (int i = 0; strlen(buffer); ++i)
 	{
 		if (buffer[i] == ' ')
 		{
 			strncpy(temp, buffer, i);
 			m_Idx = atoi(buffer);
-			strncpy(temp, buffer + i + 1, strlen(buffer) - i);
-			m_ID = atoi(temp);
-			cout << "Index : " << m_Idx << " ID : " << m_ID << "\n";
+			//cout << "Index : " << m_Idx << " ID : " << m_ID << "\n";
 			return;
 		}
 	}
