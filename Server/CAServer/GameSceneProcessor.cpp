@@ -87,23 +87,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		else if (strstr(token, "<Direction>:"))
 		{
 			recvedData.direction = (Direction)ConvertoIntFromText(token, "<Direction>:");
-			//cout << "<Direction>: - index : " << recvedData.playerIndex;
-			switch (recvedData.direction)
-			{
-			case Direction::down:
-				//cout << " down";
-				break;
-			case Direction::left:
-				//cout << " left";
-				break;
-			case Direction::right:
-				//cout << " right";
-				break;
-			case Direction::up:
-				//cout << " up";
-				break;
-			}
-			//cout << /*(int)recvedData.direction <<*/ " \n";
+			//cout << "<Direction>: " << (int)recvedData.direction << " \n";
 		}
 		else if (strstr(token, "<PlayerState>:"))
 		{
@@ -113,8 +97,8 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 				if (m_Players[recvedData.playerIndex]->GetDeadTime() < 0.3f)
 					recvedData.state = PlayerState::die;
 			}
-			if (m_Players[recvedData.playerIndex]->GetState() != recvedData.state)
-				cout << "<PlayerState>: " << (int)recvedData.state << " \n";
+			//if (m_Players[recvedData.playerIndex]->GetState() != recvedData.state)
+			//	cout << "<PlayerState>: " << (int)recvedData.state << " \n";
 		}
 		else if (strstr(token, "<BombCreateFlag>:"))
 		{
@@ -343,7 +327,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 
 			int itemCreate = rand() % 10;
 			int itemName = rand() % (int)ItemName::count;
-			if (itemCreate <= 2)
+			//if (itemCreate <= 7)
 			{
 				m_CreatedItem.push_back(coord);
 				m_Items[coord.y][coord.x] = new CItem((ItemName)itemName, coord);

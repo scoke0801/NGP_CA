@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Bomb.h"
+#include "Communicates.h"
+
 CPlayer::CPlayer(Vector2D<float> position, CharacterName name, int index)
 {
 	m_Position = position;
@@ -68,7 +70,11 @@ void CPlayer::DrawPlayerInfo(HDC hdc)
 		0, 0, 
 		m_PortraitImage.GetWidth(), m_PortraitImage.GetHeight(),
 		RGB(255, 0, 255));
-	TextOut(hdc, 950, 136 + (m_Idx * 56), L"PlayerID", lstrlen(L"PlayerID"));
+	string id = m_ID;
+	wchar_t wchar_ID[50] = {};
+
+	textConvert(m_ID.c_str(), wchar_ID);
+	TextOut(hdc, 950, 136 + (m_Idx * 56), wchar_ID, lstrlen(wchar_ID));
 	//TextOut(hdc, 950, 192, L"PlayerID", lstrlen(L"PlayerID"));
 	//TextOut(hdc, 950, 248, L"PlayerID", lstrlen(L"PlayerID"));
 	//TextOut(hdc, 950, 304, L"PlayerID", lstrlen(L"PlayerID"));

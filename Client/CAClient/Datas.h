@@ -62,10 +62,12 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 struct LobbyToGameSceneData
 {
-	// int playerNum;
-	// int idx[playerNum];
-	// int id[playerNum];
-	// CharacterName chName[playerNum];
+	int ClientIdx;
+	int playerNum;
+	int idx_[4];
+	string id_[4];
+	int chName[4];
+
 	int idx;
 	int id;
 };
