@@ -5,7 +5,7 @@ CGameRecordScene::CGameRecordScene()
 {
 	background.Load(_T("assets/score_scene_bg.png"));
 
-	player = { "asd", 200, 121 };
+	sendData = { "asd", 200, 121 };
 
 	m_Type = SceneType::GameRecordScene;
 
@@ -15,6 +15,11 @@ CGameRecordScene::CGameRecordScene()
 CGameRecordScene::~CGameRecordScene()
 {
 
+}
+
+void CGameRecordScene::SendDataToNextScene(void* pContext)
+{
+	
 }
 
 void CGameRecordScene::Update(float timeElapsed)
@@ -48,23 +53,27 @@ void CGameRecordScene::Communicate(SOCKET& sock)
 
 	int retval;
 	char buffer[BUFSIZE + 1];
-	string data;
 
-	GameRecordSceneRecvData recvData;
+	GameRecordSceneRecvData recvData;	//수신받을 데이터
+	string data;						//데이터 복사를 위한 공간
 
+	//씬 번호 송신
 	SendFrameData(sock, to_string((int)m_Type), retval);
 
+	//플레이어 ID와 점수 송신
 	data = "<ID>";
-	data += player.id;
+	data += sendData.id;
 	data += "<ITS>";
-	data += to_string(player.itemScore);
+	data += to_string(sendData.itemScore);
 	data += "<SVS>";
-	data += to_string(player.survivedScore);
-
-	cout << "[ID]: " << player.id << " [ITS]: " << player.itemScore << " [SVS]: " << player.survivedScore << endl;
-
+	data += to_string(sendData.survivedScore);
 	SendFrameData(sock, data, retval);
+	
+	//확인용 출력
+	cout << "[ID]: " << sendData.id << " [ITS]: " << sendData.itemScore << " [SVS]: " << sendData.survivedScore << endl;
 
+
+	//상위 점수 10개 목록 수신
 	for (int i = 0; i < 10; i++) {
 		RecvFrameData(sock, buffer, retval);
 		string data = buffer;
@@ -74,10 +83,6 @@ void CGameRecordScene::Communicate(SOCKET& sock)
 		recvData.survivedScore = atoi(data.substr(data.find("<SVS>") + 5).c_str());
 		scores.push_back(recvData);
 	}
-
-	sort(scores.begin(), scores.end(),
-		[](const GameRecordSceneRecvData& a, const GameRecordSceneRecvData& b) {
-			return (a.itemScore + a.survivedScore) > (b.itemScore + b.survivedScore); });
 
 	communicate = FALSE;
 }
