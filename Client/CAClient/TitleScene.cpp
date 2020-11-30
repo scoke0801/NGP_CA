@@ -15,18 +15,16 @@ CTitleScene::CTitleScene()
 	m_SoundManager->AddStream("assets/sound/login_scene.mp3", Sound_Name::BGM_MAIN_GAME);
 	m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
 	
-	player.id = "";
-	player.pw = "";
-	player.isNew = FALSE;
-	check.result = FALSE;
+	sendData.id = "";
+	sendData.pw = "";
+	sendData.isNew = FALSE;
+	recvData.result = FALSE;
 	selected = "ID"; 
-	textmessage = "test~";
+	recvData.text = "Welcome!";
 
 	btNewid.Init(_T("assets/login_scene_newidBT.png"), { 355, 610 });
 	btLogin.Init(_T("assets/login_scene_loginBT.png"), { 468, 610 });
 	btExit.Init(_T("assets/login_scene_exitBT.png"), { 580, 610 });
-
-	LoadAccounts(); 
 
 	m_Type = SceneType::TitleScene;
 }
@@ -38,11 +36,10 @@ CTitleScene::~CTitleScene()
 
 void CTitleScene::Update(float timeElapsed)
 {
-	textmessage = check.text;
-
-	if (selected == "Login" && check.result == TRUE) {
-		nextscenedata.playerindx = check.playerIndex;
-		nextscenedata.id = player.id;
+	if (selected == "Login" && recvData.result == TRUE) {
+	//수신받은 결과가 TRUE 이고 로그인 버튼이 눌렸다면 씬 체인지 
+		nextscenedata.playerindx = recvData.playerIndex;
+		nextscenedata.id = sendData.id;
 		ChangeScene<CLobbyScene>((void*)&nextscenedata);
 	}
 }
@@ -53,13 +50,11 @@ void CTitleScene::Draw(HDC hdc)
 
 	background.StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 		0, 0, background.GetWidth(), background.GetHeight());
-
 	boxLogin.TransparentBlt(
 		hdc, (CLIENT_WIDTH - boxLogin.GetWidth()) / 2, (CLIENT_HEIGHT - boxLogin.GetHeight()) / 2 + 130,
 		boxLogin.GetWidth(), boxLogin.GetHeight(),
 		0, 0, boxLogin.GetWidth(), boxLogin.GetHeight(),
 		RGB(255, 0, 255));
-
 	popup.TransparentBlt(
 		hdc, (CLIENT_WIDTH - popup.GetWidth()) / 2, (CLIENT_HEIGHT - popup.GetHeight()) / 2 - 100,
 		popup.GetWidth(), popup.GetHeight(),
@@ -70,9 +65,9 @@ void CTitleScene::Draw(HDC hdc)
 	btLogin.Draw(hdc);
 	btExit.Draw(hdc);
 
-	TextOut(hdc, 500, 538, StringToTCHAR(player.id), player.id.length());
-	TextOut(hdc, 500, 563, StringToTCHAR(player.pw), player.pw.length());
-	TextOut(hdc, 390, 250, StringToTCHAR(textmessage), textmessage.length());
+	TextOut(hdc, 500, 538, StringToTCHAR(sendData.id), sendData.id.length());
+	TextOut(hdc, 500, 563, StringToTCHAR(sendData.pw), sendData.pw.length());
+	TextOut(hdc, 390, 250, StringToTCHAR(recvData.text), recvData.text.length());
 
 }
 
@@ -82,31 +77,32 @@ void CTitleScene::Communicate(SOCKET& sock)
 
 	int retval;
 	char buffer[BUFSIZE + 1];
-	string data;
+	string data;	//데이터 복사를 위한 공간
 
+	//씬 번호 송신
 	SendFrameData(sock, to_string((int)m_Type), retval);
 
+	//계정 정보와 신규 등록 여부 송신
 	data = "<ID>";
-	data += player.id;
+	data += sendData.id;
 	data += "<PW>";
-	data += player.pw;
+	data += sendData.pw;
 	data += "<isNew>";
-	data += player.isNew;
-
+	data += sendData.isNew;
 	SendFrameData(sock, data, retval);
 
-	/////////////////////////////////////////////////
-
+	//서버 처리 결과 수신
 	RecvFrameData(sock, buffer, retval);
 
 	data.clear();
 	data = buffer;
 
-	check.playerIndex = data[data.find("<INDEX>") + 7] - '0';
-	check.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
-	check.result = (bool)data[data.find("<result>") + 8];
+	recvData.playerIndex = data[data.find("<INDEX>") + 7] - '0';
+	recvData.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
+	recvData.result = (bool)data[data.find("<result>") + 8];
 
-	cout << "[IDX]: " << check.playerIndex << " [TEXT]: " << check.text << " [result]:" << check.result << endl;
+	//확인용 출력
+	cout << "[IDX]: " << recvData.playerIndex << " [TEXT]: " << recvData.text << " [result]:" << recvData.result << endl;
 
 	communicate = FALSE;
 }
@@ -125,12 +121,12 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	{
 		if (btNewid.IsClicked({ mx, my })) {
 			selected = "NewID";
-			player.isNew = TRUE;
+			sendData.isNew = TRUE;
 			communicate = TRUE;
 		}
 		if (btLogin.IsClicked({ mx, my })) {
 			selected = "Login";
-			player.isNew = FALSE;
+			sendData.isNew = FALSE;
 			communicate = TRUE;
 		}
 		if (btExit.IsClicked({ mx, my })) {
@@ -144,55 +140,20 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 void CTitleScene::ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (selected == "ID") {
-		if ((wParam == VK_BACK) && player.id.empty() == FALSE) player.id.pop_back();
-		else if ((wParam == VK_BACK) && player.id.empty());
+		if ((wParam == VK_BACK) && sendData.id.empty() == FALSE) sendData.id.pop_back();
+		else if ((wParam == VK_BACK) && sendData.id.empty());
 		else {
-			if (player.id.length() != 18)
-				player.id.push_back(wParam);
+			if (sendData.id.length() != 18)
+				sendData.id.push_back(wParam);
 		}
 	}
 	if (selected == "PW") {
-		if ((wParam == VK_BACK) && player.pw.empty() == FALSE) player.pw.pop_back();
-		else if ((wParam == VK_BACK) && player.pw.empty());
+		if ((wParam == VK_BACK) && sendData.pw.empty() == FALSE) sendData.pw.pop_back();
+		else if ((wParam == VK_BACK) && sendData.pw.empty());
 		else {
-			if (player.pw.length() != 18)
-				player.pw.push_back(wParam);
+			if (sendData.pw.length() != 18)
+				sendData.pw.push_back(wParam);
 		}
 	}
 
-}
-
-void CTitleScene::LoadAccounts()
-{
-	ifstream in("data/Account.txt"s);
-
-	if (in) {
-		string id, pw;
-
-		while (!in.eof())
-		{
-			in >> id >> pw;
-			accounts.insert(pair<string, string>(id, pw));
-		}
-	}
-
-	in.close();
-}
-
-void CTitleScene::RegisterNewID()
-{
-	ofstream out;
-	out.open("data/Account.txt"s, ios::app);
-
-	TitleSceneSendData account = { player.id ,player.pw, TRUE };
-	auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
-	if (isAdded.second == TRUE) {
-		out << player.id << " " << player.pw << endl;
-		textmessage = "Account registration completed!";
-	}
-	else {
-		textmessage = "This ID already exists.";
-	}
-
-	out.close();
 }
