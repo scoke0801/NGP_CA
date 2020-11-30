@@ -67,13 +67,20 @@ CItem::CItem(ItemName name, Vector2i coord)
 	m_Position = GameSceneProcessor::GetInstance()->GetPositionCoord(coord);
 }
 
-CPlayer::CPlayer(Vector2f position, int index, PlayerState state)
+CPlayer::CPlayer(Vector2f position, int index, string ID, PlayerState state)
 {
 	m_Position = position;
 	m_Index = index;
 	m_State = state;
+	m_ID = ID;
 
-	m_AlivedTime = std::chrono::system_clock::now();
+	m_Speed = 2;
+	m_Direction = Direction::down;
+	m_Power = 2;
+	m_CharacterName = CharacterName::Bazzi;
+	//m_BombNum = 0;
+
+	m_CreatedTime = std::chrono::system_clock::now();
 	m_DeadTime = std::chrono::system_clock::now();
 	m_PrevUpdateTime = std::chrono::system_clock::now();
 }
@@ -82,4 +89,16 @@ void CPlayer::UpdateElapsedTime()
 {
 	m_TimeElapsed = std::chrono::system_clock::now() - m_PrevUpdateTime;//현재시간과 이전시간을 비교해서
 	m_PrevUpdateTime = std::chrono::system_clock::now();
+}
+
+double CPlayer::GetDeadTime()
+{
+	std::chrono::duration<double> TimeElapsed = std::chrono::system_clock::now() - m_DeadTime;
+	return TimeElapsed.count();
+}
+
+double CPlayer::GetAlivedTime()
+{
+	std::chrono::duration<double> TimeElapsed = std::chrono::system_clock::now() - m_CreatedTime;
+	return TimeElapsed.count();
 }

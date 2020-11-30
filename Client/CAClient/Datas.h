@@ -62,6 +62,10 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 struct LobbyToGameSceneData
 {
+	// int playerNum;
+	// int idx[playerNum];
+	// int id[playerNum];
+	// CharacterName chName[playerNum];
 	int idx;
 	int id;
 };
@@ -113,4 +117,10 @@ struct GameSceneSendData
 	int mapData[MAP_WIDTH][MAP_HEIGHT];
 };
 
+struct GameToGameRecordSceneData
+{
+	string id;
+	double alivedTime;
+	int itemObtainScore;
+};
 #pragma endregion

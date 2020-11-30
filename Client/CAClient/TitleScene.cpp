@@ -31,13 +31,13 @@ CTitleScene::CTitleScene()
 
 CTitleScene::~CTitleScene()
 {
-
+	m_SoundManager->Stop();
 }
 
 void CTitleScene::Update(float timeElapsed)
 {
 	if (selected == "Login" && recvData.result == TRUE) {
-	//¼ö½Å¹ŞÀº °á°ú°¡ TRUE ÀÌ°í ·Î±×ÀÎ ¹öÆ°ÀÌ ´­·È´Ù¸é ¾À Ã¼ÀÎÁö 
+	//ìˆ˜ì‹ ë°›ì€ ê²°ê³¼ê°€ TRUE ì´ê³  ë¡œê·¸ì¸ ë²„íŠ¼ì´ ëˆŒë ¸ë‹¤ë©´ ì”¬ ì²´ì¸ì§€ 
 		nextscenedata.playerindx = recvData.playerIndex;
 		nextscenedata.id = sendData.id;
 		ChangeScene<CLobbyScene>((void*)&nextscenedata);
@@ -77,12 +77,12 @@ void CTitleScene::Communicate(SOCKET& sock)
 
 	int retval;
 	char buffer[BUFSIZE + 1];
-	string data;	//µ¥ÀÌÅÍ º¹»ç¸¦ À§ÇÑ °ø°£
+	string data;	//ë°ì´í„° ë³µì‚¬ë¥¼ ìœ„í•œ ê³µê°„
 
-	//¾À ¹øÈ£ ¼Û½Å
+	//ì”¬ ë²ˆí˜¸ ì†¡ì‹ 
 	SendFrameData(sock, to_string((int)m_Type), retval);
 
-	//°èÁ¤ Á¤º¸¿Í ½Å±Ô µî·Ï ¿©ºÎ ¼Û½Å
+	//ê³„ì • ì •ë³´ì™€ ì‹ ê·œ ë“±ë¡ ì—¬ë¶€ ì†¡ì‹ 
 	data = "<ID>";
 	data += sendData.id;
 	data += "<PW>";
@@ -91,7 +91,7 @@ void CTitleScene::Communicate(SOCKET& sock)
 	data += sendData.isNew;
 	SendFrameData(sock, data, retval);
 
-	//¼­¹ö Ã³¸® °á°ú ¼ö½Å
+	//ì„œë²„ ì²˜ë¦¬ ê²°ê³¼ ìˆ˜ì‹ 
 	RecvFrameData(sock, buffer, retval);
 
 	data.clear();
@@ -101,7 +101,7 @@ void CTitleScene::Communicate(SOCKET& sock)
 	recvData.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
 	recvData.result = (bool)data[data.find("<result>") + 8];
 
-	//È®ÀÎ¿ë Ãâ·Â
+	//í™•ì¸ìš© ì¶œë ¥
 	cout << "[IDX]: " << recvData.playerIndex << " [TEXT]: " << recvData.text << " [result]:" << recvData.result << endl;
 
 	communicate = FALSE;
