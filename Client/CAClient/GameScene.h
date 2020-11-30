@@ -18,7 +18,7 @@ class CGameScene : public CScene
 {
 private:
 	int m_ClientIdx = 0;
-	int m_ClientID  = 0;
+	string m_ClientID ;
 	CPlayer*			m_Players[4];
 	//vector<CPlayer*>	m_Players;	// 전체 플레이어
 	CPlayer*			m_Player;	// 클라이언트에 조종하는 플레이어

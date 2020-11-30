@@ -46,43 +46,22 @@ void CLobbyScene::Update(float timeElapsed)
 		Player3_Exist = true;
 	}
 
-	/*if (Player2_Exist && )
-	{
-		Player2_Exist = true;
-	}*/
-
-	
-	//if (Player2_Ready && Player3_Ready)
-	//{
-	//	is_All_Ready = true;
-	//}
-	//else
-	//{
-	//	is_All_Ready = false;
-	//}
-
-	if (m_Play.Num == 1)
+	if (isGameStart) 
 	{
 		LobbyToGameSceneData Data;
 
 		Data.playerNum = m_Play.Num;
 
-		Data.Client_idx = m_Player->playerIndex;
+		Data.ClientIdx = m_Player->playerIndex;
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
 			Data.id_[i] = m_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
-			Data.idx_t[i] = R_Player[i].index;
+			Data.idx_[i] = R_Player[i].index;
 
-		}
-
-
-			cout << Data.idx_t[i];
-		}
-
-		
-		//ChangeScene<CGameScene>((void*)&Data);
+		} 
+		ChangeScene<CGameScene>((void*)&Data); 
 	}
 }
 
@@ -359,8 +338,8 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 
 	case VK_F4:
 		if (Player2_Exist)
-		{ 
-			Player2_Ready = !Player2_Ready; 
+		{
+			Player2_Ready = !Player2_Ready;
 		}
 		break;
 
@@ -371,11 +350,13 @@ void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wPara
 		}
 		break;
 	case VK_F6:
-			isGameStart = true;
-		
-		break;
+		//if (is_All_Ready)
+	{
+		isGameStart = true;
+	}
+	break;
 	case VK_RETURN:
-			cout << m_Player[0].chatData << endl;
+		cout << m_Player[0].chatData << endl;
 		break;
 
 	}

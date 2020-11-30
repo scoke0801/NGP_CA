@@ -164,7 +164,6 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::LobbyScene:
-
 			ProcessLobbyScene(client_sock, idx, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 
