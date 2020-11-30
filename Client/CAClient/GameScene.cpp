@@ -70,23 +70,23 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		{ -1000.0f, -1000.0f }
 	};
 
-	//for (int i = 0; data->playerNum; ++i)
-	//{
-	//	int idx = data->idx_[i];
-	//	CharacterName chName = (CharacterName)data->chName[i];
-	//	string id = data->id_[i];
-	//	m_Players[idx] = new CPlayer(Positions[idx], chName, idx);
-	//	m_Players[idx]->SetID(id);
-	//}
-
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; data->playerNum; ++i)
 	{
-		if (i == m_ClientIdx) continue;
-		if (i % 2 != 0)
-			m_Players[i] = new CPlayer(Positions[4], CharacterName::Dao, i);
-		else
-			m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
-	} 
+		int idx = data->idx_[i];
+		CharacterName chName = (CharacterName)data->chName[i];
+		string id = data->id_[i];
+		m_Players[idx] = new CPlayer(Positions[idx], chName, idx);
+		m_Players[idx]->SetID(id);
+	}
+
+	//for (int i = 0; i < 10; ++i)
+	//{
+	//	if (i == m_ClientIdx) continue;
+	//	if (i % 2 != 0)
+	//		m_Players[i] = new CPlayer(Positions[4], CharacterName::Dao, i);
+	//	else
+	//		m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
+	//} 
 	if (m_ClientIdx % 2 != 0)
 		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], CharacterName::Dao);
 	else

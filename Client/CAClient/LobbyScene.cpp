@@ -65,13 +65,13 @@ void CLobbyScene::Update(float timeElapsed)
 		LobbyToGameSceneData Data;
 
 		Data.playerNum = m_Play.Num;
-		Data.Client_idx= atoi(m_Play.playerIndex.c_str());
+		Data.ClientIdx= atoi(m_Play.playerIndex.c_str());
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
-			Data.id_t[i] = m_Player[i].id;
+			Data.id_[i] = m_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
-			Data.idx_t[i] = atoi(m_Play.playerIndex.c_str());
+			Data.idx_[i] = atoi(m_Play.playerIndex.c_str());
 		}
 
 
