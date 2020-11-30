@@ -34,25 +34,13 @@ CLobbyScene::~CLobbyScene()
 { 
 }
 
-void CLobbyScene::SendDataToNextScene(void* pContext)
-{
-	TitleToLobbySceneData* data = (TitleToLobbySceneData*)pContext;
-
-	m_ClientIdx = data->playerindx;
-	m_ClientID = data->id;
-
-	cout << "####################################################" << endl
-		<< "[IDX]: " << m_ClientIdx << " [ID]: " << m_ClientID << endl
-		<< "####################################################" << endl;
-}
-
 void CLobbyScene::Update(float timeElapsed)
 {
-	if (m_Player[1].Num == 2)
+	if (m_Play.Num == 2)
 	{
 		Player2_Exist = true;
 	}
-	if (m_Player[2].Num == 3)
+	if (m_Play.Num == 3)
 	{
 		Player2_Exist = true;
 		Player3_Exist = true;
@@ -72,15 +60,29 @@ void CLobbyScene::Update(float timeElapsed)
 		is_All_Ready = false;
 	}*/
 
-	if (isGameStart)
+	if (m_Play.Num == 1)
 	{
-		ChangeScene<CGameScene>();
+		LobbyToGameSceneData Data;
+
+		Data.playerNum = m_Play.Num;
+		Data.Client_idx= atoi(m_Play.playerIndex.c_str());
+
+		for (int i = 0; i < Data.playerNum; i++)
+		{
+			Data.id_t[i] = m_Player[i].id;
+			Data.chName[i] = R_Player[i].chartype;
+			Data.idx_t[i] = atoi(m_Play.playerIndex.c_str());
+		}
+
+
+		//ChangeScene<CGameScene>((void*)&Data);
 	}
 }
 
 void CLobbyScene::Draw(HDC hdc)
 {
 	SetBkMode(hdc, TRANSPARENT);
+	
 	
 	m_Bg_Image[R_Player[0].chartype].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
 			0, 0, m_Bg_Image[R_Player[0].chartype].GetWidth(), m_Bg_Image[R_Player[0].chartype].GetHeight());
@@ -120,6 +122,12 @@ void CLobbyScene::Draw(HDC hdc)
 	}
 }
 
+void CLobbyScene::SendDataToNextScene(void* pContext)
+{
+	TitleToLobbySceneData* data = (TitleToLobbySceneData*)pContext;
+	m_Play.id = data->id;
+}
+
 void CLobbyScene::Communicate(SOCKET& sock)
 {
 	int retVal;
@@ -134,7 +142,7 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	// 접속한 순서 받기
 	RecvFrameData(sock, buf, retVal);
 
-	char temp[30] = {};
+	char temp[256] = {};
 	for (int i = 0; i< 3; i++)
 	{
 		strncpy(temp, buf, i);
@@ -144,18 +152,18 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	}
 
 	// 플레이어의 총 접속수 받기
-	m_Player[0].Num = buf[2] - 48;
+	m_Play.Num = buf[2] - 48;
 
 	if (buf[2] - 48 == 2)
 	{
-		m_Player[0].Num = 1;
-		m_Player[1].Num = buf[2] - 48;
+		m_Play.Num = 1;
+		m_Play.Num = buf[2] - 48;
 	}
 	if (buf[2] - 48 == 3)
 	{
-		m_Player[0].Num = 1;
-		m_Player[1].Num = 2;
-		m_Player[2].Num = buf[2] - 48;
+		m_Play.Num = 1;
+		m_Play.Num = 2;
+		m_Play.Num = buf[2] - 48;
 	}
 
 	toSendData = " ";
@@ -168,6 +176,42 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	R_Player[0].chartype = buf[0] - 48;
 	R_Player[1].chartype = buf[1] - 48;
 	R_Player[2].chartype = buf[2] - 48;
+
+	toSendData.clear();
+
+	toSendData = "\n";
+	toSendData += m_Play.id;
+
+	SendFrameData(sock, toSendData, retVal);
+
+	RecvFrameData(sock, buf, retVal);
+
+	char* token = strtok(buf, "\n");
+	strstr(token, "ID");
+	int tokenLen = strlen(token);
+
+	strncpy(temp, token + tokenLen, strlen(token) - tokenLen);
+	
+	int d = atoi(temp);
+
+	for(int i=0; i<=d; i++)
+	{
+		token = strtok(NULL, "\n");
+
+		strcpy(temp, token);
+
+		string b = temp;
+
+		m_Player[i].id = b;
+	}
+
+	
+	//R_Player[0]
+
+	
+	//R_Player[0].id = buf;
+
+	//cout << R_Player[0].id;
 
 	// 채팅데이터 추가
 	/*for (int i = 0; i < 3; i++)

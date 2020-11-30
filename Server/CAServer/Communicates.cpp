@@ -114,7 +114,6 @@ void saveFile(string filename, map<string, string> fileData)
 LobbySceneSendData Data;
 CRITICAL_SECTION cs;
 
-
 int g_pIndex = 0; // 플레이어 번호
 
 DWORD __stdcall ClientThread(LPVOID arg)
@@ -124,10 +123,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	int addrLen;
 	int idx = Data.Thread_Num;
 	int retval = 0;
-	int char1 = 0;
-	int char2 = 0;
-	int char3 = 0;
-
+	
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
 	getpeername(client_sock, (SOCKADDR*)&clientAddr, &addrLen);
@@ -151,7 +147,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		timeElapsed = std::chrono::system_clock::now() - currentTime;
 		currentTime = std::chrono::system_clock::now();
-		cout << "TimeElapsed: " << timeElapsed.count() << " \n";
+		//cout << "TimeElapsed: " << timeElapsed.count() << " \n";
 
 		// 2 현재 통신하는 클라이언트의 Scene타입을 받아온다.
 		if (!RecvFrameData(client_sock, buffer, receivedSize)) break;
@@ -169,7 +165,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 		case SceneType::LobbyScene:
 
-			ProcessLobbyScene(client_sock, idx, GameSceneProcessor::GetInstance()->GetClientNum(),char1);
+			ProcessLobbyScene(client_sock, idx, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 
 		case SceneType::GameScene:
@@ -206,7 +202,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	return 0;
 }
 
-bool ProcessTitleScene(SOCKET& sock, int idx)
+bool ProcessTitleScene(SOCKET& sock,int idx)
 {
 	int retval;
 	char buffer[BUFSIZE + 1];
@@ -371,13 +367,13 @@ class LobbyScene
 {
 public:
 	int playerTypes[3]; // size 3으로 고정
+	string id[3];
 };
 
 LobbyScene lobbyScene;
 
-bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data,int cha)
+bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 {
-	
 	int retval = 0;
 	char buffer[BUFSIZE + 1];
 	string toSendData;
@@ -396,7 +392,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data,int cha)
 
 	Character_Change = atoi(buffer);
 
-	cout << Character_Change << endl;
+	//cout << Character_Change << endl;
 
 	if (Character_Change==1 && Client_Idx==0)
 	{
@@ -414,7 +410,6 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data,int cha)
 	{
 		lobbyScene.playerTypes[Client_Idx] = 0;
 	}
-
 	if (Character_Change == 1 && Client_Idx == 2)
 	{
 		lobbyScene.playerTypes[Client_Idx] = 1;
@@ -433,8 +428,51 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data,int cha)
 
 	SendFrameData(sock, toSendData, retval);
 
-
 	
+	RecvFrameData(sock, buffer, retval);
+
+	string ID_Change;
+
+	if (Client_Idx == 0)
+	{
+		lobbyScene.id[Client_Idx] = buffer;
+	}
+	if (Client_Idx == 1)
+	{
+		lobbyScene.id[Client_Idx] = buffer;
+	}
+	if (Client_Idx == 2)
+	{
+		lobbyScene.id[Client_Idx] = buffer;
+	}
+
+
+	//cout << Character_Change << endl;
+
+	//if (lobbyScene.id[1].empty())
+	//{
+	//	lobbyScene.id[1] = " ";
+	//}
+	//if (lobbyScene.id[2].empty() )
+	//{
+	//	lobbyScene.id[2] = " ";
+	//}
+	
+	toSendData.clear();
+	toSendData += "ID";
+	toSendData += to_string(Data);
+	toSendData += "\n";
+	for (int i = 0; i < Data; ++i)
+	{
+		toSendData += lobbyScene.id[i];
+		toSendData += "\n";
+	}
+
+
+	cout << toSendData;
+
+	SendFrameData(sock, toSendData, retval);
+
 	
 	//for (int i = 0; i < 3; i++)
 	//{

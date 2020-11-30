@@ -11,11 +11,11 @@ public:
 	CLobbyScene();
 	~CLobbyScene();
 
-	virtual void SendDataToNextScene(void* pContext);
-
 public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
+
+	virtual void SendDataToNextScene(void* pContext);
 
 	virtual void Communicate(SOCKET& sock);
 	
@@ -47,6 +47,7 @@ private:
 	LobbySceneSendData m_Player[4];
 	LobbySceneSendData m_Play;
 	LobbySceneRecvData R_Player[4];
+
 
 	string is_Select[3];
 	

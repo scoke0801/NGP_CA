@@ -10,9 +10,11 @@
 struct LobbySceneRecvData
 {
 	int chartype;
+	string id;
 };
 struct LobbySceneSendData
 { 
+	string id;
 	int Num;
 	int char_type;
 	string playerIndex;
@@ -20,6 +22,7 @@ struct LobbySceneSendData
 	string chatData;
 	bool isGameStart; 
 };
+
 #pragma endregion
 
 // 여기를 채워 주세요
@@ -64,10 +67,13 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 struct LobbyToGameSceneData
 {
-	// int playerNum;
-	// int idx[playerNum];
-	// int id[playerNum];
-	// CharacterName chName[playerNum];
+	int playerNum;
+	int idx_t[4];
+	string id_t[4];
+	int chName[4];
+
+	int Client_idx;
+
 	int idx;
 	int id;
 };
