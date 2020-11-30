@@ -56,7 +56,7 @@ struct GameRecordSceneRecvData
 {
 	string id;
 	int itemScore;
-	int survivedScore;
+	double survivedScore;
 };
 struct GameRecordSceneSendData
 {
