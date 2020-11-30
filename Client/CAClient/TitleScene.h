@@ -26,10 +26,9 @@ public:
 	virtual void ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 	virtual void ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	void LoadAccounts();
-	void RegisterNewID();
-
 private:
+	CSoundManager* m_SoundManager;
+
 	CImage background;
 	CImage boxLogin;
 	CImage popup;
@@ -38,17 +37,12 @@ private:
 	Button btLogin;
 	Button btExit;
 
-	CSoundManager* m_SoundManager;
+	TitleSceneSendData sendData;
+	TitleSceneRecvData recvData;
+	TitleToLobbySceneData nextscenedata;
 
-	//set<AccountData*> accounts;
-	map<string, string> accounts;
-
-	TitleSceneSendData player;
-	TitleSceneRecvData check;
 	string selected;
 	string textmessage;
-
-	TitleToLobbySceneData nextscenedata;
 
 	bool communicate;
 };
