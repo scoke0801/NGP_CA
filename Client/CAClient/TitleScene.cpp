@@ -101,8 +101,11 @@ void CTitleScene::Communicate(SOCKET& sock)
 
 	data.clear();
 	data = buffer;
+	 
+	char sd[20] = {};
 
 	recvData.playerIndex = data[data.find("<INDEX>") + 7] - '0';
+	//recvData.playerIndex = atoi(strncpy(sd, data.c_str() + 8, 1));
 	recvData.text = data.substr(data.find("<TEXT>") + 6, data.find("<result>") - (data.find("<TEXT>") + 6));
 	recvData.result = (bool)data[data.find("<result>") + 8];
 
@@ -131,6 +134,7 @@ void CTitleScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		}
 		if (btLogin.IsClicked({ mx, my })) {
 			selected = "Login";
+			recvData.result = FALSE;
 			sendData.isNew = FALSE;
 			communicate = TRUE;
 		}

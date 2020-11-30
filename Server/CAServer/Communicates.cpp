@@ -203,6 +203,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 bool ProcessTitleScene(SOCKET& sock,int idx)
 {
+	static int idx_ = 0;
 	int retval;
 	char buffer[BUFSIZE + 1];
 	bool isLogin = FALSE;			//로그인 성공 여부에 따른 리턴값
@@ -271,7 +272,7 @@ bool ProcessTitleScene(SOCKET& sock,int idx)
 			if (find->second == recvData.pw) {
 			//비밀번호 일치 = 로그인 성공
 				sendData.text = "Login Accept!";
-				sendData.playerIndex = idx;
+				sendData.playerIndex = idx_++;
 				sendData.result = TRUE;
 				isLogin = TRUE;
 			}
