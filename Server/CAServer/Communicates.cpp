@@ -97,8 +97,18 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	return true;
 }
 
-void saveFile(string filename, vector<string> fileData)
+void saveFile(string filename, map<string, string> fileData)
 {
+	ofstream out;
+	map<string, string> data = fileData;
+
+	out.open(filename, ios::app);
+
+	for (auto player : data) {
+		out << player.first << " " << player.second << endl;
+	}
+
+	out.close();
 }
 
 LobbySceneSendData Data;
@@ -157,7 +167,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 		switch (sceneType)
 		{
 		case SceneType::TitleScene:
-			ProcessTitleScene(client_sock, accounts); 
+			ProcessTitleScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 
 		case SceneType::LobbyScene:
@@ -169,7 +179,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::GameRecordScene:
-			//ProcessGameRecordScene();
+			ProcessGameRecordScene(client_sock, accounts, GameSceneProcessor::GetInstance()->GetClientNum());
 			break;
 		default:
 		{ 
@@ -199,7 +209,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	return 0;
 }
 
-bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
+bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata, int idx)
 {
 	int retval;
 	int receivedSize;
@@ -207,21 +217,21 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	char buffer[BUFSIZE + 1];
 
 	TitleSceneRecvData player;
-	TitleSceneSendData check;
+	TitleSceneSendData sendData;
 
 	map<string, string> accounts = filedata;
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << "플레이어 ID : " << buffer;
-	player.id = buffer;
+	RecvFrameData(sock, buffer, retval);
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", 플레이어 PW : " << buffer;
-	player.pw = buffer;
+	string data = buffer;
 
-	if (!RecvFrameData(sock, buffer, receivedSize)) return 0;
-	cout << ", IsNew : " << buffer << "\n";
-	player.isNew = (bool)buffer;
+	player.id = data.substr(data.find("<ID>")+4, data.find("<PW>") - (data.find("<ID>")+4));
+	player.pw = data.substr(data.find("<PW>") + 4, data.find("<isNew>") - (data.find("<PW>") + 4));
+	player.isNew = (bool)data[data.find("<isNew>") + 7];
+
+	cout << "[ID]:" << player.id << " [PW]:" << player.pw << " [isNew]:" << player.isNew << endl;
+
+	sendData.playerIndex = 0;
 
 	if (player.isNew == TRUE) {
 		ofstream out;
@@ -229,13 +239,15 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 
 		auto isAdded = accounts.insert(pair<string, string>(player.id, player.pw));
 		if (isAdded.second == TRUE) {
+			cout << ">> " << isAdded.second << endl;
 			out << player.id << " " << player.pw << endl;
-			cout << "Account registration completed!\n";
-			check.result = TRUE;
+			sendData.text = "Account registration completed!";
+			sendData.result = TRUE;
 		}
 		else {
-			cout << "This ID already exists.\n";
-			check.result = FALSE;
+			cout << ">> " << isAdded.second << endl;
+			sendData.text = "This ID already exists.";
+			sendData.result = FALSE;
 		}
 
 		out.close();
@@ -243,19 +255,97 @@ bool ProcessTitleScene(SOCKET& sock, map<string, string> filedata)
 	else {
 		map<string, string>::iterator data;
 		data = accounts.find(player.id);
-		if (data == accounts.end())
-			check.result = FALSE;
+		if (data == accounts.end()) {
+			sendData.result = FALSE;
+			sendData.text = "Wrong Account.";
+		}
 		else {
-			if (data->second == player.pw)
-				check.result = TRUE;
-			else
-				check.result = FALSE;
+			if (data->second == player.pw) {
+				sendData.text = "Login Accept!";
+				sendData.playerIndex = idx;
+				sendData.result = TRUE;
+			}
+			else {
+				sendData.text = "Login Fail...";
+				sendData.result = FALSE;
+			}
 		}
 	}
 
-	string data = to_string(check.result);
+	cout << "[result]:" << sendData.result << " [TEXT]:" << sendData.text << endl;
+
+	data.clear();
+	
+	data = "<INDEX>";
+	data += to_string(sendData.playerIndex);
+	data += "<TEXT>";
+	data += sendData.text;
+	data += "<result>";
+	data += sendData.result;
+
 	SendFrameData(sock, data, retval);
+
+	return 0;
 }
+
+bool ProcessGameRecordScene(SOCKET& socket, map<string, string> filedata, int idx)
+{
+	int retval;
+	int receivedSize;
+
+	char buffer[BUFSIZE + 1];
+
+	GameRecordSceneRecvData recvData;
+	GameRecordSceneSendData sendData;
+
+	vector<GameRecordSceneRecvData> ranking;
+
+	ifstream in("data/Score.txt"s);
+	if (in) {
+		string id;
+		int itscore, svscore;
+		while (!in.eof()) {
+			in >> id >> itscore >> svscore;
+			ranking.push_back({id, itscore, svscore});
+		}
+	}
+	in.close();
+
+	RecvFrameData(socket, buffer, retval);
+
+	string data = buffer;
+
+	recvData.id = data.substr(data.find("<ID>") + 4, data.find("<ITS>") - (data.find("<ID>") + 4));
+	recvData.itemScore = atoi(data.substr(data.find("<ITS>") + 5).c_str());
+	recvData.survivedScore = atoi(data.substr(data.find("<SVS>") + 5).c_str());
+
+	cout << "[ID]: " << recvData.id << " [ITS]: " << recvData.itemScore << " [SVS]: " << recvData.survivedScore << endl;
+
+	ofstream out;
+	out.open("data/Score.txt"s, ios::app);
+	out << recvData.id << " " << recvData.itemScore << " " << recvData.survivedScore << endl;
+	out.close();
+
+	ranking.push_back(recvData);
+	sort(ranking.begin(), ranking.end(),
+		[](const GameRecordSceneRecvData& a, const GameRecordSceneRecvData& b) {
+			return (a.itemScore + a.survivedScore) > (b.itemScore + b.survivedScore); });
+
+	data.clear();
+
+	for (int i = 0; i < 10; i++) {
+		data = "<ID>";
+		data += ranking[i].id;
+		data += "<ITS>";
+		data += to_string(ranking[i].itemScore);
+		data += "<SVS>";
+		data += to_string(ranking[i].survivedScore);
+		SendFrameData(socket, data, retval);
+		data.clear();
+	}
+	return 0;
+}
+
 
 bool ProcessLobbyScene(SOCKET& sock, int Data_n)
 {

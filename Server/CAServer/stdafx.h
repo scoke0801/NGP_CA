@@ -13,6 +13,7 @@
 #include <fstream>
 #include <chrono>
 #include <cassert>
+#include <algorithm>
 
 #include "Vector2D.h"
 using namespace std;

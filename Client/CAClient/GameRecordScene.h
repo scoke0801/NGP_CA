@@ -1,11 +1,6 @@
 #pragma once
 #include "Scene.h"
-
-typedef struct GameRecordData {
-	TCHAR id[20];
-	int itemScore;
-	int survivedScore;
-}GameScore;
+#include "Datas.h"
 
 class CGameRecordScene : public CScene
 {
@@ -28,5 +23,8 @@ public:
 
 private:
 	CImage background;
-	GameScore players[3]; 
+	GameRecordSceneSendData player;
+	vector<GameRecordSceneRecvData> scores;
+
+	bool communicate;
 };

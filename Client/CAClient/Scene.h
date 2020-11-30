@@ -4,9 +4,9 @@
 #include "Communicates.h"
 
 enum class SceneType
-{
-	LobbyScene = 0,
-	TitleScene,
+{ 
+	TitleScene = 0, 
+	LobbyScene,
 	GameScene,
 	GameRecordScene,
 	NullScene
@@ -54,7 +54,6 @@ class CNullScene : public CScene
 {
 private:
 	CImage m_Image;
-
 	int m_Idx = 0;
 	int m_ID = 0;
 public:

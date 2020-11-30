@@ -12,7 +12,7 @@ struct LobbySceneRecvData
 };
 struct LobbySceneSendData
 { 
-
+	string Char_Type;
 	int Num;
 	bool isReady;
 	string chatData;
@@ -24,6 +24,8 @@ struct LobbySceneSendData
 #pragma region TitleSceneDatas;
 struct TitleSceneRecvData
 {
+	int playerIndex;
+	string text;
 	bool result;
 };
 struct TitleSceneSendData
@@ -38,9 +40,15 @@ struct TitleSceneSendData
 #pragma region GameRecordSceneDatas;
 struct GameRecordSceneRecvData
 {
+	string id;
+	int itemScore;
+	int survivedScore;
 };
 struct GameRecordSceneSendData
 {
+	string id;
+	int itemScore;
+	int survivedScore;
 };
 #pragma endregion
 
