@@ -75,6 +75,8 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		int idx = data->idx_[i];
 		CharacterName chName = (CharacterName)data->chName[i];
 		string id = data->id_[i];
+		if (id.size() == 0)
+			id = " ";
 		m_Players[idx] = new CPlayer(Positions[idx], chName, idx);
 		m_Players[idx]->SetID(id);
 	}

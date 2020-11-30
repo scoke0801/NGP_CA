@@ -52,7 +52,7 @@ void CLobbyScene::Update(float timeElapsed)
 
 		Data.playerNum = m_Play.Num;
 
-		Data.ClientIdx = m_Player->playerIndex;
+		Data.ClientIdx = m_Play.playerIndex;
 
 		for (int i = 0; i < Data.playerNum; i++)
 		{
