@@ -54,7 +54,7 @@ struct GameRecordSceneSendData
 {
 	string id;
 	int itemScore;
-	int survivedScore;
+	double survivedScore;
 };
 #pragma endregion
 

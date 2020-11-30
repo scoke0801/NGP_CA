@@ -308,8 +308,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	char buffer[BUFSIZE + 1];
 
 	GameRecordSceneRecvData recvData;			//수신받은 데이터
-	GameRecordSceneSendData sendData;			//송신할 데이터
-	vector<GameRecordSceneRecvData> ranking;	//파일에서 읽어올 점수 정보들
+	vector<GameRecordSceneSendData> ranking;	//파일에서 읽어올 점수 정보들
 	string data;								//데이터 복사를 위한 공간
 
 	RecvFrameData(socket, buffer, retval);
@@ -318,7 +317,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	//받아온 계정 정보를 나누어 recvData의 각 변수에 할당
 	recvData.id = data.substr(data.find("<ID>") + 4, data.find("<ITS>") - (data.find("<ID>") + 4));
 	recvData.itemScore = atoi(data.substr(data.find("<ITS>") + 5).c_str());
-	recvData.survivedScore = atoi(data.substr(data.find("<SVS>") + 5).c_str());
+	recvData.survivedScore = atof(data.substr(data.find("<SVS>") + 5).c_str());
 
 	//확인용 출력
 	cout << "[ID]: " << recvData.id << " [ITS]: " << recvData.itemScore << " [SVS]: " << recvData.survivedScore << endl;
@@ -329,27 +328,28 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	out << recvData.id << " " << recvData.itemScore << " " << recvData.survivedScore << endl;
 	out.close();
 
-	//점수 정보 읽어오기
+	//점수 정보 읽어오기, 생존시간은 int로 변환 후 *10을 해서 점수로 변환
 	ifstream in("data/Score.txt"s);
 	if (in) {
 		string id;
-		int itscore, svscore;
+		int itscore;
+		double svscore;
 		while (!in.eof()) {
 			in >> id >> itscore >> svscore;
-			ranking.push_back({ id, itscore, svscore });
+			ranking.push_back({ id, itscore, (int)svscore * 10 });
 		}
 	}
 	in.close();
 
 	//아이템 점수 + 생존 점수 합으로 내림차순 정렬
 	sort(ranking.begin(), ranking.end(),
-		[](const GameRecordSceneRecvData& a, const GameRecordSceneRecvData& b) {
+		[](const GameRecordSceneSendData& a, const GameRecordSceneSendData& b) {
 			return (a.itemScore + a.survivedScore) > (b.itemScore + b.survivedScore); });
 
 	data.clear();
 
 	//상위 점수 10개 목록 송신
-	for (int i = 0; i < 10; i++) {
+	for (int i = 1; i < 11; i++) {
 		data = "<ID>";
 		data += ranking[i].id;
 		data += "<ITS>";
@@ -357,6 +357,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 		data += "<SVS>";
 		data += to_string(ranking[i].survivedScore);
 		SendFrameData(socket, data, retval);
+		cout << ranking[i].id << " " << ranking[i].itemScore << " " << ranking[i].survivedScore << endl;
 		data.clear();
 	}
 	return 0;

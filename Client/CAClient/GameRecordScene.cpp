@@ -5,7 +5,7 @@ CGameRecordScene::CGameRecordScene()
 {
 	background.Load(_T("assets/score_scene_bg.png"));
 
-	sendData = { "asd", 200, 121 };
+	//sendData = {"NULL", 0, 0};
 
 	m_Type = SceneType::GameRecordScene;
 
@@ -19,7 +19,11 @@ CGameRecordScene::~CGameRecordScene()
 
 void CGameRecordScene::SendDataToNextScene(void* pContext)
 {
-	
+	GameToGameRecordSceneData* data = (GameToGameRecordSceneData*)pContext;
+	sendData.id = data->id;
+	if (sendData.id == "") sendData.id = "TEST";
+	sendData.itemScore = data->itemObtainScore;
+	sendData.survivedScore = data->alivedTime;
 }
 
 void CGameRecordScene::Update(float timeElapsed)
