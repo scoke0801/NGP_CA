@@ -55,6 +55,7 @@ public:
 		static CFramework self;
 		return &self;
 	}
+	int idx;
 
 	void init(HWND hWnd, HINSTANCE hInst);
 

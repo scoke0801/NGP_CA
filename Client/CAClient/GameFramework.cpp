@@ -29,7 +29,7 @@
 #endif
 CFramework* CFramework::self = nullptr;
 CFramework::CFramework() 
-{  
+{
 }
 
 CFramework::~CFramework()
@@ -71,7 +71,6 @@ void CFramework::init(HWND hWnd, HINSTANCE hInst)
 bool CFramework::PrepareCommunicate()
 {
 	//CreateThread(NULL, 0, ClientMain, NULL, 0, NULL);
-
 	int retval = 0;
 	// 윈속 초기화
 	if (WSAStartup(MAKEWORD(2, 2), &m_WSA) != 0) return false;
@@ -264,7 +263,6 @@ LRESULT CFramework::ProcessWindowInput(HWND hWnd, UINT message, WPARAM wParam, L
 
 DWORD __stdcall ClientMain(LPVOID arg)
 { 
-	
 	if (!CFramework::GetInstance()->PrepareCommunicate()) return 0;
 	
 	std::chrono::system_clock::time_point currentTime;

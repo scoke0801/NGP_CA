@@ -97,9 +97,9 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		switch (recvedData.state)
 		{
 		case PlayerState::move:
-			//cout << "index - " << recvedData.playerIndex << " pos - " << recvedData.position.x
-			//	<< ", " << recvedData.position.y << "\n";
-			prevPosition = recvedData.position;
+			/*cout << "index - " << recvedData.playerIndex << " pos - " << recvedData.position.x
+				<< ", " << recvedData.position.y << "\n";
+			prevPosition = recvedData.position;*/
 			if (recvedData.direction == Direction::left)
 				recvedData.position.x = recvedData.position.x - (recvedData.speed * PlAYER_SPEED * FPS);
 			if (recvedData.direction == Direction::right)
@@ -335,7 +335,7 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 			m_Players[recvedData.playerIndex]->SetDirection(recvedData.direction);
 			m_Players[recvedData.playerIndex]->SetSpeed(recvedData.speed);
 			m_Players[recvedData.playerIndex]->SetPower(recvedData.power);
-			m_Players[recvedData.playerIndex]->SetBombNum(recvedData.bombNum);
+			//m_Players[recvedData.playerIndex]->SetBombNum(recvedData.bombNum);
 		}
 
 		//if (recvedData.state != PlayerState::move) break;

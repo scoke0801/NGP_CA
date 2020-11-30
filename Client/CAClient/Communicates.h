@@ -7,7 +7,7 @@
   
 #define SERVERIP   "127.0.0.1"		 // 루프백
 //#define SERVERIP   "192.168.35.118"
-// #define SERVERIP   "211.207.24.227"// 종현
+//#define SERVERIP   "211.207.24.227"// 종현
 //#define SERVERIP	 "192.168.35.229"
 //#define SERVERIP   "192.168.0.15"  // 영진 
 #define SERVERPORT 9000

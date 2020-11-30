@@ -112,6 +112,8 @@ void saveFile(string filename, map<string, string> fileData)
 }
 
 LobbySceneSendData Data;
+CRITICAL_SECTION cs;
+
 
 DWORD __stdcall ClientThread(LPVOID arg)
 {
@@ -120,6 +122,9 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	int addrLen;
 	int idx = Data.Thread_Num;
 	int retval = 0;
+	int char1 = 0;
+	int char2 = 0;
+	int char3 = 0;
 
 	// 클라이언트 정보 받기
 	addrLen = sizeof(clientAddr);
@@ -132,8 +137,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 
 	// 임시코드
 	GameSceneProcessor::GetInstance()->InitPlayers();
-	cout << Data.Thread_Num << "번 클라가 접속했습니다." << endl;
-
+	
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
@@ -171,7 +175,8 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			break;
 
 		case SceneType::LobbyScene:
-			ProcessLobbyScene(client_sock,Data.Thread_Num);
+
+			ProcessLobbyScene(client_sock, idx, GameSceneProcessor::GetInstance()->GetClientNum(),char1);
 			break;
 
 		case SceneType::GameScene:
@@ -188,9 +193,6 @@ DWORD __stdcall ClientThread(LPVOID arg)
 			 // 3 현재 접속한 플레이어의 수를 넘겨준다.
 			string temp = to_string(idx);
 			temp += " ";
-			temp += to_string((int)GetCurrentThreadId()); 
-			
-			int res = GetCurrentThreadId();
 			SendFrameData(client_sock, temp, retval);
 		}
 			break;
@@ -347,31 +349,87 @@ bool ProcessGameRecordScene(SOCKET& socket, map<string, string> filedata, int id
 	return 0;
 }
 
-
-bool ProcessLobbyScene(SOCKET& sock, int Data_n)
+class LobbyScene
 {
-	int count = 0;
+public:
+	int playerTypes[3]; // size 3으로 고정
+};
+
+LobbyScene lobbyScene;
+
+bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data,int cha)
+{
+	
 	int retval = 0;
 	char buffer[BUFSIZE + 1];
-	vector <string> chat_Da;
+	string toSendData;
 
-	cout << "로비씬" << endl;
+	LobbySceneSendData Data_e;
 	
-	// 3 현재 접속한 플레이어의 수를 넘겨준다.
-	string temp = to_string(Data_n);
-	SendFrameData(sock, temp, retval);
+	toSendData = " ";
+	toSendData += to_string(Client_Idx);
+	toSendData += to_string(Data);
+	
+	SendFrameData(sock, toSendData, retval);
+	
+	RecvFrameData(sock, buffer, retval);
 
-	cout << "현재접속수" << Data_n << endl;
+	int Character_Change = 0;
 
-	// 채팅 데이터를 받는다.
-	for (int i = 0; i < Data_n; ++i)
+	Character_Change = atoi(buffer);
+
+	cout << Character_Change << endl;
+
+	if (Character_Change==1 && Client_Idx==0)
 	{
-		RecvFrameData(sock, buffer, retval);
-		chat_Da.push_back(buffer);
-		
+		lobbyScene.playerTypes[Client_Idx] = 1;
+	}
+	if (Character_Change == 0 && Client_Idx == 0)
+	{
+		lobbyScene.playerTypes[Client_Idx] = 0;
+	}
+	if (Character_Change == 1 && Client_Idx == 1)
+	{
+		lobbyScene.playerTypes[Client_Idx] = 1;
+	}
+	if (Character_Change == 0 && Client_Idx == 1)
+	{
+		lobbyScene.playerTypes[Client_Idx] = 0;
 	}
 
-	cout << "채팅데이터" << chat_Da[0] << endl;
+	if (Character_Change == 1 && Client_Idx == 2)
+	{
+		lobbyScene.playerTypes[Client_Idx] = 1;
+	}
+	if (Character_Change == 0 && Client_Idx == 2)
+	{
+		lobbyScene.playerTypes[Client_Idx] = 0;
+	}
+	
+	toSendData.clear();
+
+	toSendData += to_string(lobbyScene.playerTypes[0]);
+	toSendData += to_string(lobbyScene.playerTypes[1]);
+	toSendData += to_string(lobbyScene.playerTypes[2]);
+	
+
+	SendFrameData(sock, toSendData, retval);
+
+
+	
+	
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	temp3 = buffer;
+
+	//	// 0번 캐릭터타입을 보냄
+	//	SendFrameData(sock, temp3, retval);
+	//	
+	//}
+	
+	//cout << "채팅데이터" << chat_Da[0] << endl;
 
 	return 0;
 }
+
+

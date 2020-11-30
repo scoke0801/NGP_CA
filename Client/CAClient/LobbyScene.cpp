@@ -21,20 +21,13 @@ CLobbyScene::CLobbyScene()
 	// 타입 초기화
 	m_Type = SceneType::LobbyScene;
 
-	m_Frame = CFramework::GetInstance();
-
-	// 플레이어의 접속숫자 
-	m_Player->Num = 0;
-
-	// 채팅 초기화
 	for (int i = 0; i < 3; i++)
 	{
+		R_Player[i].chartype = 0;
+		m_Player[i].Num = 0;
 		m_Player[i].chatData = "";
-		m_Player[i].Char_Type = "Bazzi";
-		is_Character_Select[i] = "Bazzi";
 		is_Select[i] = "Chatting";
 	}
-
 }
 
 CLobbyScene::~CLobbyScene()
@@ -43,64 +36,29 @@ CLobbyScene::~CLobbyScene()
 
 void CLobbyScene::Update(float timeElapsed)
 {
-	if (is_Character_Select[0] == "Bazzi")
-	{
-		m_Player[0].Char_Type = "Bazzi";
-		Character_Change[0] = 0;
-	}
-
-	if (is_Character_Select[0] == "dao")
-	{
-		m_Player[0].Char_Type = "dao";
-		Character_Change[0] = 1;
-	}
-
-	if (is_Character_Select[1] == "Bazzi")
-	{
-		m_Player[1].Char_Type = "Bazzi";
-		Character_Change[0] = 0;
-	}
-
-	if (is_Character_Select[1] == "dao")
-	{
-		m_Player[1].Char_Type = "dao";
-		Character_Change[0] = 1;
-	}
-	if (is_Character_Select[2] == "Bazzi")
-	{
-		m_Player[2].Char_Type = "Bazzi";
-		Character_Change[0] = 0;
-	}
-
-	if (is_Character_Select[2] == "dao")
-	{
-		m_Player[2].Char_Type = "dao";
-		Character_Change[0] = 1;
-	}
-
-	if (m_Player->Num == 2)
+	if (m_Player[1].Num == 2)
 	{
 		Player2_Exist = true;
 	}
-	if (m_Player->Num == 3)
-	{
-		Player2_Exist = true;
-		Player3_Exist = true;
-	}
-	else if (m_Player->Num > 3)
+	if (m_Player[2].Num == 3)
 	{
 		Player2_Exist = true;
 		Player3_Exist = true;
 	}
 
-	if (Player2_Ready && Player3_Ready)
+	/*if (Player2_Exist && )
+	{
+		Player2_Exist = true;
+	}*/
+	
+	/*if (Player2_Ready && Player3_Ready)
 	{
 		is_All_Ready = true;
 	}
 	else
 	{
 		is_All_Ready = false;
-	}
+	}*/
 
 	if (isGameStart)
 	{
@@ -112,48 +70,35 @@ void CLobbyScene::Draw(HDC hdc)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	
-	for (int i = 0; i < m_Player->Num; i++)
-		cout << i+1 <<"번의 타입은"<<m_Player[i].Char_Type << endl;
-
-	m_Bg_Image[Character_Change[0]].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
-			0, 0, m_Bg_Image[Character_Change[0]].GetWidth(), m_Bg_Image[Character_Change[0]].GetHeight());
+	m_Bg_Image[R_Player[0].chartype].StretchBlt(hdc, 0, 0, m_rtClient.right, m_rtClient.bottom,
+			0, 0, m_Bg_Image[R_Player[0].chartype].GetWidth(), m_Bg_Image[R_Player[0].chartype].GetHeight());
 	
-
 	TextOut(hdc, 250, 685, StringToTCHAR(m_Player[0].chatData), m_Player[0].chatData.length());
 
-	if (m_Player->Num ==2)
+	/*if (m_Player->Num ==2)
 	{
-		Player2_Exist = true;
 		TextOut(hdc, 250, 685, StringToTCHAR(m_Player[1].chatData), m_Player[1].chatData.length());
 	}
 
 	if (m_Player->Num == 3)
 	{
-		Player2_Exist = true;
-		Player3_Exist = true;
 		TextOut(hdc, 250, 685, StringToTCHAR(m_Player[2].chatData), m_Player[2].chatData.length());
-	}
-	else if(m_Player->Num > 3)
-	{
-		Player2_Exist = true;
-		Player3_Exist = true;
-	}
-	
+	}*/
+
 	if (Player2_Exist)
 	{
-		m_Player2_Images[0].TransparentBlt(
+		m_Player2_Images[R_Player[1].chartype].TransparentBlt(
 			hdc, 172, 125, 130, 185,
 			5, 0, 100, 140, RGB(0, 0, 0)
 		);
 		SetTextColor(hdc, RGB(255, 255, 255));
 		SetBkMode(hdc, TRANSPARENT);
 		TextOut(hdc, 180, 255, TEXT("아이디1"), 4);
-
 	}
 
 	if (Player3_Exist)
 	{
-		m_Player3_Images[0].TransparentBlt(
+		m_Player3_Images[R_Player[2].chartype].TransparentBlt(
 			hdc, 300, 115, 130, 185,
 			0, 0, 100, 140, RGB(0, 0, 0)
 		);
@@ -161,36 +106,56 @@ void CLobbyScene::Draw(HDC hdc)
 		SetBkMode(hdc, TRANSPARENT);
 		TextOut(hdc, 360, 255, TEXT("아이디2"), 4);
 	}
-	
 }
 
 void CLobbyScene::Communicate(SOCKET& sock)
 {
 	int retVal;
-	vector<string> toSendData;
-	int receivedSize = 0;
+	string toSendData = to_string((int)m_Type);
 	
-	// 1 씬타입 보내기
-	SendFrameData(sock, to_string((int)m_Type), retVal);
+	// 씬타입 보내기
+	SendFrameData(sock, toSendData, retVal);
 
-	// 4 플레이어의 접속수 받기
+	toSendData.clear();
+	/////////////////////////
+
+	// 접속한 순서 받기
 	RecvFrameData(sock, buf, retVal);
 
-	m_Player->Num = atoi(buf);
-	
-	cout << endl;
-	cout << "접속자수" << m_Player->Num << endl;
-
-	// 5 캐릭터 종류 보내기
-	for (int i = 0; i < m_Player->Num; i++)
+	char temp[30] = {};
+	for (int i = 0; i< 3; i++)
 	{
-		SendFrameData(sock, m_Player[i].Char_Type, retVal);
-
-		// 6 캐릭터 종류 받기
-		RecvFrameData(sock, buf, retVal);
-		m_Player[i].Char_Type = buf[i];
-
+		strncpy(temp, buf, i);
+		m_Play.playerIndex = buf[1];
+		strncpy(temp, buf + i + 1, strlen(buf) - i);
+		//cout << "Index : " << m_Play.playerIndex <<endl;
 	}
+
+	// 플레이어의 총 접속수 받기
+	m_Player[0].Num = buf[2] - 48;
+
+	if (buf[2] - 48 == 2)
+	{
+		m_Player[0].Num = 1;
+		m_Player[1].Num = buf[2] - 48;
+	}
+	if (buf[2] - 48 == 3)
+	{
+		m_Player[0].Num = 1;
+		m_Player[1].Num = 2;
+		m_Player[2].Num = buf[2] - 48;
+	}
+
+	toSendData = " ";
+	toSendData += to_string(m_Play.char_type);
+
+	SendFrameData(sock, toSendData, retVal);
+	
+	RecvFrameData(sock, buf, retVal);
+
+	R_Player[0].chartype = buf[0] - 48;
+	R_Player[1].chartype = buf[1] - 48;
+	R_Player[2].chartype = buf[2] - 48;
 
 	// 채팅데이터 추가
 	/*for (int i = 0; i < 3; i++)
@@ -203,9 +168,6 @@ void CLobbyScene::Communicate(SOCKET& sock)
 	{*/
 		//SendFrameData(sock, toSendData[0], retVal);
 	/*}*/
-
-	//cout << "채팅데이터" << toSendData[2];
-
 }
 
 void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -215,37 +177,34 @@ void CLobbyScene::ProcessMouseInput(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 	if (mx > 631 && mx < 820 && my > 187 && my < 371)
 	{
-		if (m_Player->Num == 1)
+		if (m_Play.playerIndex == "0")
 		{
-			is_Character_Select[0] = "Bazzi";
+			m_Play.char_type = 0;
 		}
-		else if (m_Player->Num == 2)
+		if (m_Play.playerIndex == "1")
 		{
-			is_Character_Select[1] = "Bazzi";
+			m_Play.char_type = 0;
 		}
-		else if (m_Player->Num == 3)
+		if (m_Play.playerIndex == "2")
 		{
-			is_Character_Select[2] = "Bazzi";
+			m_Play.char_type = 0;
 		}
 	}
-		
-
-	else if (mx > 821 && mx < 1000 && my > 187 && my < 371)
+	if (mx > 821 && mx < 1000 && my > 187 && my < 371)
 	{
-		if (m_Player->Num == 1)
+		if (m_Play.playerIndex == "0")
 		{
-			is_Character_Select[0] = "dao";
+			m_Play.char_type = 1;
 		}
-		else if (m_Player->Num == 2)
+		if (m_Play.playerIndex == "1")
 		{
-			is_Character_Select[1] = "dao";
+			m_Play.char_type = 1;
 		}
-		else if (m_Player->Num == 3)
+		if (m_Play.playerIndex == "2")
 		{
-			is_Character_Select[2] = "dao";
+			m_Play.char_type = 1;
 		}
 	}
-
 }
 
 void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -263,7 +222,6 @@ void CLobbyScene::ProcessMouseClick(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		{
 			is_Select[i] = "Chatting_Stop";
 		}
-
 }
 
 void CLobbyScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
