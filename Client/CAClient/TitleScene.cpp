@@ -75,6 +75,11 @@ void CTitleScene::Communicate(SOCKET& sock)
 {
 	if (communicate == FALSE) return;
 
+	if (sendData.id == "" || sendData.pw == "") {
+		recvData.text = "ID/PW is empty...";
+		return;
+	}
+
 	int retval;
 	char buffer[BUFSIZE + 1];
 	string data;	//데이터 복사를 위한 공간
@@ -144,7 +149,7 @@ void CTitleScene::ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		else if ((wParam == VK_BACK) && sendData.id.empty());
 		else {
 			if (sendData.id.length() != 18)
-				sendData.id.push_back(wParam);
+				sendData.id.push_back(tolower(wParam));
 		}
 	}
 	if (selected == "PW") {
@@ -152,7 +157,7 @@ void CTitleScene::ProcessCHARInput(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		else if ((wParam == VK_BACK) && sendData.pw.empty());
 		else {
 			if (sendData.pw.length() != 18)
-				sendData.pw.push_back(wParam);
+				sendData.pw.push_back(tolower(wParam));
 		}
 	}
 
