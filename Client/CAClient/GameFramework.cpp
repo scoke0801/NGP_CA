@@ -93,9 +93,10 @@ bool CFramework::PrepareCommunicate()
 		// error_quit("socket()");
 		return false;
 	}
-
-	int optval = 0;
-	setsockopt(m_Sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
+	int opt_val = TRUE;
+	setsockopt(m_Sock, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
+	//int optval = 0;
+	//setsockopt(m_Sock, SOL_SOCKET, SO_SNDBUF, (char*)&optval, sizeof(optval));
 	// connect()
 	retval = connect(m_Sock, (SOCKADDR*)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR)

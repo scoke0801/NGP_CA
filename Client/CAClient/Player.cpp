@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Bomb.h"
-CPlayer::CPlayer(Vector2D<float> position, PlayerName name, int index)
+CPlayer::CPlayer(Vector2D<float> position, CharacterName name, int index)
 {
 	m_Position = position;
 
@@ -76,6 +76,9 @@ void CPlayer::DrawPlayerInfo(HDC hdc)
 
 void CPlayer::Update(float timeElapsed)
 {
+	std::chrono::duration<double> TimeElapsed = std::chrono::system_clock::now() - m_BommCreatTime;
+	if (TimeElapsed.count() > 3.0f) m_CurrentBombNum = 0;
+
 	Animate(timeElapsed);
 }
 
@@ -121,21 +124,21 @@ void CPlayer::Move(Direction dir)
 		| (m_State == PlayerState::trap);
 	if (cantMove) return;
 
-	switch (dir)
-	{
-	case Direction::left:
-		m_currentAnimation = PlayerImages::left;
-		break;
-	case Direction::right:
-		m_currentAnimation = PlayerImages::right;
-		break;
-	case Direction::up:
-		m_currentAnimation = PlayerImages::up;
-		break;
-	case Direction::down:
-		m_currentAnimation = PlayerImages::down;
-		break;
-	}
+	//switch (dir)
+	//{
+	//case Direction::left:
+	//	m_currentAnimation = PlayerImages::left;
+	//	break;
+	//case Direction::right:
+	//	m_currentAnimation = PlayerImages::right;
+	//	break;
+	//case Direction::up:
+	//	m_currentAnimation = PlayerImages::up;
+	//	break;
+	//case Direction::down:
+	//	m_currentAnimation = PlayerImages::down;
+	//	break;
+	//}
 	//m_Dir = dir;
 	m_State = PlayerState::move;
 }
@@ -186,13 +189,22 @@ bool CPlayer::CanCreateBomb()
 	//return m_Bombs.size() < m_MaxBomb;
 }
 
-void CPlayer::LoadImages(PlayerName name)
+void CPlayer::SetCreateBombFlag(bool flag)
+{
+	m_BoomCreateFlag = flag; 
+	if (flag)
+	{
+		m_BommCreatTime = std::chrono::system_clock::now();
+	}
+}
+
+void CPlayer::LoadImages(CharacterName name)
 {
 	m_AnimationIdx = 0;
 	m_currentAnimation = PlayerImages::down;
 	switch (name)
 	{
-	case PlayerName::Bazzi:
+	case CharacterName::Bazzi:
 		m_Images[0].Load(_T("assets/player/bazzi/down.png"));
 		m_Images[1].Load(_T("assets/player/bazzi/up.png"));
 		m_Images[2].Load(_T("assets/player/bazzi/left.png"));
@@ -223,7 +235,7 @@ void CPlayer::LoadImages(PlayerName name)
 		m_AnimationLen[6] = 5;
 		break;
 
-	case PlayerName::Dao:
+	case CharacterName::Dao:
 		m_Images[0].Load(_T("assets/player/dao/down.bmp"));
 		m_Images[1].Load(_T("assets/player/dao/up.bmp"));
 		m_Images[2].Load(_T("assets/player/dao/left.bmp"));

@@ -8,7 +8,7 @@ public:
 	CGameRecordScene();
 	~CGameRecordScene();
 
-	virtual void SendDataToNextScene(void* pContext) {}
+	virtual void SendDataToNextScene(void* pContext);
 
 public:
 	virtual void Update(float timeElapsed);
@@ -23,7 +23,8 @@ public:
 
 private:
 	CImage background;
-	GameRecordSceneSendData player;
+
+	GameRecordSceneSendData sendData;
 	vector<GameRecordSceneRecvData> scores;
 
 	bool communicate;

@@ -35,6 +35,8 @@ private:
 	CImage				m_PlayerArrow;
 
 	Vector2D<int>		m_TileStartPosition;
+
+	bool				m_InitFlag = true;
 public:
 	CGameScene();
 	~CGameScene();

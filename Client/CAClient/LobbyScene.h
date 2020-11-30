@@ -11,6 +11,8 @@ public:
 	CLobbyScene();
 	~CLobbyScene();
 
+	virtual void SendDataToNextScene(void* pContext);
+
 public:
 	virtual void Update(float timeElapsed);
 	virtual void Draw(HDC hdc);
@@ -35,6 +37,9 @@ public:
 	bool Player3_Ready = false;
 	bool isGameStart;
 private:
+	int m_ClientIdx = 0;
+	string m_ClientID = "";
+
 	CImage m_Bg_Image[2];
 	CImage m_Player2_Images[4];
 	CImage m_Player3_Images[4];

@@ -36,6 +36,12 @@ struct TitleSceneSendData
 	string pw;
 	bool isNew;
 };
+
+struct TitleToLobbySceneData
+{
+	int playerindx;
+	string id;
+};
 #pragma endregion 
 
 // 여기를 채워 주세요
@@ -50,7 +56,7 @@ struct GameRecordSceneSendData
 {
 	string id;
 	int itemScore;
-	int survivedScore;
+	double survivedScore;
 };
 #pragma endregion
 
@@ -58,6 +64,10 @@ struct GameRecordSceneSendData
 #pragma region GameSceneDatas
 struct LobbyToGameSceneData
 {
+	// int playerNum;
+	// int idx[playerNum];
+	// int id[playerNum];
+	// CharacterName chName[playerNum];
 	int idx;
 	int id;
 };
@@ -109,4 +119,10 @@ struct GameSceneSendData
 	int mapData[MAP_WIDTH][MAP_HEIGHT];
 };
 
+struct GameToGameRecordSceneData
+{
+	string id;
+	double alivedTime;
+	int itemObtainScore;
+};
 #pragma endregion

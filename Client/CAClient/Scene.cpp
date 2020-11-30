@@ -77,7 +77,11 @@ void CNullScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 	}
 		break;
 	case VK_F4:	// 3
-		ChangeScene<CGameRecordScene>();
+		GameToGameRecordSceneData data;
+		data.id = "TEST";
+		data.alivedTime = 550;
+		data.itemObtainScore = 550;
+		ChangeScene<CGameRecordScene>((void*)&data);
 		break;
 	}
 }

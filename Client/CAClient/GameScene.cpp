@@ -12,15 +12,14 @@
 
 CGameScene::CGameScene()
 {
-	ZeroMemory(m_Map, sizeof(m_Map));
-	//ZeroMemory(m_Players, sizeof(m_Players));
+	ZeroMemory(m_Map, sizeof(m_Map)); 
 
 	m_SoundManager = new CSoundManager();
 	m_SoundManager->AddStream("assets/sound/village.mp3", Sound_Name::BGM_MAIN_GAME);
 	m_SoundManager->AddSound("assets/sound/bomb_set.mp3", Sound_Name::EFFECT_BOMB_SET);
 	m_SoundManager->AddSound("assets/sound/bomb_pop.mp3", Sound_Name::EFFECT_BOMB_POP);
 	m_SoundManager->AddSound("assets/sound/wave.mp3", Sound_Name::EFFECT_BOMB_WAVE);
-	//m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME);
+	//m_SoundManager->PlayBgm(Sound_Name::BGM_MAIN_GAME); 
 	//m_SoundManager->SetVolume(0.0f);
 
 	ZeroMemory(m_Blocks, sizeof(m_Blocks));
@@ -28,6 +27,8 @@ CGameScene::CGameScene()
 	LoadImages();
 	InitMap();
 	
+	m_InitFlag = false;
+
 	m_Type = SceneType::GameScene;
 }
 
@@ -57,9 +58,7 @@ void CGameScene::SendDataToNextScene(void* pContext)
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 13,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
-		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1},
-		//{(float)m_TileStartPosition.x + OBJECT_SIZE * 0,
-		// (float)m_TileStartPosition.y + OBJECT_SIZE * 2},
+		 (float)m_TileStartPosition.y + OBJECT_SIZE * 1}, 
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 1,
 		 (float)m_TileStartPosition.y + OBJECT_SIZE * 11},
 		{(float)m_TileStartPosition.x + OBJECT_SIZE * 14,
@@ -71,13 +70,12 @@ void CGameScene::SendDataToNextScene(void* pContext)
 	{
 		if (i == m_ClientIdx) continue;
 		if (i % 2 != 0)
-			m_Players[i] = new CPlayer(Positions[4], PlayerName::Dao, i);
+			m_Players[i] = new CPlayer(Positions[4], CharacterName::Dao, i);
 		else
-			m_Players[i] = new CPlayer(Positions[4], PlayerName::Bazzi, i);
-	}
-	//m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], PlayerName::Dao);
+			m_Players[i] = new CPlayer(Positions[4], CharacterName::Bazzi, i);
+	} 
 	if (m_ClientIdx % 2 != 0)
-		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], PlayerName::Dao);
+		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx], CharacterName::Dao);
 	else
 		m_Players[m_ClientIdx] = new CPlayer(Positions[m_ClientIdx]);
 
@@ -94,7 +92,8 @@ void CGameScene::Update(float timeElapsed)
 
 	for (auto player : m_Players)
 	{
-		player->Update(timeElapsed);
+		if(player != nullptr)
+			player->Update(timeElapsed);
 	}
 
 	// 물풍선 업데이트
@@ -145,40 +144,7 @@ void CGameScene::Update(float timeElapsed)
 			if (!m_Items[i][j]) continue;
 			m_Items[i][j]->Update(timeElapsed);
 		}
-	}
-
-	for (auto player : m_Players)
-	{
-		//// 플레이어 - 블록 충돌 처리
-		//for (int i = 0; i < MAP_HEIGHT; ++i)
-		//{
-		//	for (int j = 0; j < MAP_WIDTH; ++j)
-		//	{
-		//		if (m_Blocks[i][j] == nullptr) continue;
-		//
-		//		bool bCollide = player->IsCollide(m_Blocks[i][j]);
-		//		bool bMovable = m_Blocks[i][j]->IsCanMove();
-		//		
-		//		if (bCollide)
-		//		{
-		//			//player->FixCollision();
-		//		}
-		//		else continue;;
-		//		if (m_Blocks[i][j]->GetIsOnMove()) continue;
-		//		if (bMovable)
-		//		{ 
-		//			Direction dir = player->GetDirection();
-		//			Vector2i coord(j, i);
-		//			if (!CalcNextCoordinates(coord, dir)) continue;
-		//			m_Blocks[i][j]->SetIsOnMove(true, coord);
-		//			m_Blocks[i][j]->SetDirection(dir);
-		//			m_Blocks[coord.y][coord.x] = m_Blocks[i][j];
-		//			m_Map[i][j] = MAP_TILE_TYPE::EMPTY;
-		//			m_Blocks[i][j] = nullptr;
-		//		}
-		//	}
-		//} 
-	}
+	} 
 }
 
 void CGameScene::Draw(HDC hdc)
@@ -216,6 +182,7 @@ void CGameScene::Draw(HDC hdc)
 	
 	for (auto player : m_Players)
 	{
+		if(player != nullptr)
 		player->Draw(hdc);
 	}	
 	if (m_Player->IsAlive())
@@ -248,61 +215,74 @@ void CGameScene::Communicate(SOCKET& sock)
 
 	timeElapsed = std::chrono::system_clock::now() - currentTime;
 	currentTime = std::chrono::system_clock::now();
-
-	//cout << "TimeElapsed: " << timeElapsed.count() << "\n";
+	 
 	int retVal;
 	string toSendData = to_string((int)m_Type);
 	SendFrameData(sock, toSendData, retVal);
 	 
-	GameSceneSendData data;
-	data.playerIndex = m_Player->GetIndex();
-	data.position	 = m_Player->GetPosition();
-	data.waterRange  = m_Player->GetPower();
-	data.speed		 = m_Player->GetSpeed();
-	data.direction   = m_Player->GetDirection();
-	data.state		 = (int)m_Player->GetState();
-	data.bombNum	 = m_Player->GetMaxBomb();
-	//data.mapData = m_Map;
-
-	toSendData.clear();
-
-	toSendData = "<Position>:";
-	toSendData += to_string(data.position.x);
-	toSendData += " ";
-	toSendData += to_string(data.position.y);
-	toSendData += "\n";
-
-	toSendData += "<PlayerIndex>:";
-	toSendData += to_string(data.playerIndex);
-	toSendData += "\n";
-
-	toSendData += "<Power>:";
-	toSendData += to_string(data.waterRange);
-	toSendData += "\n";
-
-	toSendData += "<Speed>:";
-	toSendData += to_string(data.speed);
-	toSendData += "\n";
-
-	toSendData += "<BombNum>:";
-	toSendData += to_string(data.bombNum);
-	toSendData += "\n";
-
-	toSendData += "<Direction>:";
-	toSendData += to_string((int)data.direction);
-	toSendData += "\n";
-
-	toSendData += "<PlayerState>:";
-	toSendData += to_string(data.state);
-	toSendData += "\n";
-
-	if (m_Player->GetCreateBombFlag())
+	if (m_InitFlag)
 	{
-		toSendData += "<BombCreateFlag>:";
-		toSendData += m_Player->GetCreateBombFlag();
+		//toSendData = "<InitPlayer>:\n";
+		//toSendData += to_string(m_Player->GetIndex());
+		//toSendData += "\n";
+		//toSendData += m_Player->GetID();
+		//toSendData += "\n";
+		//toSendData += to_string((int)m_Player->GetCharacterName());
+		//toSendData += "\n";
+		m_InitFlag = false;
+	}
+	else
+	{
+		GameSceneSendData data;
+		data.playerIndex = m_Player->GetIndex();
+		data.position = m_Player->GetPosition();
+		data.waterRange = m_Player->GetPower();
+		data.speed = m_Player->GetSpeed();
+		data.direction = m_Player->GetDirection();
+		data.state = (int)m_Player->GetState();
+		data.bombNum = m_Player->GetMaxBomb();
+		//data.mapData = m_Map;
+
+		toSendData.clear();
+
+		toSendData = "<Position>:";
+		toSendData += to_string(data.position.x);
+		toSendData += " ";
+		toSendData += to_string(data.position.y);
 		toSendData += "\n";
-		m_Player->SetCreateBombFlag(false);
-	} 
+
+		toSendData += "<PlayerIndex>:";
+		toSendData += to_string(data.playerIndex);
+		toSendData += "\n";
+
+		toSendData += "<Power>:";
+		toSendData += to_string(data.waterRange);
+		toSendData += "\n";
+
+		toSendData += "<Speed>:";
+		toSendData += to_string(data.speed);
+		toSendData += "\n";
+
+		toSendData += "<BombNum>:";
+		toSendData += to_string(data.bombNum);
+		toSendData += "\n";
+
+		toSendData += "<Direction>:";
+		toSendData += to_string((int)data.direction);
+		toSendData += "\n";
+
+		toSendData += "<PlayerState>:";
+		toSendData += to_string(data.state);
+		toSendData += "\n";
+
+		if (m_Player->GetCreateBombFlag())
+		{
+			toSendData += "<BombCreateFlag>:";
+			toSendData += m_Player->GetCreateBombFlag();
+			toSendData += "\n";
+			m_Player->SetCreateBombFlag(false);
+		}
+	}
 	SendFrameData(sock, toSendData, retVal);
 
 	char buffer[BUFSIZE + 1];
@@ -322,7 +302,24 @@ void CGameScene::Communicate(SOCKET& sock)
 		if (strstr(token, "<IsGameEnd>:"))
 		{
 			bool result = ConvertoIntFromText(token, "<IsGameEnd>:");
-			if (result) ChangeScene<CGameRecordScene>();
+			if (result)
+			{
+				GameToGameRecordSceneData data;
+				
+				char temp[256] = {}; 
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				data.alivedTime = atof(temp);
+
+				token = strtok(NULL, "\n");
+				strcpy(temp, token);
+				data.itemObtainScore = atoi(temp);
+				cout << "생존시간 : " << data.alivedTime 
+					<< " 점수 : " << data.itemObtainScore << " \n";
+				m_SoundManager->Stop();
+				ChangeScene<CGameRecordScene>((void*)&data);
+				return;
+			}
 			cout << "<IsGameEnd>: " << boolalpha << (bool)ConvertoIntFromText(token, "<IsGameEnd>:") << " \n";
 		} 
 		else if (strstr(token, "<Players>:"))
@@ -366,7 +363,13 @@ void CGameScene::Communicate(SOCKET& sock)
 				token = strtok(NULL, "\n");
 				strcpy(temp, token);
 				int direction = atoi(temp);
-				 
+				
+				if (m_Players[index] == nullptr)
+				{ 
+					m_Players[index] = new CPlayer({ posX,posY }, CharacterName::Bazzi, index);
+				
+					m_Players[m_ClientIdx]->SetIndex(m_ClientIdx);
+				}
 				if (m_ClientIdx == index)
 				{
 					if (state == (int)PlayerState::move && 
@@ -380,6 +383,10 @@ void CGameScene::Communicate(SOCKET& sock)
 							<< (int)m_Players[index]->GetState()
 							<< " to " << (int)state << ")\n";
 						m_Players[index]->ChangeState((PlayerState)state);
+					}
+					if (m_Players[index]->GetDirection() != (Direction)direction)
+					{
+						m_Players[index]->SetDirection((Direction)direction);
 					}
 				}
 				else if (m_Players[index]->GetState() != (PlayerState)state)
@@ -403,8 +410,7 @@ void CGameScene::Communicate(SOCKET& sock)
 			token = strtok(NULL, "\n");
 			MapDatas m_MapToDatas[MAP_HEIGHT][MAP_WIDTH];
 			for (int i = 0; i < MAP_HEIGHT; ++i)
-			{
-				//token = strtok(NULL, "\n");
+			{ 
 				char temp[30] = {};
 				int k = 0;
 				for (int j = 0; j < MAP_WIDTH; ++j)
@@ -463,6 +469,7 @@ void CGameScene::Communicate(SOCKET& sock)
 						Vector2i playerCoord = m_Player->GetCoordinate();
 						mapCoord = { j, i };
 						m_Bombs[i][j] = new CBomb(GetPositionCoord(mapCoord), power);
+						//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
 						cout << "BombCreate - [X:" << j << ", y: " << i << "]\n";
 						if (mapCoord == playerCoord)
 						{
@@ -479,6 +486,7 @@ void CGameScene::Communicate(SOCKET& sock)
 							m_Player->DecreaseCurrentBombNum();
 						}
 						m_Bombs[i][j]->ChangeState(BombState::Explosion);
+						//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_POP);
 						cout << "BombDelete - [X:" << j << ", y: " << i << "]\n";
 
 						break;
@@ -541,30 +549,12 @@ void CGameScene::ProcessKeyboardDownInput(HWND hWnd, UINT message, WPARAM wParam
 		Vector2D<int> coord = GetCoordinates(m_Player->GetPosition(), m_Player->GetSize());
 		if (m_Map[coord.y][coord.x] == MAP_TILE_TYPE::EMPTY)
 		{
-			if (m_Player->CanCreateBomb()) {
-				//CreateBomb(coord);
-				//m_SoundManager->PlayEffect(Sound_Name::EFFECT_BOMB_SET);
+			if (m_Player->CanCreateBomb()) { 
 				m_Player->SetCreateBombFlag(true);
 			}
 		}
 		break; 
-	}
-	//case VK_LEFT:
-	//	if (!m_Player)break;
-	//	m_Player->Move(Direction::left);
-	//	break;
-	//case VK_RIGHT:
-	//	if (!m_Player)break;
-	//	m_Player->Move(Direction::right);
-	//	break;
-	//case VK_UP:
-	//	if (!m_Player)break;
-	//	m_Player->Move(Direction::up);
-	//	break;
-	//case VK_DOWN:
-	//	if (!m_Player)break;
-	//	m_Player->Move(Direction::down);
-	//	break;
+	} 
 	case VK_F1:	// 0
 		m_Player->ChangeState(PlayerState::wait);
 		break;
