@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "LobbyScene.h"
 #include "GameScene.h"
-#include "GameFramework.h"
-
+#include "GameFramework.h" 
+#include "Sound.h" 
 //#ifdef _DEBUG
 //#ifdef UNICODE
 //#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
@@ -26,6 +26,10 @@ CLobbyScene::CLobbyScene()
 	m_Player3_Images[2].Load(_T("assets/lobby_scene_player3_ready.png"));
 	m_Player3_Images[3].Load(_T("assets/lobby_scene_player3_dao_ready.png"));
 
+	m_SoundManager = new CSoundManager();
+	m_SoundManager->AddStream("assets/sound/Lobby.mp3", Sound_Name::BGM_LOBBY);
+	m_SoundManager->PlayBgm(Sound_Name::BGM_LOBBY);
+
 	// 타입 초기화
 	m_Type = SceneType::LobbyScene;
 
@@ -39,11 +43,13 @@ CLobbyScene::CLobbyScene()
 }
 
 CLobbyScene::~CLobbyScene()
-{ 
+{
+	m_SoundManager->Stop();
 }
 
 void CLobbyScene::Update(float timeElapsed)
 {
+	m_SoundManager->OnUpdate();
 	if (m_Play.Num == 2)
 	{
 		Player2_Exist = true;
@@ -71,6 +77,7 @@ void CLobbyScene::Update(float timeElapsed)
 			Data.chName[i] = R_Player[i].chartype;
 			Data.idx_[i] = R_Player[i].index; 
 		}
+		m_SoundManager->Stop();
 		ChangeScene<CGameScene>((void*)&Data);
 	}
 }

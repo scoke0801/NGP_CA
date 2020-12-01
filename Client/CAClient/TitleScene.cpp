@@ -39,7 +39,8 @@ void CTitleScene::Update(float timeElapsed)
 	if (selected == "Login" && recvData.result == TRUE) {
 	//수신받은 결과가 TRUE 이고 로그인 버튼이 눌렸다면 씬 체인지 
 		nextscenedata.playerindx = recvData.playerIndex;
-		nextscenedata.id = sendData.id;
+		nextscenedata.id = sendData.id; 
+		m_SoundManager->Stop();
 		ChangeScene<CLobbyScene>((void*)&nextscenedata);
 	}
 }

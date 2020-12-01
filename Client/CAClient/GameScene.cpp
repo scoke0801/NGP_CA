@@ -331,6 +331,8 @@ void CGameScene::Communicate(SOCKET& sock)
 				cout << "생존시간 : " << data.alivedTime 
 					<< " 점수 : " << data.itemObtainScore << " \n";
 				m_SoundManager->Stop();
+
+				data.id = m_ClientID;
 				ChangeScene<CGameRecordScene>((void*)&data);
 				return;
 			}

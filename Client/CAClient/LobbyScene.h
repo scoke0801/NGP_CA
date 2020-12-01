@@ -4,6 +4,7 @@
 #include "Player.h"
 
 class CFramework;
+class CSoundManager;
 
 class CLobbyScene : public CScene
 {
@@ -48,6 +49,7 @@ private:
 	LobbySceneSendData m_Play;
 	LobbySceneRecvData R_Player[4];
 
+	CSoundManager* m_SoundManager;
 
 	string is_Select[3];
 	

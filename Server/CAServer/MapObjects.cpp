@@ -74,7 +74,7 @@ CPlayer::CPlayer(Vector2f position, int index, string ID, PlayerState state)
 	m_State = state;
 	m_ID = ID;
 
-	m_Speed = 2;
+	m_Speed = 4;
 	m_Direction = Direction::down;
 	m_Power = 2;
 	m_CharacterName = CharacterName::Bazzi;
