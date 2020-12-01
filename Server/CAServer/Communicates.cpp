@@ -112,7 +112,6 @@ void saveFile(string filename, map<string, string> fileData)
 }
 
 LobbySceneSendData Data;
-CRITICAL_SECTION cs;
 
 int g_pIndex = 0; // 플레이어 번호
 
@@ -302,6 +301,9 @@ bool ProcessTitleScene(SOCKET& sock,int idx)
 	return isLogin;
 }
 
+int write_count = 0;
+HANDLE WriteEvent = CreateEvent(NULL, TRUE ,FALSE, NULL);
+
 bool ProcessGameRecordScene(SOCKET& socket, int idx)
 {
 	int retval;
@@ -322,13 +324,22 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	//확인용 출력
 	cout << "[ID]: " << recvData.id << " [ITS]: " << recvData.itemScore << " [SVS]: " << recvData.survivedScore << endl;
 
-	//수신받은 점수 파일에 저장
+	EnterCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 	ofstream out;
 	out.open("data/Score.txt"s, ios::app);
 	out << recvData.id << " " << recvData.itemScore << " " << recvData.survivedScore << endl;
 	out.close();
+	write_count++;
+	LeaveCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 
-	//점수 정보 읽어오기, 생존시간은 int로 변환 후 *10을 해서 점수로 변환
+	/*if (write_count == g_pIndex) {
+		cout << "모든 플레이어 쓰기 완료" << endl;
+		SetEvent(WriteEvent);
+	}*/
+
+	//WaitForSingleObject(WriteEvent, INFINITE);
+
+	EnterCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 	ifstream in("data/Score.txt"s);
 	if (in) {
 		string id;
@@ -340,7 +351,6 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 		}
 	}
 	in.close();
-
 	//아이템 점수 + 생존 점수 합으로 내림차순 정렬
 	sort(ranking.begin(), ranking.end(),
 		[](const GameRecordSceneSendData& a, const GameRecordSceneSendData& b) {
@@ -349,7 +359,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	data.clear();
 
 	//상위 점수 10개 목록 송신
-	for (int i = 1; i < 11; i++) {
+	for (int i = 0; i < 10; i++) {
 		data = "<ID>";
 		data += ranking[i].id;
 		data += "<ITS>";
@@ -360,6 +370,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 		cout << ranking[i].id << " " << ranking[i].itemScore << " " << ranking[i].survivedScore << endl;
 		data.clear();
 	}
+	LeaveCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 	return 0;
 }
 

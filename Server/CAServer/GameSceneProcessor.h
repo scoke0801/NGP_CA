@@ -26,7 +26,10 @@ private:
 	int					m_SendCount = 0;
 	int					m_AlivedPlayerNum = 0;
 
+public:
 	CRITICAL_SECTION	m_cs;
+
+private:
 	GameSceneProcessor()
 	{
 		InitializeCriticalSection(&m_cs);

@@ -392,9 +392,11 @@ bool GameSceneProcessor::ProcessGameScene(SOCKET& socket)
 		{
 			if (!m_Players[i]) continue;
 		
-			toSendData += to_string(m_Players[i]->GetAlivedTime());
+			//toSendData += to_string(m_Players[i]->GetAlivedTime());
+			toSendData += to_string(m_Players[recvedData.playerIndex]->GetDeadTime());
 			toSendData += "\n";
-			toSendData += to_string(m_Players[i]->GetItemScore());
+			//toSendData += to_string(m_Players[i]->GetItemScore());
+			toSendData += to_string(m_Players[recvedData.playerIndex]->GetItemScore());
 			toSendData += "\n";
 		}
 	}

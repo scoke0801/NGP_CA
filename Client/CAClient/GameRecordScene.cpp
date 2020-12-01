@@ -24,6 +24,8 @@ void CGameRecordScene::SendDataToNextScene(void* pContext)
 	if (sendData.id == "") sendData.id = "TEST";
 	sendData.itemScore = data->itemObtainScore;
 	sendData.survivedScore = data->alivedTime;
+
+	cout << sendData.id << " " << sendData.itemScore << " " << sendData.survivedScore << endl;
 }
 
 void CGameRecordScene::Update(float timeElapsed)
