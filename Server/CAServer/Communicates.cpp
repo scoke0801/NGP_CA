@@ -301,9 +301,6 @@ bool ProcessTitleScene(SOCKET& sock,int idx)
 	return isLogin;
 }
 
-int write_count = 0;
-HANDLE WriteEvent = CreateEvent(NULL, TRUE ,FALSE, NULL);
-
 bool ProcessGameRecordScene(SOCKET& socket, int idx)
 {
 	int retval;
@@ -332,14 +329,7 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	write_count++;
 	LeaveCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 
-	/*if (write_count == g_pIndex) {
-		cout << "모든 플레이어 쓰기 완료" << endl;
-		SetEvent(WriteEvent);
-	}*/
-
-	//WaitForSingleObject(WriteEvent, INFINITE);
-
-	EnterCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
+	ranking.clear();
 	ifstream in("data/Score.txt"s);
 	if (in) {
 		string id;
@@ -350,6 +340,8 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 			ranking.push_back({ id, itscore, (int)svscore * 10 });
 		}
 	}
+	ranking.pop_back();
+
 	in.close();
 	//아이템 점수 + 생존 점수 합으로 내림차순 정렬
 	sort(ranking.begin(), ranking.end(),
@@ -370,7 +362,8 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 		cout << ranking[i].id << " " << ranking[i].itemScore << " " << ranking[i].survivedScore << endl;
 		data.clear();
 	}
-	LeaveCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
+	cout << "송신 끝=============" << endl;
+
 	return 0;
 }
 
