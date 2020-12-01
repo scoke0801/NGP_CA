@@ -69,9 +69,7 @@ void CLobbyScene::Update(float timeElapsed)
 		{
 			Data.id_[i] = R_Player[i].id;
 			Data.chName[i] = R_Player[i].chartype;
-			Data.idx_[i] = R_Player[i].index;
-
-
+			Data.idx_[i] = R_Player[i].index; 
 		}
 		ChangeScene<CGameScene>((void*)&Data);
 	}
@@ -219,16 +217,16 @@ void CLobbyScene::Communicate(SOCKET& sock)
 
 	char* token = strtok(buf, "\n");
 	strstr(token, "ID");
-	int tokenLen = strlen(token);
+	int tokenLen = strlen("ID");
 
-	strncpy(temp, token + tokenLen, strlen(token) - tokenLen);
-	
+	//strncpy(temp, token + tokenLen, strlen(token) - tokenLen);
+	strcpy(temp, token + tokenLen);
 	int d = atoi(temp);
 
-	for (int i = 0; i <= d; i++)
+	for (int i = 0; i < d; i++)
 	{
 		token = strtok(NULL, "\n");
-
+		if (token == nullptr) continue;
 		strcpy(temp, token);
 
 		string b = temp;

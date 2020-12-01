@@ -455,13 +455,18 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	toSendData.clear();
 	toSendData += "ID";
 	toSendData += to_string(Data);
-	toSendData += "\n";
-	for (int i = 0; i <= Data; ++i)
+	//toSendData += "\n";
+	for (int i = 0; i < Data; ++i)
 	{
-		toSendData += lobbyScene.id[i];
-		toSendData += "\n";
+		if (lobbyScene.id[i] != "")
+		{
+			toSendData += lobbyScene.id[i];
+		}
+		else
+			toSendData += "\n";
+		
 	}
-
+	toSendData += "\n";
 
 	cout << toSendData;
 
