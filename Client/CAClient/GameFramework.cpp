@@ -120,8 +120,8 @@ void CFramework::BuildScene()
 {
 	m_pCurScene = nullptr;
 
-	ChangeScene<CNullScene>();
-	//ChangeScene<CTitleScene>(); 
+	//ChangeScene<CNullScene>();
+	ChangeScene<CTitleScene>(); 
 	//ChangeScene<CTitleScene>(); 
 	//ChangeScene<CGameScene>();
 	//ChangeScene<CLobbyScene>();
