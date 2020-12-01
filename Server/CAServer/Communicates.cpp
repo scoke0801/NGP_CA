@@ -324,7 +324,6 @@ bool ProcessGameRecordScene(SOCKET& socket, int idx)
 	out.open("data/Score.txt"s, ios::app);
 	out << recvData.id << " " << recvData.itemScore << " " << recvData.survivedScore << endl;
 	out.close();
-	write_count++;
 	LeaveCriticalSection(&(GameSceneProcessor::GetInstance()->m_cs));
 
 	ranking.clear();
