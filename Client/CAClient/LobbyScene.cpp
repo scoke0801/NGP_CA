@@ -1,8 +1,15 @@
 #include "stdafx.h"
 #include "LobbyScene.h"
 #include "GameScene.h"
-#include "GameFramework.h"
-#include "Sound.h"
+#include "GameFramework.h" 
+#include "Sound.h" 
+//#ifdef _DEBUG
+//#ifdef UNICODE
+//#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+//#else
+//#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+//#endif
+//#endif
 
 CLobbyScene::CLobbyScene()
 {
