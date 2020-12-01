@@ -490,8 +490,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	{
 		lobbyScene.index[Client_Idx] = 2;
 	}
-	
-
+	 
 	toSendData.clear();
 
 	for (int i = 0; i < 3; i++)
@@ -508,13 +507,25 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	
 	Character_Ready = atoi(buffer);
 
-
+	bool isReady = false;
+	for (int i = 1; i < Data; ++i)
+	{
+		if (lobbyScene.id[i] == "") continue;
+		isReady = (lobbyScene.Ready[1]);
+		if (!isReady)break;
+	}
+	lobbyScene.gamestart = isReady;
+	if (lobbyScene.gamestart)
+	{
+		int stop = 3;
+	}
 	if (Character_Ready == 0 && Client_Idx == 0)
 	{
-		if (lobbyScene.Ready[1] == 1 && lobbyScene.Ready[2] == 1)
-		{
-			lobbyScene.gamestart = 1;
-		}
+		
+		//if (lobbyScene.Ready[1] == 1 && lobbyScene.Ready[2] == 1)
+		//{
+		//	lobbyScene.gamestart = 1;
+		//}
 	}
 	if (Character_Ready == 0 && Client_Idx == 0)
 	{
