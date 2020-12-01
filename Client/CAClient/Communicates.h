@@ -9,7 +9,7 @@
 //#define SERVERIP   "192.168.35.118" 
 //#define SERVERIP   "211.207.24.227"// 종현 
 //#define SERVERIP	 "192.168.35.229"
-//#define SERVERIP   "192.168.0.15"  // 영진 
+//#define SERVERIP   "192.168.0.4"  // 영진 
 #define SERVERPORT 9000
 #define MAX_FILE_NAME_LAN 256
 

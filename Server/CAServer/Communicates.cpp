@@ -96,7 +96,6 @@ bool RecvFrameData(SOCKET& client_sock, char* buf, int& retval)
 	buf[retval] = '\0';
 	return true;
 }
-
 void saveFile(string filename, map<string, string> fileData)
 {
 	ofstream out;
@@ -138,8 +137,7 @@ DWORD __stdcall ClientThread(LPVOID arg)
 	// +1, null value
 	char buffer[BUFSIZE + 1];
 	int receivedSize = 0;
-	int count = 0;
-
+	
 	while (1) {
 		static std::chrono::system_clock::time_point currentTime = std::chrono::system_clock::now();
 		static std::chrono::duration<double> timeElapsed;
@@ -378,16 +376,16 @@ class LobbyScene
 {
 public:
 	int playerTypes[3]; // size 3으로 고정
-	string id[3];
 	int index[3];
 	int Ready[3];
+	string id[3];
 	string chatting[3];
 	int gamestart;
 };
 
 LobbyScene lobbyScene;
 
-bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
+bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Client_Num)
 {
 	int retval = 0;
 	char buffer[BUFSIZE + 1];
@@ -395,19 +393,19 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 
 	LobbySceneSendData Data_e;
 	
-	toSendData = " ";
-	toSendData += to_string(Client_Idx);
-	toSendData += to_string(Data);
+	toSendData = " ";					
+	toSendData += to_string(Client_Idx);		// 플레이어가 각자 저장한 인덱스
+	toSendData += to_string(Client_Num);		// 클라이언트의 총갯수
 	
+	// 인덱스,총갯수 보내기
 	SendFrameData(sock, toSendData, retval);
 	
 	RecvFrameData(sock, buffer, retval);
 
+	// 캐릭터 변경 확인 변수
 	int Character_Change = 0;
 
 	Character_Change = atoi(buffer);
-
-	//cout << Character_Change << endl;
 
 	if (Character_Change==1 && Client_Idx==0)
 	{
@@ -434,6 +432,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 		lobbyScene.playerTypes[Client_Idx] = 0;
 	}
 	
+	// 캐릭터 변경 타입 보내고 받기
 	toSendData.clear();
 
 	toSendData += to_string(lobbyScene.playerTypes[0]);
@@ -444,7 +443,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	SendFrameData(sock, toSendData, retval);
 
 	
-	// 아이디 받기
+	// 아이디 보내고 받기
 	RecvFrameData(sock, buffer, retval);
 
 	string ID_Change;
@@ -465,9 +464,9 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 
 	toSendData.clear();
 	toSendData += "ID";
-	toSendData += to_string(Data);
+	toSendData += to_string(Client_Num);
 	//toSendData += "\n";
-	for (int i = 0; i < Data; ++i)
+	for (int i = 0; i < Client_Num; ++i)
 	{
 		if (lobbyScene.id[i] != "")
 		{
@@ -519,7 +518,7 @@ bool ProcessLobbyScene(SOCKET& sock, int Client_Idx,int Data)
 	Character_Ready = atoi(buffer);
 
 	bool isReady = false;
-	for (int i = 1; i < Data; ++i)
+	for (int i = 1; i < Client_Num; ++i)
 	{
 		if (lobbyScene.id[i] == "") continue;
 		isReady = (lobbyScene.Ready[1]);
