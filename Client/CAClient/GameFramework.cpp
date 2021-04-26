@@ -106,8 +106,7 @@ bool CFramework::PrepareCommunicate()
 		// error_quit("connect()");
 		return false;
 	}
-	
-
+	 
 	return true;
 }
 
